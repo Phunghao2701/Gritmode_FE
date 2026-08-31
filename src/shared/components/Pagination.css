@@ -1,0 +1,93 @@
+/* ───────────────────────────────────────────────────────────────
+ * PAGINATION STYLES
+ * ─────────────────────────────────────────────────────────────── */
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.admin-pagination__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.admin-pagination__btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.admin-pagination__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-pagination__btn:active {
+  transform: translateY(1px);
+}
+
+/* Trang hiện tại - nền cam, chữ trắng */
+.admin-pagination__btn--active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.admin-pagination__btn--active:hover {
+  color: #ffffff;
+}
+
+.admin-pagination__ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.admin-pagination-bar,
+.admin-journal-pagination-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0 0;
+}
+
+.admin-pagination-bar > .admin-pagination-bar__center,
+.admin-journal-pagination-bar > .admin-pagination {
+  justify-self: center;
+}
+
+.admin-pagination-bar > .admin-pagination-bar__center .admin-pagination,
+.admin-journal-pagination-bar .admin-pagination {
+  margin-top: 0;
+}
+
+@media (max-width: 576px) {
+  .admin-pagination-bar,
+  .admin-journal-pagination-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,72 @@
+/* Lenis smooth scroll — disable native scroll-behavior to avoid conflict */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: 0 0 0;
+    --color-accent: 255 255 255;
+  }
+
+  * {
+    @apply border-street-200 dark:border-street-800;
+  }
+
+  body {
+    @apply font-sans antialiased min-h-screen bg-white text-black dark:bg-black dark:text-white selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black;
+    font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-display, .font-street {
+    font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Streetwear Custom Scrollbar (Pure Monochrome) */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-neutral-400 dark:bg-neutral-700 rounded-full hover:bg-neutral-600 dark:hover:bg-neutral-500 transition-colors;
+}
+
+/* Marquee infinite animation track */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+}
+
+/* Glassmorphic elements */
+.glass-street {
+  @apply bg-white/90 dark:bg-black/90 backdrop-blur-md border border-neutral-200/80 dark:border-neutral-800/80;
+}

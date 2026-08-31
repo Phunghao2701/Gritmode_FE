@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 182.45 32">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #0d1b1c;
+        font-family: Georgia-Bold, Georgia;
+        font-size: 19px;
+        font-weight: 700;
+        isolation: isolate;
+        letter-spacing: -.02em;
+      }
+
+      .cls-2 {
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+      }
+
+      .cls-3 {
+        fill: #071a1c;
+      }
+    </style>
+  </defs>
+  <g id="logo-mark">
+    <rect class="cls-3" width="32" height="32" rx="8" ry="8"/>
+    <path class="cls-2" d="m22.67,16h-2.67l-2,6-4-12-2,6h-2.67"/>
+  </g>
+  <text class="cls-1" transform="translate(42 22)"><tspan x="0" y="0">ResearchPulse</tspan></text>
+</svg>

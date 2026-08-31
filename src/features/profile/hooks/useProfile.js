@@ -1,0 +1,168 @@
+/**
+ * Profile & Address Custom Hooks for Gritmode
+ * Powered by @tanstack/react-query and synchronized with authStore
+ */
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  getProfileApi,
+  updateProfileApi,
+  getAddressesApi,
+  createAddressApi,
+  updateAddressApi,
+  deleteAddressApi,
+  setDefaultAddressApi,
+  getMyOrdersApi,
+} from '../apis/profile.api';
+import { useAuthStore } from '../../../app/store/authStore';
+import { toast } from '../../../shared/utils/toast';
+
+/**
+ * Hook quản lý thông tin tài khoản cá nhân
+ */
+export const useProfile = () => {
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore((state) => state.setUser);
+
+  const profileQuery = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: async () => {
+      const res = await getProfileApi();
+      const userData = res.data?.data || res.data;
+      if (userData) {
+        // Đồng bộ với global auth state
+        setUser(userData);
+      }
+      return userData;
+    },
+    staleTime: 1000 * 60 * 5, // 5 phút
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateProfileApi,
+    onSuccess: (res) => {
+      const updatedUser = res.data?.data || res.data;
+      if (updatedUser) {
+        setUser(updatedUser);
+      }
+      toast.success('Cập nhật thông tin tài khoản thành công!');
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+    },
+    onError: (err) => {
+      const status = err.response?.status;
+      if (status === 409) {
+        toast.error('Số điện thoại này đã được sử dụng bởi tài khoản khác.');
+      } else {
+        toast.error(err.response?.data?.message || 'Không thể cập nhật hồ sơ. Vui lòng thử lại.');
+      }
+    },
+  });
+
+  return {
+    ...profileQuery,
+    profile: profileQuery.data,
+    isLoadingProfile: profileQuery.isLoading,
+    updateProfile: updateProfileMutation.mutate,
+    updateProfileAsync: updateProfileMutation.mutateAsync,
+    isUpdating: updateProfileMutation.isPending,
+    updateError: updateProfileMutation.error,
+  };
+};
+
+/**
+ * Hook quản lý sổ địa chỉ nhận hàng
+ */
+export const useAddresses = () => {
+  const queryClient = useQueryClient();
+
+  const addressesQuery = useQuery({
+    queryKey: ['user-addresses'],
+    queryFn: async () => {
+      const res = await getAddressesApi();
+      const data = res.data?.data || res.data || [];
+      return Array.isArray(data) ? data : [];
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createAddressApi,
+    onSuccess: () => {
+      toast.success('Thêm địa chỉ giao hàng thành công!');
+      queryClient.invalidateQueries({ queryKey: ['user-addresses'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Không thể tạo địa chỉ mới. Vui lòng kiểm tra lại.');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => updateAddressApi(id, data),
+    onSuccess: () => {
+      toast.success('Cập nhật địa chỉ thành công!');
+      queryClient.invalidateQueries({ queryKey: ['user-addresses'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Không thể cập nhật địa chỉ.');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAddressApi,
+    onSuccess: () => {
+      toast.success('Đã xóa địa chỉ!');
+      queryClient.invalidateQueries({ queryKey: ['user-addresses'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Không thể xóa địa chỉ.');
+    },
+  });
+
+  const setDefaultMutation = useMutation({
+    mutationFn: setDefaultAddressApi,
+    onSuccess: () => {
+      toast.success('Đã thay đổi địa chỉ mặc định!');
+      queryClient.invalidateQueries({ queryKey: ['user-addresses'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Không thể đặt địa chỉ mặc định.');
+    },
+  });
+
+  const addresses = addressesQuery.data || [];
+  const defaultAddress = addresses.find((addr) => addr.is_default) || null;
+
+  return {
+    ...addressesQuery,
+    addresses,
+    defaultAddress,
+    isLoadingAddresses: addressesQuery.isLoading,
+    createAddress: createMutation.mutate,
+    createAddressAsync: createMutation.mutateAsync,
+    isCreatingAddress: createMutation.isPending,
+    updateAddress: (id, data) => updateMutation.mutate({ id, data }),
+    updateAddressAsync: (id, data) => updateMutation.mutateAsync({ id, data }),
+    isUpdatingAddress: updateMutation.isPending,
+    deleteAddress: deleteMutation.mutate,
+    isDeletingAddress: deleteMutation.isPending,
+    setDefaultAddress: setDefaultMutation.mutate,
+    isSettingDefaultAddress: setDefaultMutation.isPending,
+  };
+};
+
+/**
+ * Hook quản lý đơn mua cá nhân
+ */
+export const useMyOrders = (params = {}) => {
+  const ordersQuery = useQuery({
+    queryKey: ['my-orders', params],
+    queryFn: async () => {
+      const res = await getMyOrdersApi(params);
+      const raw = res.data?.data || res.data;
+      return Array.isArray(raw) ? raw : (raw?.items || raw?.orders || []);
+    },
+  });
+
+  return {
+    ...ordersQuery,
+    orders: ordersQuery.data || [],
+  };
+};

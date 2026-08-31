@@ -1,0 +1,94 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAdminStats, useAdminOrders, useAdminInventory } from '../hooks/useAdmin';
+import DashboardStatCard from '../components/DashboardStatCard';
+import RecentOrdersTable from '../components/RecentOrdersTable';
+import LowStockAlert from '../components/LowStockAlert';
+
+export default function AdminDashboardPage() {
+  const navigate = useNavigate();
+  const { data: stats } = useAdminStats();
+  const { orders } = useAdminOrders({ limit: 5 });
+  const { inventory } = useAdminInventory({ limit: 5 });
+
+  const lowStockItems = inventory.filter(
+    (i) => (i.available !== undefined ? i.available : i.onHand) <= (i.lowStockThreshold || 5)
+  );
+
+  const formatPrice = (p) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
+  };
+
+  const statCards = [
+    {
+      title: 'Doanh thu tháng',
+      value: formatPrice(stats?.revenueThisMonth || 0),
+      change: stats?.revenueChange || '+15.8%',
+      icon: 'solar:dollar-minimalistic-linear',
+      bg: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+    },
+    {
+      title: 'Tổng đơn hàng',
+      value: `${stats?.totalOrders || 0} đơn`,
+      change: stats?.ordersChange || '+8.2%',
+      icon: 'solar:bag-3-linear',
+      bg: 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400',
+    },
+    {
+      title: 'Sản phẩm đang bán',
+      value: `${stats?.totalProducts || 0} items`,
+      change: stats?.productsChange || '+4',
+      icon: 'solar:t-shirt-linear',
+      bg: 'bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400',
+    },
+    {
+      title: 'Khách hàng thành viên',
+      value: `${stats?.totalUsers || 0} users`,
+      change: stats?.usersChange || '+12%',
+      icon: 'solar:users-group-rounded-linear',
+      bg: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
+    },
+  ];
+
+  return (
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* Top Banner */}
+      <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
+            Analytics & Operations
+          </span>
+          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
+            Tổng quan hệ thống
+          </h1>
+          <p className="text-xs text-neutral-500 mt-1">
+            Hiệu suất bán hàng, lưu lượng đơn và quản trị kho Gritmode.
+          </p>
+        </div>
+      </div>
+
+      {/* 4 Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((card, idx) => (
+          <DashboardStatCard key={idx} {...card} />
+        ))}
+      </div>
+
+      {/* 2-Column Grid: Recent Orders (7 cols) + Low Stock Alert (5 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-7">
+          <RecentOrdersTable
+            orders={orders.slice(0, 5)}
+            onViewAll={() => navigate('/admin/orders')}
+          />
+        </div>
+        <div className="lg:col-span-5">
+          <LowStockAlert
+            lowStockItems={lowStockItems}
+            onManageInventory={() => navigate('/admin/inventory')}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

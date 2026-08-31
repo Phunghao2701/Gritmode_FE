@@ -1,0 +1,83 @@
+# dependencies
+node_modules
+
+# production
+dist
+build
+
+# environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+FRONTEND_STRUCTURE_REVIEW_GUIDE_UPDATED.md
+DESIGN_SYSTEM.md
+scratch
+tasks
+.agents
+query_users.js
+skills-lock.json
+test_api_call.js
+update_password_and_login.js
+AGENTS.md
+
+# coverage
+coverage
+
+# cache
+.cache
+.parcel-cache
+
+# vite
+vite.config.timestamp-*
+
+# typescript
+*.tsbuildinfo
+
+# ==========================================
+# Spec Kit
+# ==========================================
+.specify/
+
+# ==========================================
+# Antigravity
+# ==========================================
+.agents/
+
+# ==========================================
+# AI Generated Specs
+# ==========================================
+specs/
+
+# ==========================================
+# AI Memory / Cache
+# ==========================================
+.memory/
+.ai/
+.cache/
+
+# ==========================================
+# OS
+# ==========================================
+.DS_Store
+Thumbs.db
