@@ -1,10 +1,11 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCheckout } from '../hooks/useCheckout';
 import ShippingAddressForm from '../components/ShippingAddressForm';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import OrderSummaryCard from '../components/OrderSummaryCard';
 import EmptyState from '../../../shared/components/EmptyState';
+import Icon from '../../../shared/components/Icon';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -21,6 +22,9 @@ export default function CheckoutPage() {
     isLoading,
     addresses,
     isAuthenticated,
+    createdOrderId,
+    isPayOSModalOpen,
+    setIsPayOSModalOpen,
     selectSavedAddress,
     handleChange,
     setPaymentMethod,
@@ -28,9 +32,9 @@ export default function CheckoutPage() {
     handlePlaceOrder,
   } = useCheckout();
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isPayOSModalOpen) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20">
+      <div className="max-w-[1240px] mx-auto px-4 py-20">
         <EmptyState
           title="Giỏ hàng trống"
           description="Bạn chưa chọn sản phẩm nào để thanh toán. Hãy chọn những mẫu thiết kế streetwear ưng ý!"
@@ -43,31 +47,43 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      {/* Page Header */}
-      <div className="border-b border-neutral-100 dark:border-neutral-900 pb-4">
-        <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
-          Secure Checkout
-        </span>
-        <h1 className="font-display font-black text-2xl sm:text-3xl text-black dark:text-white uppercase tracking-tight mt-1">
-          Thông tin thanh toán & Giao hàng
-        </h1>
+    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in">
+      {/* Top Header & Breadcrumb */}
+      <div className="border-b border-neutral-200 dark:border-neutral-800 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <Link
+            to="/products"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-400 hover:text-black dark:hover:text-white transition-colors mb-2"
+          >
+            <Icon icon="solar:arrow-left-linear" />
+            <span>Tiếp tục mua sắm</span>
+          </Link>
+          <h1 className="font-display font-black text-2xl sm:text-3xl text-black dark:text-white uppercase tracking-tight">
+            Thanh toán đơn hàng
+          </h1>
+        </div>
+
+        {/* Real SSL / Security Badge */}
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 text-xs font-bold self-start sm:self-auto">
+          <Icon icon="solar:shield-check-bold" className="text-emerald-500 text-base" />
+          <span>Bảo mật SSL 256-bit</span>
+        </div>
       </div>
 
       {/* 2-Column Checkout Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
         
         {/* Left Column: Shipping & Payment (7 cols) */}
         <div className="lg:col-span-7 space-y-8">
           
           {/* 1. Shipping Address */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
+          <section className="space-y-4">
+            <div className="flex items-center gap-2.5 pb-2 border-b border-neutral-100 dark:border-neutral-900">
               <span className="w-6 h-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-black text-xs flex items-center justify-center">
                 1
               </span>
               <h2 className="font-display font-black text-base uppercase tracking-tight text-black dark:text-white">
-                Địa chỉ nhận hàng
+                Thông tin giao hàng
               </h2>
             </div>
 
@@ -80,11 +96,11 @@ export default function CheckoutPage() {
               selectedAddressId={formData.selectedAddressId}
               isAuthenticated={isAuthenticated}
             />
-          </div>
+          </section>
 
           {/* 2. Payment Method */}
-          <div className="space-y-4 pt-6 border-t border-neutral-100 dark:border-neutral-900">
-            <div className="flex items-center gap-2">
+          <section className="space-y-4 pt-4 border-t border-neutral-100 dark:border-neutral-900">
+            <div className="flex items-center gap-2.5 pb-2 border-b border-neutral-100 dark:border-neutral-900">
               <span className="w-6 h-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-black text-xs flex items-center justify-center">
                 2
               </span>
@@ -97,11 +113,11 @@ export default function CheckoutPage() {
               selectedMethod={paymentMethod}
               onSelectMethod={setPaymentMethod}
             />
-          </div>
+          </section>
 
         </div>
 
-        {/* Right Column: Order Summary (5 cols) */}
+        {/* Right Column: Sticky Order Summary (5 cols) */}
         <div className="lg:col-span-5">
           <div className="sticky top-28">
             <OrderSummaryCard

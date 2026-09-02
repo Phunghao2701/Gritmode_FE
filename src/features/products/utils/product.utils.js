@@ -117,18 +117,9 @@ export const getProductImagesByOptionValue = (images = [], optionValueId = null)
   return sorted;
 };
 
-/**
- * Formats numeric price into VND currency string
- * @param {number|string} amount
- * @returns {string} e.g. "550.000 ₫"
- */
-export const formatPriceVND = (amount) => {
-  const num = Number(amount) || 0;
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  }).format(num);
-};
+import { formatPriceVND } from '../../../shared/utils/formatNumber';
+export { formatPriceVND };
+
 
 /**
  * Returns formatted price or price range for product list display

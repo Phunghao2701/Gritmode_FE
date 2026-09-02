@@ -65,6 +65,11 @@ export const useCreatePayOSPayment = () => {
     mutationFn: (orderId) => createPayOSPaymentApi(orderId),
     onSuccess: (res, orderId) => {
       toast.success('Đã tạo liên kết thanh toán payOS mới.');
+      const newPayment = res.data?.data || res.data;
+      if (newPayment) {
+        queryClient.setQueryData(['order-payment', String(orderId)], newPayment);
+        queryClient.setQueryData(['order-payment', Number(orderId)], newPayment);
+      }
       queryClient.invalidateQueries({ queryKey: ['order-payment', orderId] });
       queryClient.invalidateQueries({ queryKey: ['order-detail', orderId] });
     },
@@ -99,6 +104,9 @@ export const usePaymentCountdown = (expiredAt, onExpire) => {
       setRemainingSeconds(0);
       return;
     }
+
+    const initialRem = calculateRemainingSeconds(expiredAt);
+    setRemainingSeconds(initialRem);
 
     const interval = setInterval(() => {
       const rem = calculateRemainingSeconds(expiredAt);

@@ -3,16 +3,21 @@ import { useAdminInventory } from '../hooks/useAdmin';
 import StockAdjustModal from '../components/StockAdjustModal';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
+import Pagination from '../../../shared/components/Pagination';
 
 export default function AdminInventoryPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [adjustItem, setAdjustItem] = useState(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   const { inventory, isLoading, total, updateStock, isUpdatingStock } = useAdminInventory({
     search: search.trim() || undefined,
     low_stock: statusFilter === 'LOW_STOCK' ? true : undefined,
     out_of_stock: statusFilter === 'OUT_OF_STOCK' ? true : undefined,
+    page,
+    limit,
   });
 
   const getStatusBadge = (item) => {
@@ -77,7 +82,10 @@ export default function AdminInventoryPage() {
             type="text"
             placeholder="Tìm theo mã SKU hoặc tên sản phẩm..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="w-full pl-11 pr-4 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
           />
         </div>
@@ -90,7 +98,10 @@ export default function AdminInventoryPage() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setStatusFilter(tab.id)}
+              onClick={() => {
+                setStatusFilter(tab.id);
+                setPage(1);
+              }}
               className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                 statusFilter === tab.id
                   ? 'bg-black text-white dark:bg-white dark:text-black font-black shadow-sm'
@@ -112,64 +123,75 @@ export default function AdminInventoryPage() {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="uppercase text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
-                <tr>
-                  <th className="pb-3 font-black">Mã SKU</th>
-                  <th className="pb-3 font-black">Tên sản phẩm</th>
-                  <th className="pb-3 font-black text-center">Tồn thực tế</th>
-                  <th className="pb-3 font-black text-center">Giữ chỗ (Order)</th>
-                  <th className="pb-3 font-black text-center">Có thể bán</th>
-                  <th className="pb-3 font-black text-center">Trạng thái</th>
-                  <th className="pb-3 font-black text-right">Điều chỉnh kho</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
-                {inventory.length === 0 ? (
+          <div className="space-y-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="uppercase text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-neutral-400">
-                      Không tìm thấy SKU tồn kho nào.
-                    </td>
+                    <th className="pb-3 font-black">Mã SKU</th>
+                    <th className="pb-3 font-black">Tên sản phẩm</th>
+                    <th className="pb-3 font-black text-center">Tồn thực tế</th>
+                    <th className="pb-3 font-black text-center">Giữ chỗ (Order)</th>
+                    <th className="pb-3 font-black text-center">Có thể bán</th>
+                    <th className="pb-3 font-black text-center">Trạng thái</th>
+                    <th className="pb-3 font-black text-right">Điều chỉnh kho</th>
                   </tr>
-                ) : (
-                  inventory.map((item, idx) => (
-                    <tr key={item.inventory_id || item.product_variant_id || idx} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
-                      <td className="py-4 font-mono font-black text-black dark:text-white uppercase">
-                        {item.sku}
-                      </td>
-                      <td className="py-4">
-                        <span className="font-bold text-black dark:text-white uppercase line-clamp-1">
-                          {item.name_product || item.product_name}
-                        </span>
-                      </td>
-                      <td className="py-4 font-black text-center text-black dark:text-white">
-                        {item.quantity_stock ?? 0}
-                      </td>
-                      <td className="py-4 font-black text-center text-amber-500">
-                        {item.quantity_reserved ?? 0}
-                      </td>
-                      <td className="py-4 font-black text-center text-emerald-600 dark:text-emerald-400">
-                        {item.quantity_available ?? 0}
-                      </td>
-                      <td className="py-4 text-center">
-                        {getStatusBadge(item)}
-                      </td>
-                      <td className="py-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setAdjustItem(item)}
-                          className="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-black dark:hover:border-white font-bold text-[11px] text-black dark:text-white transition-all cursor-pointer inline-flex items-center gap-1.5"
-                        >
-                          <Icon icon="solar:pen-linear" />
-                          <span>Cập nhật</span>
-                        </button>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
+                  {inventory.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-neutral-400">
+                        Không tìm thấy SKU tồn kho nào.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    inventory.map((item, idx) => (
+                      <tr key={item.inventory_id || item.product_variant_id || idx} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
+                        <td className="py-4 font-mono font-black text-black dark:text-white uppercase">
+                          {item.sku}
+                        </td>
+                        <td className="py-4">
+                          <span className="font-bold text-black dark:text-white uppercase line-clamp-1">
+                            {item.name_product || item.product_name}
+                          </span>
+                        </td>
+                        <td className="py-4 font-black text-center text-black dark:text-white">
+                          {item.quantity_stock ?? 0}
+                        </td>
+                        <td className="py-4 font-black text-center text-amber-500">
+                          {item.quantity_reserved ?? 0}
+                        </td>
+                        <td className="py-4 font-black text-center text-emerald-600 dark:text-emerald-400">
+                          {item.quantity_available ?? 0}
+                        </td>
+                        <td className="py-4 text-center">
+                          {getStatusBadge(item)}
+                        </td>
+                        <td className="py-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setAdjustItem(item)}
+                            className="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 font-bold text-[11px] text-black dark:text-white transition-all cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            <Icon icon="solar:pen-linear" />
+                            <span>Cập nhật</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+              totalItems={total}
+              currentPage={page}
+              limit={limit}
+              onPageChange={setPage}
+              entityName="biến thể tồn kho"
+            />
           </div>
         )}
       </div>

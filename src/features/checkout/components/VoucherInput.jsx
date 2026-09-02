@@ -70,7 +70,7 @@ export default function VoucherInput({ appliedVoucher, onApplyVoucher, onRemoveV
         <Icon icon="solar:ticket-linear" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 text-base" />
         <input
           type="text"
-          placeholder="Nhập mã ưu đãi (VD: SUMMER10...)"
+          placeholder=""
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           className="w-full pl-10 pr-3 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs font-mono font-black text-black dark:text-white placeholder:text-neutral-400 placeholder:font-sans focus:outline-none focus:border-black dark:focus:border-white uppercase transition-colors"

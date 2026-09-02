@@ -1,22 +1,33 @@
 import React from 'react';
+import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export default function RecentOrdersTable({ orders = [], onViewAll }) {
-  const formatPrice = (p) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
-  };
+
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case 'COMPLETED':
+    switch (String(status || '').toLowerCase()) {
+      case 'completed':
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">Hoàn tất</span>;
-      case 'PROCESSING':
+      case 'processing':
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400">Đang xử lý</span>;
-      case 'SHIPPING':
+      case 'shipping':
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">Đang giao</span>;
-      case 'CANCELLED':
+      case 'cancelled':
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400">Đã hủy</span>;
       default:
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">Chờ xác nhận</span>;
+    }
+  };
+
+  const getPaymentLabel = (method) => {
+    switch (String(method || '').toLowerCase()) {
+      case 'payos':
+      case 'banking':
+        return 'Chuyển khoản';
+      case 'cod':
+        return 'COD';
+      default:
+        return 'Chưa xác định';
     }
   };
 
@@ -57,24 +68,24 @@ export default function RecentOrdersTable({ orders = [], onViewAll }) {
               </tr>
             ) : (
               orders.map((ord) => (
-                <tr key={ord.id || ord._id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
+                <tr key={ord.order_id || ord.id || ord._id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
                   <td className="py-4 font-black text-black dark:text-white">
-                    {ord.id || ord._id}
+                    {ord.order_code || `#ORD-${ord.order_id || ord.id || ord._id}`}
                   </td>
                   <td className="py-4">
-                    <p className="font-bold text-neutral-800 dark:text-neutral-200">{ord.customer?.name || ord.recipientName || 'Khách hàng'}</p>
-                    <p className="text-[10px] text-neutral-400">{ord.customer?.phone || ord.recipientPhone}</p>
+                    <p className="font-bold text-neutral-800 dark:text-neutral-200">{ord.customer?.name || ord.recipientName || ord.email_order || 'Khách hàng'}</p>
+                    <p className="text-[10px] text-neutral-400">{ord.customer?.phone || ord.recipientPhone || ord.phone_order}</p>
                   </td>
                   <td className="py-4 font-black text-black dark:text-white">
-                    {formatPrice(ord.finalAmount || ord.totalAmount)}
+                    {formatPriceVND(ord.total_order ?? ord.finalAmount ?? ord.totalAmount)}
                   </td>
                   <td className="py-4">
                     <span className="font-bold uppercase tracking-wider text-[10px] text-neutral-500">
-                      {ord.paymentMethod || 'COD'}
+                      {getPaymentLabel(ord.payment_method ?? ord.payment?.payment_method ?? ord.paymentMethod)}
                     </span>
                   </td>
                   <td className="py-4 text-right">
-                    {getStatusBadge(ord.status)}
+                    {getStatusBadge(ord.status_order ?? ord.status)}
                   </td>
                 </tr>
               ))

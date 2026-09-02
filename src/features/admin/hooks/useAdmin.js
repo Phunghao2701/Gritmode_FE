@@ -14,9 +14,10 @@ import {
   getAdminInventoryApi,
   updateVariantInventoryApi,
   getAdminProductsApi,
-  createAdminProductApi,
+  createAdminFullProductApi,
   updateAdminProductApi,
   deleteAdminProductApi,
+  archiveAdminProductApi,
   getAdminCategoriesApi,
   createCategoryApi,
   updateCategoryApi,
@@ -205,7 +206,7 @@ export const useAdminProducts = (params = {}) => {
   });
 
   const createMutation = useMutation({
-    mutationFn: createAdminProductApi,
+    mutationFn: createAdminFullProductApi,
     onSuccess: () => {
       toast.success('Tạo sản phẩm mới thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
@@ -234,14 +235,28 @@ export const useAdminProducts = (params = {}) => {
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi xóa sản phẩm'),
   });
 
+  const archiveMutation = useMutation({
+    mutationFn: archiveAdminProductApi,
+    onSuccess: () => {
+      toast.success('Đã archive sản phẩm');
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product-detail'] });
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Không thể archive sản phẩm'),
+  });
+
   return {
     ...query,
     products: query.data?.items || [],
     pagination: query.data?.pagination || {},
     total: query.data?.total || 0,
     createProduct: createMutation.mutate,
+    createProductAsync: createMutation.mutateAsync,
+    isCreatingProduct: createMutation.isPending,
     updateProduct: updateMutation.mutate,
     deleteProduct: deleteMutation.mutate,
+    archiveProduct: archiveMutation.mutate,
   };
 };
 
@@ -261,7 +276,7 @@ export const useAdminCategories = () => {
     onSuccess: () => {
       toast.success('Tạo danh mục mới thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-public-tree'] });
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi tạo danh mục'),
   });
@@ -271,7 +286,7 @@ export const useAdminCategories = () => {
     onSuccess: () => {
       toast.success('Cập nhật danh mục thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-public-tree'] });
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi cập nhật danh mục'),
   });
@@ -281,7 +296,7 @@ export const useAdminCategories = () => {
     onSuccess: () => {
       toast.success('Xóa danh mục thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-public-tree'] });
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi xóa danh mục'),
   });

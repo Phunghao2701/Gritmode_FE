@@ -3,13 +3,11 @@
  * Provides a unified React interface for Cart state, server actions, and drawer controls.
  */
 import { useCartStore } from '../../../app/store/cartStore';
+import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export const useCart = () => {
   const cartStore = useCartStore();
 
-  const formatPrice = (p) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
-  };
 
   const items = cartStore.items || [];
   const subtotal = cartStore.getSubtotal();
@@ -28,7 +26,7 @@ export const useCart = () => {
     removingItemIds: cartStore.removingItemIds || [],
     totalItems,
     subtotal,
-    formattedSubtotal: formatPrice(subtotal),
+    formattedSubtotal: formatPriceVND(subtotal),
     openDrawer: cartStore.openDrawer,
     closeDrawer: cartStore.closeDrawer,
     toggleDrawer: cartStore.toggleDrawer,

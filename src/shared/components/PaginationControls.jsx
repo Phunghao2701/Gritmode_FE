@@ -25,20 +25,22 @@ export default function PaginationControls({ currentPage, totalPages, onPageChan
   const pageItems = buildPageItems(currentPage, totalPages);
 
   return (
-    <nav className={cn("inline-flex items-center gap-1.5", className)} aria-label="Pagination">
+    <nav className={cn("inline-flex items-center gap-1.5 select-none", className)} aria-label="Pagination">
+      {/* Previous Button */}
       <button
         type="button"
-        disabled={currentPage === 1}
+        disabled={currentPage <= 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm shadow-sm"
-        aria-label="Previous page"
+        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-95 text-sm shadow-sm"
+        aria-label="Trang trước"
       >
         <Icon icon="solar:alt-arrow-left-linear" className="text-base" />
       </button>
 
+      {/* Page Numbers */}
       {pageItems.map((item, index) =>
         item === 'ellipsis' ? (
-          <span key={`ellipsis-${index}`} className="px-2 text-slate-400 select-none">
+          <span key={`ellipsis-${index}`} className="w-8 text-center text-xs font-black text-neutral-400 select-none">
             ...
           </span>
         ) : (
@@ -47,10 +49,10 @@ export default function PaginationControls({ currentPage, totalPages, onPageChan
             type="button"
             onClick={() => onPageChange(item)}
             className={cn(
-              "inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-xl text-sm font-semibold transition-all shadow-sm",
+              "inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm active:scale-95",
               item === currentPage
-                ? "bg-brand-600 text-white shadow-brand-500/20"
-                : "border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                ? "bg-black text-white dark:bg-white dark:text-black shadow-md border border-transparent"
+                : "border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-800"
             )}
           >
             {item}
@@ -58,15 +60,17 @@ export default function PaginationControls({ currentPage, totalPages, onPageChan
         )
       )}
 
+      {/* Next Button */}
       <button
         type="button"
-        disabled={currentPage === totalPages}
+        disabled={currentPage >= totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-sm shadow-sm"
-        aria-label="Next page"
+        className="inline-flex items-center justify-center w-9 h-9 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all active:scale-95 text-sm shadow-sm"
+        aria-label="Trang tiếp theo"
       >
         <Icon icon="solar:alt-arrow-right-linear" className="text-base" />
       </button>
     </nav>
   );
 }
+

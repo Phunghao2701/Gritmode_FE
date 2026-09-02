@@ -13,8 +13,10 @@ export default function OrderDetailModal({
   if (!isOpen || !order) return null;
 
   const orderStatus = getOrderStatusInfo(order.status_order);
-  const paymentStatus = getPaymentStatusInfo(order.payment?.status_payment);
-  const cancellable = isOrderCancellable(order.status_order, order.payment?.status_payment);
+  const paymentMethod = order.payment_method || order.payment?.payment_method || 'cod';
+  const rawPaymentStatus = order.status_payment || order.payment?.status_payment;
+  const paymentStatus = getPaymentStatusInfo(rawPaymentStatus, paymentMethod);
+  const cancellable = isOrderCancellable(order.status_order, rawPaymentStatus);
 
   const address = order.address || {};
   const items = Array.isArray(order.items) ? order.items : [];

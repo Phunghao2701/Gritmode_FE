@@ -71,14 +71,27 @@ export const getOrderStatusInfo = (status) => {
   );
 };
 
-export const getPaymentStatusInfo = (status) => {
+export const getPaymentStatusInfo = (status, paymentMethod = '') => {
   const normalized = String(status || '').toLowerCase();
-  return (
-    PAYMENT_STATUS_MAP[normalized] || {
-      label: status || 'Không xác định',
-      color: 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-400 border-neutral-500/20',
+  if (PAYMENT_STATUS_MAP[normalized]) {
+    return PAYMENT_STATUS_MAP[normalized];
+  }
+  if (!status || status === 'null' || status === 'undefined' || normalized === 'unknown') {
+    if (String(paymentMethod).toLowerCase() === 'cod') {
+      return {
+        label: 'Chờ thanh toán khi nhận',
+        color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      };
     }
-  );
+    return {
+      label: 'Chờ thanh toán',
+      color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    };
+  }
+  return {
+    label: status,
+    color: 'bg-neutral-500/10 text-neutral-600 dark:text-neutral-400 border-neutral-500/20',
+  };
 };
 
 /**

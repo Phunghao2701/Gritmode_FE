@@ -2,7 +2,7 @@
  * Admin API Endpoints for Gritmode
  * Fully integrated with Gritmode_BE
  */
-import api, { publicApi } from '../../../shared/services/api';
+import api from '../../../shared/services/api';
 
 // 1. Dashboard Stats
 export const getAdminStatsApi = () => {
@@ -40,15 +40,26 @@ export const cancelAdminOrderApi = (orderId, reason) => {
 
 // 3. Products
 export const getAdminProductsApi = (params = {}) => {
-  return publicApi.get('/products', { params });
+  return api.get('/admin/products', { params });
 };
 
 export const getAdminProductByIdApi = (productId) => {
-  return publicApi.get(`/products/${productId}`);
+  return api.get(`/admin/products/${productId}`);
 };
 
 export const createAdminProductApi = (data) => {
   return api.post('/admin/products', data);
+};
+
+export const createAdminFullProductApi = (data) => api.post('/admin/products/full', data);
+export const updateAdminFullProductApi = (productId, data) => api.put(`/admin/products/${productId}/full`, data);
+
+export const uploadAdminProductImagesApi = (files) => {
+  const formData = new FormData();
+  files.forEach((file) => formData.append('images', file));
+  return api.post('/admin/uploads/product-images', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 };
 
 export const updateAdminProductApi = (productId, data) => {
@@ -59,6 +70,9 @@ export const deleteAdminProductApi = (productId) => {
   return api.delete(`/admin/products/${productId}`);
 };
 
+export const publishAdminProductApi = (productId) => api.patch(`/admin/products/${productId}/publish`);
+export const archiveAdminProductApi = (productId) => api.patch(`/admin/products/${productId}/archive`);
+
 export const createProductOptionApi = (productId, data) => {
   return api.post(`/admin/products/${productId}/options`, data);
 };
@@ -66,22 +80,32 @@ export const createProductOptionApi = (productId, data) => {
 export const createOptionValueApi = (optionId, data) => {
   return api.post(`/admin/product-options/${optionId}/values`, data);
 };
+export const updateProductOptionApi = (optionId, data) => api.patch(`/admin/product-options/${optionId}`, data);
+export const deleteProductOptionApi = (optionId) => api.delete(`/admin/product-options/${optionId}`);
+export const updateOptionValueApi = (valueId, data) => api.patch(`/admin/product-option-values/${valueId}`, data);
+export const deleteOptionValueApi = (valueId) => api.delete(`/admin/product-option-values/${valueId}`);
 
 export const createProductVariantApi = (productId, data) => {
   return api.post(`/admin/products/${productId}/variants`, data);
 };
+export const updateProductVariantApi = (variantId, data) => api.patch(`/admin/product-variants/${variantId}`, data);
+export const deleteProductVariantApi = (variantId) => api.delete(`/admin/product-variants/${variantId}`);
 
 export const createProductImageApi = (productId, data) => {
   return api.post(`/admin/products/${productId}/images`, data);
 };
+export const deleteProductImageApi = (imageId) => api.delete(`/admin/product-images/${imageId}`);
 
 export const assignProductCategoryApi = (productId, data) => {
   return api.post(`/admin/products/${productId}/categories`, data);
 };
+export const removeProductCategoryApi = (productId, categoryId) => api.delete(`/admin/products/${productId}/categories/${categoryId}`);
+export const setPrimaryProductCategoryApi = (productId, categoryId) => api.patch(`/admin/products/${productId}/categories/${categoryId}/primary`);
 
-export const assignProductCollectionApi = (productId, data) => {
-  return api.post(`/admin/products/${productId}/collections`, data);
-};
+export const getAdminCollectionsApi = () => api.get('/admin/collections');
+export const createAdminCollectionApi = (data) => api.post('/admin/collections', data);
+export const assignProductCollectionApi = (collectionId, productId, position = 0) => api.post(`/admin/collections/${collectionId}/products`, { product_id: Number(productId), position_product_collection: Number(position) });
+export const removeProductCollectionApi = (collectionId, productId) => api.delete(`/admin/collections/${collectionId}/products/${productId}`);
 
 // 4. Inventory
 export const getAdminInventoryApi = (params = {}) => {
@@ -100,7 +124,7 @@ export const updateVariantInventoryApi = (variantId, quantityStock) => {
 
 // 5. Categories & Collections
 export const getAdminCategoriesApi = () => {
-  return publicApi.get('/categories');
+  return api.get('/admin/categories');
 };
 
 export const createCategoryApi = (data) => {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import EmptyState from '../../../shared/components/EmptyState';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Icon from '../../../shared/components/Icon';
+import Pagination from '../../../shared/components/Pagination';
 import { useMyOrders, useCancelOrder } from '../../orders/hooks/useOrders';
 import { getOrderStatusInfo, getPaymentStatusInfo, isOrderCancellable } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
@@ -46,7 +47,7 @@ export default function MyOrdersList() {
   };
 
   return (
-    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
+    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 animate-fade-in">
       <div className="border-b border-neutral-100 dark:border-neutral-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="font-display font-black text-xl text-black dark:text-white uppercase tracking-tight">
@@ -62,9 +63,9 @@ export default function MyOrdersList() {
               key={tab.value}
               type="button"
               onClick={() => handleTabChange(tab.value)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
                 statusFilter === tab.value
-                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm'
+                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm font-black'
                   : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
               }`}
             >
@@ -92,7 +93,70 @@ export default function MyOrdersList() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="overflow-x-auto">
+          {/* 1. Mobile Cards View (Visible on < md) */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {orders.map((ord) => {
+              const orderId = ord.order_id || ord.id;
+              const orderStatus = getOrderStatusInfo(ord.status_order);
+              const paymentStatus = getPaymentStatusInfo(ord.payment?.status_payment);
+              const cancellable = isOrderCancellable(ord.status_order, ord.payment?.status_payment);
+
+              return (
+                <div
+                  key={orderId}
+                  className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/30 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-black text-sm text-black dark:text-white uppercase">
+                      {ord.order_code || `#ORD-${orderId}`}
+                    </span>
+                    <span className={`inline-block text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${orderStatus.color}`}>
+                      {orderStatus.label}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-neutral-400">
+                    <span>{new Date(ord.created_at || Date.now()).toLocaleDateString('vi-VN')}</span>
+                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${paymentStatus.color}`}>
+                      {ord.payment?.payment_method?.toUpperCase() || 'COD'} • {paymentStatus.label}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                    <div>
+                      <span className="text-[10px] text-neutral-400 block uppercase">Tổng thanh toán</span>
+                      <span className="font-display font-black text-sm text-black dark:text-white">
+                        {formatPriceVND(ord.total_order || ord.finalAmount)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOrder(ord)}
+                        className="px-4 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black font-black text-xs uppercase tracking-wider shadow-sm cursor-pointer"
+                      >
+                        Chi tiết
+                      </button>
+                      {cancellable && (
+                        <button
+                          type="button"
+                          onClick={() => handleCancelOrder(orderId)}
+                          disabled={cancelMutation.isPending}
+                          className="px-3 py-2 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-500 font-bold text-xs hover:bg-rose-50 cursor-pointer disabled:opacity-40"
+                        >
+                          Hủy
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 2. Desktop Table View (Visible on >= md) */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="uppercase text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                 <tr>
@@ -137,7 +201,7 @@ export default function MyOrdersList() {
                           <button
                             type="button"
                             onClick={() => setSelectedOrder(ord)}
-                            className="px-3 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-neutral-700 dark:text-neutral-300 font-bold transition-all cursor-pointer text-[11px]"
+                            className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-neutral-700 dark:text-neutral-300 font-bold transition-all cursor-pointer text-[11px]"
                           >
                             Chi tiết
                           </button>
@@ -146,7 +210,7 @@ export default function MyOrdersList() {
                               type="button"
                               onClick={() => handleCancelOrder(orderId)}
                               disabled={cancelMutation.isPending}
-                              className="px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900/40 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 font-bold transition-all cursor-pointer text-[11px] disabled:opacity-40"
+                              className="px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 font-bold transition-all cursor-pointer text-[11px] disabled:opacity-40"
                               title="Hủy đơn"
                             >
                               Hủy
@@ -162,29 +226,13 @@ export default function MyOrdersList() {
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-4 border-t border-neutral-100 dark:border-neutral-800 select-none">
-              <button
-                type="button"
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page <= 1}
-                className="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs font-bold text-neutral-600 dark:text-neutral-300 disabled:opacity-30 cursor-pointer"
-              >
-                Trước
-              </button>
-              <span className="text-xs font-bold text-neutral-500 px-2">
-                Trang {page} / {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setPage(Math.min(totalPages, page + 1))}
-                disabled={page >= totalPages}
-                className="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs font-bold text-neutral-600 dark:text-neutral-300 disabled:opacity-30 cursor-pointer"
-              >
-                Sau
-              </button>
-            </div>
-          )}
+          <Pagination
+            totalItems={total}
+            currentPage={page}
+            limit={10}
+            onPageChange={setPage}
+            entityName="đơn hàng"
+          />
         </div>
       )}
 

@@ -43,16 +43,3 @@ export const formatVoucherDiscount = (voucher) => {
   return label;
 };
 
-/**
- * Checks if voucher is currently within its active start and end date
- * (Client-side helper; Backend is the primary source of truth)
- * @param {object} voucher
- * @param {Date} now
- * @returns {boolean}
- */
-export const isVoucherTimeValid = (voucher, now = new Date()) => {
-  if (!voucher || voucher.is_active === false) return false;
-  if (voucher.start_at && new Date(voucher.start_at) > now) return false;
-  if (voucher.end_at && new Date(voucher.end_at) < now) return false;
-  return true;
-};

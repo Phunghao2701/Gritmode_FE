@@ -2,11 +2,15 @@
  * Lenis Smooth Scroll provider for Gritmode
  * Wraps the entire app with inertial / smooth scroll rigging.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, createContext, useContext } from 'react';
 import Lenis from 'lenis';
+
+export const SmoothScrollContext = createContext(null);
+export const useSmoothScroll = () => useContext(SmoothScrollContext);
 
 export default function SmoothScrollProvider({ children }) {
   const lenisRef = useRef(null);
+  const [lenisInstance, setLenisInstance] = useState(null);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -21,6 +25,10 @@ export default function SmoothScrollProvider({ children }) {
     });
 
     lenisRef.current = lenis;
+    setLenisInstance(lenis);
+    if (typeof window !== 'undefined') {
+      window.__lenis = lenis;
+    }
 
     // RAF loop
     let rafId;
@@ -33,8 +41,18 @@ export default function SmoothScrollProvider({ children }) {
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      lenisRef.current = null;
+      setLenisInstance(null);
+      if (typeof window !== 'undefined') {
+        window.__lenis = null;
+      }
     };
   }, []);
 
-  return children;
+  return (
+    <SmoothScrollContext.Provider value={lenisInstance}>
+      {children}
+    </SmoothScrollContext.Provider>
+  );
 }
+

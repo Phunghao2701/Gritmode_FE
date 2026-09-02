@@ -3,6 +3,7 @@ import { useAdminAuditLogs } from '../hooks/useAdmin';
 import AuditLogDetailModal from '../components/AuditLogDetailModal';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
+import Pagination from '../../../shared/components/Pagination';
 import { getAuditActionInfo, formatEntityName } from '../utils/audit.utils';
 
 export default function AdminAuditLogsPage() {
@@ -194,29 +195,13 @@ export default function AdminAuditLogsPage() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-4 border-t border-neutral-100 dark:border-neutral-800 select-none">
-                <button
-                  type="button"
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page <= 1}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs font-bold text-neutral-600 dark:text-neutral-300 disabled:opacity-30 cursor-pointer"
-                >
-                  Trước
-                </button>
-                <span className="text-xs font-bold text-neutral-500 px-2">
-                  Trang {page} / {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page >= totalPages}
-                  className="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs font-bold text-neutral-600 dark:text-neutral-300 disabled:opacity-30 cursor-pointer"
-                >
-                  Sau
-                </button>
-              </div>
-            )}
+            <Pagination
+              totalItems={total}
+              currentPage={page}
+              limit={20}
+              onPageChange={setPage}
+              entityName="nhật ký hoạt động"
+            />
           </div>
         )}
       </div>

@@ -114,7 +114,7 @@ export default function PaymentResultPage() {
 
         <Link
           to="/profile"
-          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl border border-neutral-300 dark:border-neutral-700 hover:border-black dark:hover:border-white text-xs font-black uppercase tracking-widest text-black dark:text-white transition-all text-center"
+          className="w-full sm:w-auto px-8 py-3.5 rounded-2xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-black uppercase tracking-widest text-black dark:text-white transition-all text-center"
         >
           Xem lịch sử đơn hàng
         </Link>

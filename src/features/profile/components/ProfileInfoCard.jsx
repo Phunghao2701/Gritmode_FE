@@ -61,7 +61,6 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
     e.preventDefault();
     if (!validate()) return;
 
-    // Chuẩn bị payload Partial Update
     const payload = {};
     if (formData.full_name.trim()) {
       payload.full_name = formData.full_name.trim();
@@ -86,17 +85,37 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
     onUpdateProfile(payload);
   };
 
+  const initials = (formData.full_name || formData.email || 'G')
+    .trim()
+    .split(' ')
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   return (
-    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
+    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
-        <div>
-          <h3 className="font-display font-black text-xl text-black dark:text-white uppercase tracking-tight">
-            Thông tin tài khoản
-          </h3>
-          <p className="text-xs text-neutral-400 mt-0.5">
-            Cập nhật thông tin định danh và hồ sơ cá nhân của bạn
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-5">
+        <div className="flex items-center gap-4">
+          {/* Avatar Monogram */}
+          <div className="w-16 h-16 rounded-2xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-display font-black text-xl shadow-md shrink-0">
+            {initials}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-display font-black text-lg sm:text-xl text-black dark:text-white uppercase tracking-tight">
+                {formData.full_name || 'Khách hàng Gritmode'}
+              </h3>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black px-2 py-0.5 rounded-full">
+                Thành viên
+              </span>
+            </div>
+            <p className="text-xs text-neutral-400 mt-0.5">
+              Cập nhật thông tin định danh và hồ sơ cá nhân của bạn
+            </p>
+          </div>
         </div>
       </div>
 
@@ -106,7 +125,7 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
           <InputField
             label="Họ và tên"
             name="full_name"
-            placeholder="Ví dụ: Nguyễn Văn A"
+            placeholder=""
             value={formData.full_name}
             onChange={(e) => handleChange('full_name', e.target.value)}
             error={errors.full_name}
@@ -115,7 +134,8 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
           <InputField
             label="Số điện thoại"
             name="phone"
-            placeholder="0912345678"
+            type="tel"
+            placeholder=""
             value={formData.phone}
             onChange={(e) => handleChange('phone', e.target.value)}
             error={errors.phone}
@@ -125,7 +145,7 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
 
         {/* Email Readonly */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+          <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             Địa chỉ Email (Đã xác thực OTP)
           </label>
           <div className="relative flex items-center">
@@ -137,7 +157,7 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
             />
             <span className="absolute right-3 flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-900">
               <Icon icon="solar:verified-check-bold" />
-              <span>Verified</span>
+              <span>Đã xác thực</span>
             </span>
           </div>
           <p className="text-[11px] text-neutral-400">
@@ -158,14 +178,14 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
           />
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
               Giới tính
             </label>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { label: 'Nam', val: 'true', icon: 'solar:men-bold' },
                 { label: 'Nữ', val: 'false', icon: 'solar:women-bold' },
-                { label: 'Chưa chọn', val: 'null', icon: 'solar:users-group-two-rounded-linear' },
+                { label: 'Khác', val: 'null', icon: 'solar:users-group-two-rounded-linear' },
               ].map((item) => (
                 <button
                   key={item.val}

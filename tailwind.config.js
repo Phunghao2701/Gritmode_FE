@@ -38,8 +38,9 @@ export default {
         }
       },
       fontFamily: {
-        display: ['Montserrat', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        sans: ['Montserrat', 'Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
       },
       letterSpacing: {
         tighter: '-0.04em',

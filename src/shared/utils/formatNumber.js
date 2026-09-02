@@ -28,9 +28,15 @@ export function formatGrowth(delta) {
 }
 
 /**
- * Truncate long string
+ * Formats numeric price into VND currency string
+ * @param {number|string} amount
+ * @returns {string} e.g. "550.000 ₫"
  */
-export function truncate(str, max = 40) {
-  if (!str) return '';
-  return str.length > max ? str.slice(0, max) + '…' : str;
+export function formatPriceVND(amount) {
+  const num = Number(amount) || 0;
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(num);
 }
+

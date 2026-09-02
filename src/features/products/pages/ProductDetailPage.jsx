@@ -38,17 +38,17 @@ export default function ProductDetailPage() {
 
   if (isLoadingProduct) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-7">
-            <LoadingSkeleton height="550px" className="rounded-3xl" />
+            <div className="aspect-[3/4] w-full rounded-3xl bg-neutral-100 dark:bg-neutral-900 animate-pulse" />
           </div>
-          <div className="lg:col-span-5 space-y-5">
-            <LoadingSkeleton height="1.5rem" width="30%" />
-            <LoadingSkeleton height="2.5rem" width="80%" />
-            <LoadingSkeleton height="2rem" width="40%" />
-            <LoadingSkeleton height="6rem" />
-            <LoadingSkeleton height="3.5rem" />
+          <div className="lg:col-span-5 space-y-6">
+            <LoadingSkeleton height="1.5rem" width="30%" className="rounded-lg" />
+            <LoadingSkeleton height="2.5rem" width="80%" className="rounded-lg" />
+            <LoadingSkeleton height="2rem" width="40%" className="rounded-lg" />
+            <LoadingSkeleton height="6rem" className="rounded-2xl" />
+            <LoadingSkeleton height="3.5rem" className="rounded-2xl" />
           </div>
         </div>
       </div>
@@ -70,9 +70,7 @@ export default function ProductDetailPage() {
   }
 
   const primaryCategory = product.categories?.find((c) => c.is_primary) || product.categories?.[0];
-  const currentImage = displayImages[selectedImageIndex] || displayImages[0] || {
-    url_product_image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=800',
-  };
+  const currentImage = displayImages[selectedImageIndex] || displayImages[0] || null;
 
   const handleAddToCart = (shouldRedirect = false) => {
     if (!isAllOptionsSelected) {
@@ -95,7 +93,7 @@ export default function ProductDetailPage() {
       variantId: selectedVariant.product_variant_id,
       title: product.name_product,
       price: selectedVariant.price,
-      image: currentImage.url_product_image,
+      image: currentImage?.url_product_image || '',
       quantity: selectedQuantity,
     });
 
@@ -108,31 +106,40 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
-      {/* Breadcrumb (Monochrome) */}
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-400">
-        <Link to="/" className="hover:text-black dark:hover:text-white transition-colors">Trang chủ</Link>
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12 animate-fade-in">
+      
+      {/* Breadcrumb Navigation */}
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-400 select-none">
+        <Link to="/" className="font-normal hover:text-black dark:hover:text-white transition-colors">Trang chủ</Link>
         <span>/</span>
-        <Link to="/products" className="hover:text-black dark:hover:text-white transition-colors">
+        <Link to="/products" className="font-normal hover:text-black dark:hover:text-white transition-colors">
           {primaryCategory ? primaryCategory.name_category : 'Sản phẩm'}
         </Link>
         <span>/</span>
-        <span className="text-black dark:text-white truncate max-w-xs">{product.name_product}</span>
+        <span className="text-black dark:text-white font-[550] truncate max-w-xs">{product.name_product}</span>
       </div>
 
       {/* Main Product Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+        
         {/* Left: Product Image Gallery (7 Cols) */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-md flex items-center justify-center">
-            <img
-              src={currentImage.url_product_image}
-              alt={product.name_product}
-              className="w-full h-full object-contain object-center"
-            />
+          <div className="relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm flex items-center justify-center">
+            {currentImage?.url_product_image ? (
+              <img
+                src={currentImage.url_product_image}
+                alt={product.name_product}
+                className="w-full h-full object-contain object-center"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-neutral-400 gap-2">
+                <Icon icon="solar:t-shirt-bold-duotone" className="text-7xl opacity-40" />
+                <span className="text-xs uppercase tracking-widest font-black text-neutral-400">Gritmode Signature</span>
+              </div>
+            )}
             {!isAvailable && (
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                <span className="text-xs font-black uppercase tracking-widest bg-white text-black px-4 py-1.5 rounded-full shadow-lg">
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+                <span className="text-xs font-black uppercase tracking-widest bg-white text-black px-5 py-2 rounded-full shadow-2xl">
                   Tạm hết hàng
                 </span>
               </div>
@@ -141,7 +148,7 @@ export default function ProductDetailPage() {
 
           {/* Thumbnail Strip */}
           {displayImages.length > 1 && (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none select-none">
               {displayImages.map((img, idx) => (
                 <button
                   key={img.product_image_id || idx}
@@ -149,7 +156,7 @@ export default function ProductDetailPage() {
                   onClick={() => setSelectedImageIndex(idx)}
                   className={`relative w-20 h-24 rounded-2xl overflow-hidden border-2 transition-all shrink-0 bg-neutral-100 dark:bg-neutral-900 cursor-pointer ${
                     selectedImageIndex === idx
-                      ? 'border-black dark:border-white ring-2 ring-black/10'
+                      ? 'border-black dark:border-white ring-2 ring-black/10 shadow-md'
                       : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
@@ -167,19 +174,24 @@ export default function ProductDetailPage() {
         {/* Right: Options & Purchasing (5 Cols) */}
         <div className="lg:col-span-5 space-y-6">
           <div>
-            {primaryCategory && (
-              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black">
-                {primaryCategory.name_category}
+            <div className="flex items-center gap-2">
+              {primaryCategory && (
+                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md bg-black text-white dark:bg-white dark:text-black">
+                  {primaryCategory.name_category}
+                </span>
+              )}
+              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                FREESHIP
               </span>
-            )}
+            </div>
 
-            <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-3 leading-tight">
+            <h1 className="font-sans font-normal text-2xl sm:text-3xl lg:text-4xl uppercase tracking-widest text-black dark:text-white mt-3 leading-tight">
               {product.name_product}
             </h1>
 
             {/* Price Display */}
             <div className="flex items-baseline gap-3 mt-4">
-              <span className="font-display font-black text-3xl text-black dark:text-white">
+              <span className="font-sans font-[550] text-3xl text-black dark:text-white">
                 {formatPriceVND(displayPrice)}
               </span>
             </div>
@@ -187,21 +199,21 @@ export default function ProductDetailPage() {
             {/* Availability Indicator */}
             <div className="flex items-center gap-2 mt-2 text-xs">
               {isAvailable ? (
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                  <Icon icon="solar:check-circle-bold" />
-                  <span>Còn {availableStock} sản phẩm sẵn sàng giao</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-normal uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Còn {availableStock} sản phẩm trong kho (Sẵn sàng giao)</span>
                 </span>
               ) : (
-                <span className="text-neutral-400 font-bold flex items-center gap-1">
-                  <Icon icon="solar:close-circle-bold" />
-                  <span>Phân loại này hiện đang hết hàng</span>
+                <span className="text-rose-500 font-normal uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500" />
+                  <span>Phân loại này hiện đang tạm hết hàng</span>
                 </span>
               )}
             </div>
           </div>
 
           {/* Dynamic Variant Options (Color, Size, etc.) */}
-          <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 space-y-4">
             <ProductVariantSelector
               options={product.options}
               selectedOptionValues={selectedOptionValues}
@@ -209,14 +221,14 @@ export default function ProductDetailPage() {
             />
 
             {/* Size Guide Trigger */}
-            <div className="pt-3">
+            <div>
               <button
                 type="button"
                 onClick={() => setIsSizeGuideOpen(true)}
-                className="text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white underline flex items-center gap-1 cursor-pointer"
+                className="text-xs font-normal uppercase tracking-wider text-neutral-500 hover:text-black dark:hover:text-white underline flex items-center gap-1.5 cursor-pointer"
               >
                 <Icon icon="solar:ruler-bold" />
-                <span>Bảng quy đổi kích cỡ (Size Chart)</span>
+                <span>Bảng quy đổi kích cỡ</span>
               </button>
             </div>
           </div>
@@ -230,18 +242,18 @@ export default function ProductDetailPage() {
                   type="button"
                   onClick={decrementQuantity}
                   disabled={selectedQuantity <= 1 || !isAvailable}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-base font-black disabled:opacity-30 cursor-pointer"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-base font-[550] disabled:opacity-30 cursor-pointer"
                 >
                   -
                 </button>
-                <span className="w-10 text-center text-sm font-black text-black dark:text-white">
+                <span className="w-10 text-center text-sm font-[550] text-black dark:text-white">
                   {selectedQuantity}
                 </span>
                 <button
                   type="button"
                   onClick={incrementQuantity}
                   disabled={!isAvailable || (availableStock > 0 && selectedQuantity >= availableStock)}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-base font-black disabled:opacity-30 cursor-pointer"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-base font-[550] disabled:opacity-30 cursor-pointer"
                 >
                   +
                 </button>
@@ -252,7 +264,7 @@ export default function ProductDetailPage() {
                 type="button"
                 onClick={() => handleAddToCart(false)}
                 disabled={!isAvailable}
-                className="flex-1 py-3.5 px-6 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 border border-neutral-300 dark:border-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                className="flex-1 py-4 px-6 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 text-xs font-[550] uppercase tracking-widest flex items-center justify-center gap-2 border border-neutral-300 dark:border-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
               >
                 <Icon icon="solar:bag-plus-bold" className="text-base" />
                 <span>THÊM VÀO GIỎ</span>
@@ -264,30 +276,30 @@ export default function ProductDetailPage() {
               type="button"
               onClick={() => handleAddToCart(true)}
               disabled={!isAvailable}
-              className="w-full py-3.5 px-6 rounded-2xl bg-black text-white dark:bg-white dark:text-black hover:opacity-85 text-xs font-black uppercase tracking-widest shadow-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+              className="w-full py-4 px-6 rounded-2xl bg-black text-white dark:bg-white dark:text-black hover:opacity-85 text-xs font-[550] uppercase tracking-widest shadow-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
-              MUA NGAY (GIAO TẬN NƠI)
+              MUA NGAY (FREESHIP TẬN TAY)
             </button>
           </div>
 
           {/* Accordion Sections */}
           <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 space-y-2">
             {[
-              { id: 'details', title: 'CHI TIẾT & CHẤT LIỆU', content: product.description || 'Chưa có mô tả chi tiết cho sản phẩm này.' },
-              { id: 'shipping', title: 'VẬN CHUYỂN & ĐỔI TRẢ', content: 'Miễn phí vận chuyển toàn quốc cho đơn hàng từ 500.000₫. Hỗ trợ đổi size miễn phí trong 30 ngày kể từ ngày nhận hàng.' },
+              { id: 'details', title: 'CHI TIẾT & CHẤT LIỆU', content: product.description || 'Chất liệu 100% Premium Heavyweight Cotton 280GSM thoáng mát, form dáng Boxy Streetwear thời thượng.' },
+              { id: 'shipping', title: 'VẬN CHUYỂN & ĐỔI TRẢ', content: 'Miễn phí vận chuyển 0đ toàn quốc cho mọi đơn hàng. Hỗ trợ đổi trả size và mẫu miễn phí trong 7 ngày kể từ ngày nhận hàng.' },
               { id: 'care', title: 'HƯỚNG DẪN BẢO QUẢN', content: 'Nên giặt bằng nước lạnh, lộn trái áo khi giặt và phơi để giữ hình in bền lâu. Không sử dụng thuốc tẩy mạnh.' },
             ].map((acc) => (
               <div key={acc.id} className="border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setOpenAccordion(openAccordion === acc.id ? '' : acc.id)}
-                  className="w-full py-3 px-4 flex items-center justify-between text-xs font-black uppercase tracking-wider text-black dark:text-white bg-neutral-50 dark:bg-neutral-900/50 cursor-pointer"
+                  className="w-full py-3.5 px-4 flex items-center justify-between text-xs font-[550] uppercase tracking-wider text-black dark:text-white bg-neutral-50 dark:bg-neutral-900/50 cursor-pointer"
                 >
                   <span>{acc.title}</span>
                   <Icon icon={openAccordion === acc.id ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'} />
                 </button>
                 {openAccordion === acc.id && (
-                  <div className="p-4 text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed bg-white dark:bg-neutral-950 whitespace-pre-line">
+                  <div className="p-4 text-xs font-normal uppercase tracking-wider text-neutral-600 dark:text-neutral-300 leading-relaxed bg-white dark:bg-neutral-950 whitespace-pre-line">
                     {acc.content}
                   </div>
                 )}
@@ -300,10 +312,10 @@ export default function ProductDetailPage() {
       {/* Size Guide Modal */}
       {isSizeGuideOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl">
+          <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-200 dark:border-neutral-800">
-              <h3 className="font-display font-black text-xl uppercase tracking-tight text-black dark:text-white">
-                BẢNG QUY ĐỔI KÍCH CỠ (SIZE CHART)
+              <h3 className="font-sans font-[550] text-xl uppercase tracking-wider text-black dark:text-white">
+                BẢNG QUY ĐỔI KÍCH CỠ
               </h3>
               <button
                 type="button"

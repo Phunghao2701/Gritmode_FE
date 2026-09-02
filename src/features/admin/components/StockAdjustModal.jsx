@@ -79,7 +79,7 @@ export default function StockAdjustModal({ item, onClose, onAdjustSubmit, isLoad
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:border-black dark:hover:border-white transition-all cursor-pointer"
+              className="px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:border-neutral-400 dark:hover:border-neutral-500 transition-all cursor-pointer"
             >
               Hủy
             </button>

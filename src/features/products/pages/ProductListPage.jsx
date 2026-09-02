@@ -129,18 +129,27 @@ export default function ProductListPage() {
     : 'Tất cả sản phẩm';
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-[70vh]">
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-[70vh] animate-fade-in">
+      {/* Breadcrumb Navigation */}
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-400 select-none">
+        <span onClick={() => { handleResetFilters(); }} className="font-normal hover:text-black dark:hover:text-white cursor-pointer transition-colors">
+          Trang chủ
+        </span>
+        <span>/</span>
+        <span className="text-black dark:text-white font-[550]">{pageTitle}</span>
+      </div>
+
       {/* Header Banner */}
-      <div className="border-b border-neutral-100 dark:border-neutral-900 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+      <div className="border-b border-neutral-200 dark:border-neutral-800 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
         <div>
-          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
+          <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
             Gritmode Streetwear Catalog
           </span>
-          <h1 className="font-display font-black text-3xl sm:text-4xl text-black dark:text-white uppercase tracking-tight mt-1">
+          <h1 className="font-sans font-black text-2xl sm:text-3xl lg:text-4xl text-black dark:text-white uppercase tracking-widest mt-1">
             {pageTitle}
           </h1>
         </div>
-        <span className="text-xs font-bold text-neutral-400">
+        <span className="text-xs font-black uppercase tracking-wider text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-3 py-1 rounded-full">
           {total} sản phẩm
         </span>
       </div>

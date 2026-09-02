@@ -4,6 +4,7 @@ import { useAdminStats, useAdminOrders, useAdminInventory } from '../hooks/useAd
 import DashboardStatCard from '../components/DashboardStatCard';
 import RecentOrdersTable from '../components/RecentOrdersTable';
 import LowStockAlert from '../components/LowStockAlert';
+import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -15,14 +16,10 @@ export default function AdminDashboardPage() {
     (i) => (i.available !== undefined ? i.available : i.onHand) <= (i.lowStockThreshold || 5)
   );
 
-  const formatPrice = (p) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p || 0);
-  };
-
   const statCards = [
     {
       title: 'Doanh thu tháng',
-      value: formatPrice(stats?.revenueThisMonth || 0),
+      value: formatPriceVND(stats?.revenueThisMonth || 0),
       change: stats?.revenueChange || '+15.8%',
       icon: 'solar:dollar-minimalistic-linear',
       bg: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',

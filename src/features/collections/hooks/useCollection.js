@@ -16,6 +16,7 @@ export const useCollections = () => {
       return sortCollectionsByPosition(rawList);
     },
     staleTime: 1000 * 60 * 5, // 5 minutes cache
+    refetchOnMount: 'always',
   });
 
   return {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import {
@@ -7,6 +7,7 @@ import {
   getAllowedAdminOrderActions,
 } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
+import { getAdminOrderByIdApi } from '../apis/admin.api';
 
 export default function OrderDetailModal({
   order,
@@ -20,22 +21,48 @@ export default function OrderDetailModal({
 }) {
   const [cancelReason, setCancelReason] = useState('');
   const [showCancelInput, setShowCancelInput] = useState(false);
+  const [fullDetail, setFullDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const orderId = order?.order_id || order?.id;
+
+  useEffect(() => {
+    let isMounted = true;
+    if (orderId) {
+      setLoadingDetail(true);
+      getAdminOrderByIdApi(orderId)
+        .then((res) => {
+          if (isMounted) {
+            setFullDetail(res.data?.data || res.data);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to fetch full admin order details:', err);
+        })
+        .finally(() => {
+          if (isMounted) setLoadingDetail(false);
+        });
+    }
+    return () => { isMounted = false; };
+  }, [orderId]);
 
   if (!order) return null;
 
-  const orderId = order.order_id || order.id;
-  const orderStatus = getOrderStatusInfo(order.status_order);
-  const paymentMethod = order.payment?.payment_method || 'cod';
-  const paymentStatus = getPaymentStatusInfo(order.payment?.status_payment);
+  const activeOrder = fullDetail || order;
+
+  const orderStatus = getOrderStatusInfo(activeOrder.status_order);
+  const paymentMethod = activeOrder.payment_method || activeOrder.payment?.payment_method || 'cod';
+  const rawPaymentStatus = activeOrder.status_payment || activeOrder.payment?.status_payment;
+  const paymentStatus = getPaymentStatusInfo(rawPaymentStatus, paymentMethod);
   const allowedActions = getAllowedAdminOrderActions(
-    order.status_order,
+    activeOrder.status_order,
     paymentMethod,
-    order.payment?.status_payment
+    rawPaymentStatus
   );
 
-  const address = order.address || {};
-  const items = Array.isArray(order.items) ? order.items : [];
-  const isGuest = !order.user && !order.user_id;
+  const address = activeOrder.address || {};
+  const items = Array.isArray(activeOrder.items) ? activeOrder.items : [];
+  const isGuest = !activeOrder.user && !activeOrder.user_id;
 
   const handleCancelSubmit = () => {
     onCancel({ orderId, reason: cancelReason.trim() });
@@ -58,10 +85,10 @@ export default function OrderDetailModal({
               </span>
             </div>
             <h3 className="font-mono font-black text-xl text-black dark:text-white uppercase mt-0.5">
-              {order.order_code || `#ORD-${orderId}`}
+              {activeOrder.order_code || `#ORD-${orderId}`}
             </h3>
             <p className="text-[11px] text-neutral-500">
-              Đặt lúc: {new Date(order.created_at || Date.now()).toLocaleString('vi-VN')}
+              Đặt lúc: {new Date(activeOrder.created_at || Date.now()).toLocaleString('vi-VN')}
             </p>
           </div>
           <button
@@ -98,26 +125,30 @@ export default function OrderDetailModal({
           <div className="space-y-1">
             <span className="font-bold uppercase tracking-wider text-neutral-400 text-[10px]">Người nhận & Liên hệ</span>
             <p className="font-black text-black dark:text-white">
-              {address.receiver_name_order_address || order.receiver_name_order_address || order.email_order}
+              {address.receiver_name_order_address || activeOrder.receiver_name_order_address || activeOrder.email_order}
             </p>
-            <p className="text-neutral-500 font-mono">{address.phone_order_address || order.phone_order_address || order.phone_order}</p>
-            <p className="text-neutral-500">{order.email_order}</p>
+            <p className="text-neutral-500 font-mono">{address.phone_order_address || activeOrder.phone_order_address || activeOrder.phone_order}</p>
+            <p className="text-neutral-500">{activeOrder.email_order}</p>
           </div>
           <div className="space-y-1">
             <span className="font-bold uppercase tracking-wider text-neutral-400 text-[10px]">Địa chỉ giao hàng</span>
-            <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
-              {[
-                address.address_line_order_address || order.address_line_order_address,
-                address.ward_order_address || order.ward_order_address,
-                address.district_order_address || order.district_order_address,
-                address.province_order_address || order.province_order_address,
-              ]
-                .filter(Boolean)
-                .join(', ') || 'Chưa cung cấp'}
-            </p>
-            {order.note_order && (
+            {loadingDetail ? (
+              <p className="text-neutral-400 italic">Đang tải địa chỉ...</p>
+            ) : (
+              <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                {[
+                  address.address_line_order_address || activeOrder.address_line_order_address,
+                  address.ward_order_address || activeOrder.ward_order_address,
+                  address.district_order_address || activeOrder.district_order_address,
+                  address.province_order_address || activeOrder.province_order_address,
+                ]
+                  .filter(Boolean)
+                  .join(', ') || 'Chưa cung cấp'}
+              </p>
+            )}
+            {activeOrder.note_order && (
               <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold pt-1">
-                Ghi chú: "{order.note_order}"
+                Ghi chú: "{activeOrder.note_order}"
               </p>
             )}
           </div>
@@ -128,44 +159,56 @@ export default function OrderDetailModal({
           <h4 className="font-bold uppercase tracking-wider text-neutral-500 text-xs">
             Sản phẩm trong đơn ({items.length})
           </h4>
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-48 overflow-y-auto pr-1 scrollbar-none">
-            {items.map((item, idx) => (
-              <div key={item.order_item_id || idx} className="py-2.5 flex items-center justify-between gap-4 text-xs">
-                <div>
-                  <h5 className="font-bold text-black dark:text-white uppercase line-clamp-1">
-                    {item.name_product_order_item || item.name_product || 'Sản phẩm'}
-                  </h5>
-                  <p className="text-neutral-400 text-[10px] uppercase font-mono">
-                    SKU: {item.sku_order_item || 'N/A'} {item.variant_order_item ? `• ${item.variant_order_item}` : ''} • SL: x{item.quantity_order_item || item.quantity}
-                  </p>
+          {loadingDetail ? (
+            <div className="py-4 text-center text-neutral-400 text-xs italic">
+              Đang tải danh sách sản phẩm...
+            </div>
+          ) : (
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-48 overflow-y-auto pr-1 scrollbar-none">
+              {items.length === 0 ? (
+                <div className="py-3 text-center text-neutral-400 text-xs">
+                  Không có thông tin chi tiết sản phẩm.
                 </div>
-                <span className="font-black text-black dark:text-white shrink-0">
-                  {formatPriceVND(item.total_order_item || item.price_order_item * (item.quantity_order_item || item.quantity))}
-                </span>
-              </div>
-            ))}
-          </div>
+              ) : (
+                items.map((item, idx) => (
+                  <div key={item.order_item_id || idx} className="py-2.5 flex items-center justify-between gap-4 text-xs">
+                    <div>
+                      <h5 className="font-bold text-black dark:text-white uppercase line-clamp-1">
+                        {item.name_product_order_item || item.name_product || 'Sản phẩm'}
+                      </h5>
+                      <p className="text-neutral-400 text-[10px] uppercase font-mono">
+                        SKU: {item.sku_order_item || 'N/A'} {item.variant_order_item ? `• ${item.variant_order_item}` : ''} • SL: x{item.quantity_order_item || item.quantity}
+                      </p>
+                    </div>
+                    <span className="font-black text-black dark:text-white shrink-0">
+                      {formatPriceVND(item.total_order_item || item.price_order_item * (item.quantity_order_item || item.quantity))}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
         {/* Total breakdown */}
         <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 space-y-1.5 text-xs">
           <div className="flex justify-between text-neutral-500">
             <span>Tạm tính:</span>
-            <span className="font-bold text-black dark:text-white">{formatPriceVND(order.subtotal_order)}</span>
+            <span className="font-bold text-black dark:text-white">{formatPriceVND(activeOrder.subtotal_order)}</span>
           </div>
           <div className="flex justify-between text-neutral-500">
             <span>Phí giao hàng:</span>
-            <span className="font-bold text-black dark:text-white">{formatPriceVND(order.shipping_fee_order)}</span>
+            <span className="font-bold text-black dark:text-white">{formatPriceVND(activeOrder.shipping_fee_order)}</span>
           </div>
-          {order.discount_order > 0 && (
+          {activeOrder.discount_order > 0 && (
             <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
-              <span>Mã giảm giá ({order.code_voucher_order || 'Voucher'}):</span>
-              <span>-{formatPriceVND(order.discount_order)}</span>
+              <span>Mã giảm giá ({activeOrder.code_voucher_order || 'Voucher'}):</span>
+              <span>-{formatPriceVND(activeOrder.discount_order)}</span>
             </div>
           )}
           <div className="flex justify-between font-black text-sm text-black dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-800">
             <span className="uppercase tracking-wider">Tổng thanh toán:</span>
-            <span className="text-base font-display">{formatPriceVND(order.total_order)}</span>
+            <span className="text-base font-display">{formatPriceVND(activeOrder.total_order)}</span>
           </div>
         </div>
 

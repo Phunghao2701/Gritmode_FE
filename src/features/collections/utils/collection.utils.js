@@ -20,35 +20,3 @@ export const sortCollectionsByPosition = (collections = []) => {
   });
 };
 
-/**
- * Checks if a collection is within its scheduled display timeframe
- * (Client-side helper; Backend is the primary source of truth)
- * @param {object} collection
- * @param {Date} now
- * @returns {boolean}
- */
-export const isCollectionActive = (collection, now = new Date()) => {
-  if (!collection) return false;
-  if (collection.is_active === false) return false;
-  if (collection.start_at && new Date(collection.start_at) > now) return false;
-  if (collection.end_at && new Date(collection.end_at) < now) return false;
-  return true;
-};
-
-/**
- * Finds a collection by ID or slug
- * @param {Array<object>} collections
- * @param {number|string} idOrSlug
- * @returns {object|null}
- */
-export const findCollectionByIdOrSlug = (collections = [], idOrSlug) => {
-  if (!idOrSlug || !Array.isArray(collections)) return null;
-  const target = String(idOrSlug).toLowerCase();
-  return (
-    collections.find(
-      (col) =>
-        String(col.collection_id || col.id) === target ||
-        (col.slug_collection || col.slug || '').toLowerCase() === target
-    ) || null
-  );
-};

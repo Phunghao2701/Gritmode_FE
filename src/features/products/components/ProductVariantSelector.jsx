@@ -34,9 +34,9 @@ export default function ProductVariantSelector({
           <div key={optionId} className="space-y-2.5">
             {/* Option Label & Selected Value */}
             <div className="flex items-center justify-between text-xs uppercase tracking-wider">
-              <span className="font-bold text-neutral-500">{optionName}:</span>
+              <span className="font-normal text-neutral-500">{optionName}:</span>
               {selectedValueObj && (
-                <span className="font-black text-black dark:text-white">
+                <span className="font-[550] text-black dark:text-white">
                   {selectedValueObj.value_option}
                 </span>
               )}
@@ -55,7 +55,7 @@ export default function ProductVariantSelector({
                       key={valId}
                       type="button"
                       onClick={() => onSelectOptionValue(optionId, valId)}
-                      className={`min-w-[48px] h-11 px-3.5 rounded-xl text-xs font-black uppercase flex items-center justify-center border transition-all cursor-pointer ${
+                      className={`min-w-[48px] h-11 px-3.5 rounded-xl text-xs font-[550] uppercase flex items-center justify-center border transition-all cursor-pointer ${
                         isSelected
                           ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black shadow-sm'
                           : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600'
@@ -71,9 +71,9 @@ export default function ProductVariantSelector({
                     key={valId}
                     type="button"
                     onClick={() => onSelectOptionValue(optionId, valId)}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase border transition-all cursor-pointer ${
+                    className={`px-4 py-2.5 rounded-xl text-xs font-[550] uppercase border transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black shadow-sm font-black'
+                        ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black shadow-sm'
                         : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600'
                     }`}
                   >

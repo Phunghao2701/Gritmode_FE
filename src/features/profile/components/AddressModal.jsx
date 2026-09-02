@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import InputField from '../../../shared/components/InputField';
+import AddressSelectGroup from '../../../shared/components/AddressSelect/AddressSelectGroup';
 
 export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress, isLoading }) {
   const isEditing = Boolean(editingAddress);
@@ -17,6 +18,21 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
   });
 
   const [errors, setErrors] = useState({});
+
+  const handleLocationChange = (loc) => {
+    setFormData((prev) => ({
+      ...prev,
+      province_user_address: loc.province,
+      district_user_address: loc.district,
+      ward_user_address: loc.ward,
+    }));
+    setErrors((prev) => ({
+      ...prev,
+      province_user_address: '',
+      district_user_address: '',
+      ward_user_address: '',
+    }));
+  };
 
   useEffect(() => {
     if (editingAddress) {
@@ -115,7 +131,7 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-full text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-2 rounded-full text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
           >
             <Icon icon="solar:close-circle-linear" className="text-xl" />
           </button>
@@ -125,54 +141,53 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <InputField
-              label="Họ và tên người nhận *"
-              placeholder="Ví dụ: Nguyễn Văn A"
+              label="Họ và tên người nhận"
+              name="receiver_name_user_address"
+              placeholder=""
               value={formData.receiver_name_user_address}
               onChange={(e) => handleChange('receiver_name_user_address', e.target.value)}
               error={errors.receiver_name_user_address}
               icon="solar:user-linear"
               required
+              className="mb-0"
             />
             <InputField
-              label="Số điện thoại *"
-              placeholder="0912345678"
+              label="Số điện thoại"
+              name="phone_user_address"
+              type="tel"
+              placeholder=""
               value={formData.phone_user_address}
               onChange={(e) => handleChange('phone_user_address', e.target.value)}
               error={errors.phone_user_address}
               icon="solar:phone-linear"
               required
+              className="mb-0"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <InputField
-              label="Tỉnh / Thành phố"
-              placeholder="Hà Nội / TP. HCM"
-              value={formData.province_user_address}
-              onChange={(e) => handleChange('province_user_address', e.target.value)}
-            />
-            <InputField
-              label="Quận / Huyện"
-              placeholder="Quận / Huyện"
-              value={formData.district_user_address}
-              onChange={(e) => handleChange('district_user_address', e.target.value)}
-            />
-            <InputField
-              label="Phường / Xã"
-              placeholder="Phường / Xã"
-              value={formData.ward_user_address}
-              onChange={(e) => handleChange('ward_user_address', e.target.value)}
-            />
-          </div>
+          <AddressSelectGroup
+            province={formData.province_user_address}
+            district={formData.district_user_address}
+            ward={formData.ward_user_address}
+            onChange={handleLocationChange}
+            errors={{
+              province: errors.province_user_address,
+              district: errors.district_user_address,
+              ward: errors.ward_user_address,
+            }}
+            required
+          />
 
           <InputField
-            label="Địa chỉ chi tiết (Số nhà, tên đường) *"
-            placeholder="Số 123 đường Nguyễn Huệ..."
+            label="Địa chỉ chi tiết (Số nhà, tên đường)"
+            name="address_line_user_address"
+            placeholder=""
             value={formData.address_line_user_address}
             onChange={(e) => handleChange('address_line_user_address', e.target.value)}
             error={errors.address_line_user_address}
             icon="solar:map-point-linear"
             required
+            className="mb-0"
           />
 
           {!isEditing && (

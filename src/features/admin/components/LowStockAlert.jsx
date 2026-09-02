@@ -52,7 +52,7 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory })
       <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
         <button
           onClick={onManageInventory}
-          className="w-full py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-black dark:hover:border-white text-xs font-black uppercase tracking-wider text-black dark:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-black uppercase tracking-wider text-black dark:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>Quản lý kho toàn diện</span>
           <Icon icon="solar:arrow-right-linear" />

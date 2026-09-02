@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './app/routes/AppRoutes';
 import AppToast from './shared/components/AppToast';
 import SmoothScrollProvider from './shared/components/SmoothScrollProvider';
+import ScrollToTop from './shared/components/ScrollToTop';
 import { tokenService } from './features/auth/services/token.service';
 import { getMeApi } from './features/auth/apis/auth.api';
 import { useAuthStore } from './app/store/authStore';
@@ -53,13 +54,14 @@ function AuthInit() {
 
 function App() {
   return (
-    <SmoothScrollProvider>
-      <AppToast />
-      <BrowserRouter>
+    <BrowserRouter>
+      <SmoothScrollProvider>
+        <ScrollToTop />
+        <AppToast />
         <AuthInit />
         <AppRoutes />
-      </BrowserRouter>
-    </SmoothScrollProvider>
+      </SmoothScrollProvider>
+    </BrowserRouter>
   );
 }
 

@@ -25,30 +25,48 @@ html.lenis body {
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --color-primary: 0 0 0;
-    --color-accent: 255 255 255;
+  * {
+    @apply border-neutral-200 dark:border-neutral-800;
   }
 
-  * {
-    @apply border-street-200 dark:border-street-800;
+  html {
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply font-sans antialiased min-h-screen bg-white text-black dark:bg-black dark:text-white selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black;
-    font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+    @apply font-sans antialiased min-h-screen bg-white text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50 selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6, .font-display, .font-street {
-    font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
-    letter-spacing: -0.02em;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+
+  /* Accessible focus indicators for buttons and interactive links */
+  button:focus-visible, 
+  a:focus-visible {
+    @apply outline-none ring-2 ring-black dark:ring-white ring-offset-2 ring-offset-white dark:ring-offset-black;
+  }
+
+  /* Form control outline reset */
+  input, 
+  textarea, 
+  select {
+    @apply outline-none;
+  }
+
+  /* Optimize touch responsiveness on mobile */
+  button, a, input, select, textarea {
+    touch-action: manipulation;
   }
 }
 
 /* Streetwear Custom Scrollbar (Pure Monochrome) */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -56,17 +74,19 @@ html.lenis body {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-400 dark:bg-neutral-700 rounded-full hover:bg-neutral-600 dark:hover:bg-neutral-500 transition-colors;
+  @apply bg-neutral-300 dark:bg-neutral-800 rounded-full hover:bg-neutral-400 dark:hover:bg-neutral-700 transition-colors;
 }
 
 /* Marquee infinite animation track */
 .marquee-track {
-  display: flex;
-  width: max-content;
-  white-space: nowrap;
+  @apply flex w-max whitespace-nowrap;
 }
 
-/* Glassmorphic elements */
-.glass-street {
-  @apply bg-white/90 dark:bg-black/90 backdrop-blur-md border border-neutral-200/80 dark:border-neutral-800/80;
+/* Hide scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

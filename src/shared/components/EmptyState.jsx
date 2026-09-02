@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from "react-i18next";
 import Icon from './Icon';
 import PrimaryButton from './Button/PrimaryButton';
 import { cn } from '../utils/cn';
@@ -12,9 +11,8 @@ export default function EmptyState({
   onAction = null,
   className = '',
 }) {
-  const { t } = useTranslation();
-  const resolvedTitle = title || t("common.khongCoDuLieu", "Không có dữ liệu");
-  const resolvedDescription = description || t("common.khongTimThayKetQuaPhuHop", "Không tìm thấy kết quả hoặc nội dung phù hợp.");
+  const resolvedTitle = title || 'Không có dữ liệu';
+  const resolvedDescription = description || 'Không tìm thấy kết quả hoặc nội dung phù hợp.';
 
   return (
     <div className={cn(

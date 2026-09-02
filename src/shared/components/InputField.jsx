@@ -41,17 +41,17 @@ export default function InputField({
 
       <div 
         className={cn(
-          "relative flex items-center w-full rounded-xl border bg-white dark:bg-neutral-900 transition-all duration-200 shadow-sm",
+          "relative flex items-center w-full rounded-xl border bg-white dark:bg-neutral-900 transition-all duration-150 shadow-sm",
           error 
-            ? "border-black dark:border-white ring-2 ring-black/10 dark:ring-white/10" 
+            ? "border-rose-500 dark:border-rose-500 ring-1 ring-rose-500/20" 
             : isFocused 
-              ? "border-black dark:border-white ring-2 ring-black/10 dark:ring-white/10" 
-              : "border-neutral-300 dark:border-neutral-800 hover:border-neutral-500",
+              ? "border-neutral-900 dark:border-white ring-1 ring-neutral-900/10 dark:ring-white/10" 
+              : "border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-700",
           disabled && "opacity-50 bg-neutral-100 dark:bg-neutral-800 cursor-not-allowed"
         )}
       >
         {icon && (
-          <div className="pl-3.5 pr-1 flex items-center pointer-events-none text-neutral-500">
+          <div className="pl-3.5 pr-1 flex items-center pointer-events-none text-neutral-400">
             <Icon icon={icon} className="text-lg" />
           </div>
         )}
@@ -73,7 +73,7 @@ export default function InputField({
             if (onBlur) onBlur(e);
           }}
           className={cn(
-            "w-full bg-transparent px-3.5 py-2.5 text-xs sm:text-sm font-medium text-black dark:text-white placeholder:text-neutral-400 focus:outline-none disabled:cursor-not-allowed",
+            "w-full bg-transparent px-3.5 py-2.5 text-xs sm:text-sm font-medium text-black dark:text-white placeholder:text-neutral-400 outline-none border-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed",
             inputClassName
           )}
           {...props}
@@ -83,7 +83,7 @@ export default function InputField({
           <div 
             onClick={onRightIconClick}
             className={cn(
-              "pr-3.5 pl-1 flex items-center text-neutral-500 transition-colors",
+              "pr-3.5 pl-1 flex items-center text-neutral-400 transition-colors",
               onRightIconClick && "cursor-pointer hover:text-black dark:hover:text-white"
             )}
           >
@@ -93,7 +93,7 @@ export default function InputField({
       </div>
 
       {error ? (
-        <div className="flex items-center gap-1.5 text-black dark:text-white text-xs mt-1.5 font-bold animate-fadeIn">
+        <div className="flex items-center gap-1.5 text-rose-500 text-xs mt-1.5 font-bold animate-fade-in">
           <Icon icon="solar:danger-circle-bold" className="text-sm flex-shrink-0" />
           <span>{error}</span>
         </div>

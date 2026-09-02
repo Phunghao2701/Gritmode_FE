@@ -94,7 +94,7 @@ export default function GuestOrderLookupPage() {
             <input
               type="text"
               name="order_code"
-              placeholder="VD: ORD-20260831-123456"
+              placeholder=""
               value={formData.order_code}
               onChange={handleChange}
               required
@@ -110,7 +110,7 @@ export default function GuestOrderLookupPage() {
               <input
                 type="email"
                 name="email"
-                placeholder="customer@example.com"
+                placeholder=""
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -125,7 +125,7 @@ export default function GuestOrderLookupPage() {
               <input
                 type="tel"
                 name="phone"
-                placeholder="0901234567"
+                placeholder=""
                 value={formData.phone}
                 onChange={handleChange}
                 required

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from "react-i18next";
 import Icon from './Icon';
 import PrimaryButton from './Button/PrimaryButton';
 import { cn } from '../utils/cn';
@@ -12,10 +11,9 @@ export default function ErrorState({
   retryLabel,
   className = '',
 }) {
-  const { t } = useTranslation();
-  const resolvedTitle = title || t("common.khongTheTaiDuLieu", "Không thể tải dữ liệu");
-  const resolvedMessage = message || t("common.vuiLongKiemTraLaiKetNoiMangHoa", "Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau.");
-  const resolvedRetryLabel = retryLabel || t("common.thuLai", "Thử lại");
+  const resolvedTitle = title || 'Không thể tải dữ liệu';
+  const resolvedMessage = message || 'Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau.';
+  const resolvedRetryLabel = retryLabel || 'Thử lại';
 
   return (
     <div className={cn(

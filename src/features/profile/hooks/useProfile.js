@@ -11,7 +11,7 @@ import {
   updateAddressApi,
   deleteAddressApi,
   setDefaultAddressApi,
-  getMyOrdersApi,
+  changePasswordApi,
 } from '../apis/profile.api';
 import { useAuthStore } from '../../../app/store/authStore';
 import { toast } from '../../../shared/utils/toast';
@@ -149,20 +149,29 @@ export const useAddresses = () => {
 };
 
 /**
- * Hook quản lý đơn mua cá nhân
+ * Hook đổi mật khẩu tài khoản
  */
-export const useMyOrders = (params = {}) => {
-  const ordersQuery = useQuery({
-    queryKey: ['my-orders', params],
-    queryFn: async () => {
-      const res = await getMyOrdersApi(params);
-      const raw = res.data?.data || res.data;
-      return Array.isArray(raw) ? raw : (raw?.items || raw?.orders || []);
+export const useChangePassword = () => {
+  const mutation = useMutation({
+    mutationFn: changePasswordApi,
+    onSuccess: () => {
+      toast.success('Đổi mật khẩu thành công!');
+    },
+    onError: (err) => {
+      const msg = err.response?.data?.message || err.response?.data?.error?.message;
+      if (err.response?.status === 400 || err.response?.status === 401) {
+        toast.error(msg || 'Mật khẩu hiện tại không chính xác.');
+      } else {
+        toast.error(msg || 'Không thể đổi mật khẩu. Vui lòng thử lại sau.');
+      }
     },
   });
 
   return {
-    ...ordersQuery,
-    orders: ordersQuery.data || [],
+    changePassword: mutation.mutate,
+    changePasswordAsync: mutation.mutateAsync,
+    isChangingPassword: mutation.isPending,
+    error: mutation.error,
   };
 };
+

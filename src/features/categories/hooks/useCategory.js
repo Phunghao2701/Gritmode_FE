@@ -17,6 +17,7 @@ export const useCategories = () => {
       return buildCategoryTree(rawList);
     },
     staleTime: 1000 * 60 * 10, // 10 minutes cache
+    refetchOnMount: 'always',
   });
 
   const categoryTree = query.data || [];

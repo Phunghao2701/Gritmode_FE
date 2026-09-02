@@ -33,6 +33,8 @@ export const useCheckout = () => {
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState(null);
+  const [isPayOSModalOpen, setIsPayOSModalOpen] = useState(false);
 
   // Initialize or prefill from user profile / default address
   useEffect(() => {
@@ -110,7 +112,7 @@ export const useCheckout = () => {
   };
 
   const subtotal = getSubtotal();
-  const shippingFee = 30000;
+  const shippingFee = 0;
   const discountAmount = appliedVoucher?.discount_amount ?? appliedVoucher?.discountAmount ?? 0;
   const finalAmount = Math.max(0, subtotal + shippingFee - discountAmount);
 
@@ -122,6 +124,14 @@ export const useCheckout = () => {
     }
   };
 
+const normalizePhone = (phone) => {
+  if (!phone || typeof phone !== 'string') return '';
+  let cleaned = phone.trim().replace(/[\s.-]/g, '');
+  if (cleaned.startsWith('+84')) cleaned = '0' + cleaned.slice(3);
+  else if (cleaned.startsWith('84') && cleaned.length === 11) cleaned = '0' + cleaned.slice(2);
+  return cleaned;
+};
+
   const handlePlaceOrder = async () => {
     if (isSubmitting) return;
 
@@ -129,9 +139,12 @@ export const useCheckout = () => {
     const isUsingSavedAddress = isAuthenticated && typeof formData.selectedAddressId === 'number';
 
     if (!isUsingSavedAddress) {
+      const cleanPhone = normalizePhone(formData.phone);
       if (!formData.fullName.trim()) newErrors.fullName = 'Vui lòng nhập họ và tên';
       if (!formData.phone.trim()) newErrors.phone = 'Vui lòng nhập số điện thoại';
+      else if (!/^0\d{9}$/.test(cleanPhone)) newErrors.phone = 'Số điện thoại phải gồm 10 chữ số (VD: 0901234567 hoặc +84901234567)';
       if (!formData.email.trim()) newErrors.email = 'Vui lòng nhập email';
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = 'Email không hợp lệ';
       if (!formData.province.trim()) newErrors.province = 'Vui lòng nhập Tỉnh/Thành phố';
       if (!formData.district.trim()) newErrors.district = 'Vui lòng nhập Quận/Huyện';
       if (!formData.ward.trim()) newErrors.ward = 'Vui lòng nhập Phường/Xã';
@@ -140,7 +153,8 @@ export const useCheckout = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      toast.error('Vui lòng điền đầy đủ thông tin giao hàng');
+      const firstError = Object.values(newErrors)[0];
+      toast.error(firstError || 'Vui lòng điền đầy đủ thông tin giao hàng');
       return;
     }
 
@@ -159,12 +173,13 @@ export const useCheckout = () => {
 
       if (isUsingSavedAddress) {
         orderPayload.user_address_id = formData.selectedAddressId;
-        if (formData.phone) orderPayload.phone_order = formData.phone;
+        if (formData.phone) orderPayload.phone_order = normalizePhone(formData.phone);
       } else {
-        orderPayload.email_order = formData.email?.trim();
-        orderPayload.phone_order = formData.phone?.trim();
+        const cleanPhone = normalizePhone(formData.phone);
+        orderPayload.email_order = formData.email?.trim().toLowerCase();
+        orderPayload.phone_order = cleanPhone;
         orderPayload.receiver_name_order_address = formData.fullName?.trim();
-        orderPayload.phone_order_address = formData.phone?.trim();
+        orderPayload.phone_order_address = cleanPhone;
         orderPayload.address_line_order_address = formData.street?.trim();
         orderPayload.ward_order_address = formData.ward?.trim();
         orderPayload.district_order_address = formData.district?.trim();
@@ -178,20 +193,21 @@ export const useCheckout = () => {
       resetCartState();
       toast.success('Đặt hàng thành công!');
 
-      // If payOS payment with checkout URL
-      if (orderPayload.payment_method === 'payos' && orderData?.payment?.checkout_url) {
-        window.location.href = orderData.payment.checkout_url;
-      } else {
-        navigate(orderData?.order_id ? `/order-success/${orderData.order_id}` : '/profile');
-      }
+      // Directly navigate to finalized order page with embedded VietQR / order details
+      navigate(orderData?.order_id ? `/order-success/${orderData.order_id}` : '/profile');
     } catch (err) {
       const status = err.response?.status;
+      const firstErrorMsg = err.response?.data?.errors?.[0]?.message;
+      const apiMessage = firstErrorMsg || err.response?.data?.message;
+
       if (status === 409) {
         // Insufficient inventory or voucher exhausted
-        toast.error(err.response?.data?.message || 'Có sản phẩm hết hàng hoặc mã giảm giá không còn hiệu lực.');
+        toast.error(apiMessage || 'Có sản phẩm hết hàng hoặc mã giảm giá không còn hiệu lực.');
         fetchCart();
+      } else if (status === 400) {
+        toast.error(apiMessage || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.');
       } else {
-        toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.');
+        toast.error(apiMessage || 'Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.');
       }
     } finally {
       setIsSubmitting(false);
@@ -214,6 +230,9 @@ export const useCheckout = () => {
     defaultAddress,
     isLoadingAddresses,
     isAuthenticated,
+    createdOrderId,
+    isPayOSModalOpen,
+    setIsPayOSModalOpen,
     selectSavedAddress,
     handleChange,
     setPaymentMethod,

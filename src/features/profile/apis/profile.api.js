@@ -92,17 +92,10 @@ export const setDefaultAddressApi = (addressId) => {
 };
 
 /**
- * Lấy danh sách đơn mua cá nhân
- * @param {object} params
+ * Đổi mật khẩu tài khoản người dùng
+ * @param {{ currentPassword?: string, newPassword: string }} data
  */
-export const getMyOrdersApi = (params = {}) => {
-  return api.get('/orders/my-orders', { params });
+export const changePasswordApi = (data) => {
+  return api.post('/users/me/change-password', data);
 };
 
-/**
- * Lấy chi tiết đơn mua
- * @param {number|string} id
- */
-export const getMyOrderDetailApi = (id) => {
-  return api.get(`/orders/${id}`);
-};

@@ -38,7 +38,7 @@ function OtpInput({ value, onChange, disabled }) {
   };
 
   return (
-    <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+    <div className="flex gap-1.5 sm:gap-2 justify-center" onPaste={handlePaste}>
       {[0, 1, 2, 3, 4, 5].map((i) => (
         <input
           key={i}
@@ -51,7 +51,7 @@ function OtpInput({ value, onChange, disabled }) {
           value={value[i] || ''}
           onChange={(e) => handleChange(i, e)}
           onKeyDown={(e) => handleKeyDown(i, e)}
-          className="w-11 h-14 text-center text-2xl font-black border-2 rounded-xl outline-none transition-all
+          className="w-9 h-12 sm:w-11 sm:h-14 text-center text-xl sm:text-2xl font-black border-2 rounded-xl outline-none transition-all
             border-neutral-200 bg-white text-neutral-900
             focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10
             disabled:opacity-40 disabled:cursor-not-allowed"
@@ -260,7 +260,7 @@ export default function LoginPage() {
                   setEmail(e.target.value);
                   if (emailError) setEmailError('');
                 }}
-                placeholder="name@example.com"
+                placeholder=""
                 className={`w-full px-4 py-3 rounded-xl border text-sm font-medium outline-none transition-all
                   ${emailError
                     ? 'border-red-400 bg-red-50 text-red-900 placeholder-red-300'
