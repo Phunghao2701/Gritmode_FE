@@ -141,7 +141,7 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <InputField
-              label="Họ và tên người nhận"
+              label="Họ và tên"
               name="receiver_name_user_address"
               placeholder=""
               value={formData.receiver_name_user_address}
@@ -179,7 +179,7 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
           />
 
           <InputField
-            label="Địa chỉ chi tiết (Số nhà, tên đường)"
+            label="Địa chỉ cụ thể (Số nhà, tên đường)"
             name="address_line_user_address"
             placeholder=""
             value={formData.address_line_user_address}

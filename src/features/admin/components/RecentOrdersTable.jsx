@@ -1,4 +1,3 @@
-import React from 'react';
 import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export default function RecentOrdersTable({ orders = [], onViewAll }) {
@@ -10,6 +9,8 @@ export default function RecentOrdersTable({ orders = [], onViewAll }) {
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">Hoàn tất</span>;
       case 'processing':
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400">Đang xử lý</span>;
+      case 'confirmed':
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400">Đã xác nhận</span>;
       case 'shipping':
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">Đang giao</span>;
       case 'cancelled':

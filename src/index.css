@@ -38,6 +38,15 @@ html.lenis body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-wrap: anywhere;
+  }
+
+  img, video, canvas, svg {
+    max-width: 100%;
+  }
+
+  table {
+    min-width: max-content;
   }
 
   h1, h2, h3, h4, h5, h6 {

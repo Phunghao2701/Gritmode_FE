@@ -79,7 +79,7 @@ export default function VoucherInput({ appliedVoucher, onApplyVoucher, onRemoveV
       <button
         type="submit"
         disabled={isLoading || !code.trim()}
-        className="px-5 py-3 rounded-2xl bg-black text-white dark:bg-white dark:text-black text-xs font-black uppercase tracking-wider hover:opacity-85 disabled:opacity-40 transition-all cursor-pointer shadow-md"
+        className="px-5 py-3 rounded-2xl bg-black text-white dark:bg-white dark:text-black text-xs font-[550] uppercase tracking-wider hover:opacity-85 disabled:opacity-40 transition-all cursor-pointer shadow-md"
       >
         {isLoading ? (
           <Icon icon="solar:spinner-linear" className="animate-spin inline-block text-base" />

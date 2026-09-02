@@ -25,6 +25,12 @@ export const verifyOtpApi = ({ email, otp, guest_token }) => {
   return api.post('/auth/verify-otp', body);
 };
 
+export const googleLoginApi = ({ access_token, guest_token }) => {
+  const body = { access_token };
+  if (guest_token) body.guest_token = guest_token;
+  return api.post('/auth/google', body);
+};
+
 /**
  * Làm mới Access Token bằng HttpOnly refresh cookie.
  */

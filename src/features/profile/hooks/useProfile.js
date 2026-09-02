@@ -21,7 +21,7 @@ import { toast } from '../../../shared/utils/toast';
  */
 export const useProfile = () => {
   const queryClient = useQueryClient();
-  const setUser = useAuthStore((state) => state.setUser);
+  const { isAuthenticated, setUser } = useAuthStore();
 
   const profileQuery = useQuery({
     queryKey: ['user-profile'],
@@ -34,6 +34,7 @@ export const useProfile = () => {
       }
       return userData;
     },
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5, // 5 phút
   });
 
@@ -73,14 +74,17 @@ export const useProfile = () => {
  */
 export const useAddresses = () => {
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuthStore();
 
   const addressesQuery = useQuery({
     queryKey: ['user-addresses'],
     queryFn: async () => {
+      if (!isAuthenticated) return [];
       const res = await getAddressesApi();
       const data = res.data?.data || res.data || [];
       return Array.isArray(data) ? data : [];
     },
+    enabled: isAuthenticated,
   });
 
   const createMutation = useMutation({

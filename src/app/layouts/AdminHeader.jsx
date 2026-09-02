@@ -1,8 +1,7 @@
-import React from 'react';
 import Icon from '../../shared/components/Icon';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 
-export default function AdminHeader() {
+export default function AdminHeader({ onMenuOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -14,6 +13,7 @@ export default function AdminHeader() {
     if (path.includes('/admin/orders')) return { title: 'Quản lý đơn hàng', parent: 'Bán hàng' };
     if (path.includes('/admin/inventory')) return { title: 'Quản lý kho & Tồn kho', parent: 'Danh mục & Kho' };
     if (path.includes('/admin/categories')) return { title: 'Quản lý danh mục', parent: 'Danh mục & Kho' };
+    if (path.includes('/admin/collections/create')) return { title: 'Thêm nhóm mới', parent: 'Bộ sưu tập', parentPath: '/admin/collections' };
     if (path.includes('/admin/collections')) return { title: 'Quản lý bộ sưu tập', parent: 'Danh mục & Kho' };
     if (path.includes('/admin/users')) return { title: 'Quản lý khách hàng', parent: 'Hệ thống' };
     if (path.includes('/admin/audit-logs')) return { title: 'Nhật ký quản trị', parent: 'Hệ thống' };
@@ -23,8 +23,11 @@ export default function AdminHeader() {
   const { title, parent, parentPath } = getPageInfo();
 
   return (
-    <header className="sticky top-0 z-30 h-16 px-6 sm:px-8 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-black/95 backdrop-blur-md shrink-0 transition-colors select-none">
-      <div className="flex items-center gap-2 text-xs">
+    <header className="sticky top-0 z-30 h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 border-b border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-black/95 backdrop-blur-md shrink-0 transition-colors select-none">
+      <button type="button" onClick={onMenuOpen} className="lg:hidden -ml-2 grid size-11 shrink-0 place-items-center rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-900" aria-label="Mở menu quản trị">
+        <Icon icon="solar:hamburger-menu-linear" className="text-xl" />
+      </button>
+      <div className="flex min-w-0 flex-1 items-center gap-2 text-xs">
         {parentPath ? (
           <Link to={parentPath} className="text-neutral-400 hover:text-black dark:hover:text-white font-bold transition-colors">
             {parent}
@@ -33,7 +36,7 @@ export default function AdminHeader() {
           <span className="text-neutral-400 font-bold">{parent}</span>
         )}
         <span className="text-neutral-300 dark:text-neutral-700">/</span>
-        <h2 className="font-display font-black text-sm uppercase tracking-tight text-black dark:text-white">
+        <h2 className="truncate font-display font-black text-sm uppercase tracking-tight text-black dark:text-white">
           {title}
         </h2>
       </div>
@@ -51,7 +54,7 @@ export default function AdminHeader() {
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 text-xs font-bold uppercase tracking-wider text-black dark:text-white transition-all cursor-pointer"
         >
           <Icon icon="solar:shop-2-linear" className="text-sm" />
-          <span>Xem Store</span>
+          <span className="hidden sm:inline">Xem Store</span>
         </button>
       </div>
     </header>

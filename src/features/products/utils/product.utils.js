@@ -13,6 +13,13 @@ export const normalizeOptionValueIds = (ids = []) => {
   return [...ids].map(Number).sort((a, b) => a - b);
 };
 
+export const slugifyProductName = (name = '') => String(name)
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '');
+
 /**
  * Resolves the matching ProductVariant from selected option value IDs.
  * Does not depend on the order of selected options.

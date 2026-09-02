@@ -4,12 +4,22 @@
  */
 const GUEST_TOKEN_KEY = 'gritmode_guest_token';
 
+const generateGuestToken = () => {
+  const rand = () => Math.random().toString(36).substring(2, 10);
+  return `guest_${Date.now()}_${rand()}${rand()}`;
+};
+
 export const guestTokenService = {
   getGuestToken: () => {
     try {
-      return localStorage.getItem(GUEST_TOKEN_KEY) || null;
+      let token = localStorage.getItem(GUEST_TOKEN_KEY);
+      if (!token) {
+        token = generateGuestToken();
+        localStorage.setItem(GUEST_TOKEN_KEY, token);
+      }
+      return token;
     } catch {
-      return null;
+      return generateGuestToken();
     }
   },
 

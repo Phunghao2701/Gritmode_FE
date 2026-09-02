@@ -27,6 +27,8 @@ import {
   blockAdminUserApi,
   unblockAdminUserApi,
   setAdminUserInactiveApi,
+  getAdminAuditLogsApi,
+  getAdminAuditLogByIdApi,
 } from '../apis/admin.api';
 import { toast } from '../../../shared/utils/toast';
 

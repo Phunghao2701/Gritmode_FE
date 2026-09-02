@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import Icon from '../../../shared/components/Icon';
@@ -94,13 +94,12 @@ export default function AdminProductEditPage() {
   const [customSizeText, setCustomSizeText] = useState('');
   const [defaultPrice, setDefaultPrice] = useState('');
   const [defaultSalePercent, setDefaultSalePercent] = useState('');
-  const [saleStartAt, setSaleStartAt] = useState('');
-  const [saleEndAt, setSaleEndAt] = useState('');
   const [defaultStock, setDefaultStock] = useState('');
   const [variants, setVariants] = useState({});
   const [images, setImages] = useState([]);
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
+  const [productStatus, setProductStatus] = useState('draft');
   const [loadingProduct, setLoadingProduct] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -129,7 +128,7 @@ export default function AdminProductEditPage() {
           setCategories(organizeCategories(responseItems(catsRes)));
           setCollections(responseItems(colsRes));
         }
-      } catch (err) {
+      } catch {
         if (mounted) setError('Không thể tải danh mục hoặc bộ sưu tập.');
       }
     };
@@ -150,6 +149,7 @@ export default function AdminProductEditPage() {
         const res = await getAdminProductByIdApi(productId);
         const p = res.data?.data || res.data;
         if (!mounted || !p) return;
+        setProductStatus(p.status_product || 'draft');
 
         const options = Array.isArray(p.options) ? p.options : [];
         const colorOption = options.find((opt) => opt.name_option?.toLowerCase().includes('màu') || opt.name_option?.toLowerCase().includes('color'));
@@ -203,6 +203,7 @@ export default function AdminProductEditPage() {
               percent = String(Math.round((1 - salePriceNum / priceNum) * 100));
             }
             variantMap[key] = {
+              product_variant_id: v.product_variant_id,
               sku: v.sku || '',
               price: v.price ? formatNumberWithDots(v.price) : '',
               sale_percent: percent,
@@ -215,6 +216,18 @@ export default function AdminProductEditPage() {
           }
         });
         setVariants(variantMap);
+        const firstVariant = p.variants?.[0];
+        if (firstVariant) {
+          const price = Number(firstVariant.price || 0);
+          const salePrice = Number(firstVariant.sale_price || 0);
+          setDefaultStock(firstVariant.inventory?.quantity_stock ?? firstVariant.quantity_stock ?? '');
+          setDefaultPrice(price ? formatNumberWithDots(price) : '');
+          setDefaultSalePercent(
+            price > 0 && salePrice > 0 && salePrice < price
+              ? String(Math.round((1 - salePrice / price) * 100))
+              : '',
+          );
+        }
 
         // Populate images
         setImages((p.images || []).map((img, idx) => ({
@@ -222,7 +235,7 @@ export default function AdminProductEditPage() {
           is_thumbnail: img.is_thumbnail ?? idx === 0,
           position: img.position_product_image ?? idx,
         })));
-      } catch (err) {
+      } catch {
         if (mounted) toast.error('Không thể tải thông tin sản phẩm.');
       } finally {
         if (mounted) setLoadingProduct(false);
@@ -242,12 +255,7 @@ export default function AdminProductEditPage() {
           hasChange = true;
           next[key] = {
             sku: generateSkuSuggestion(form.name_product, [{ value_option: color }, { value_option: size }]),
-            price: defaultPrice,
-            sale_percent: defaultSalePercent,
-            sale_price: defaultSalePercent && defaultPrice ? formatNumberWithDots(Math.round(parsePriceNumber(defaultPrice) * (100 - Number(defaultSalePercent)) / 100)) : '',
-            sale_start_at: saleStartAt,
-            sale_end_at: saleEndAt,
-            stock: defaultStock || '10',
+            stock: 0,
             is_active: true,
           };
         }
@@ -255,33 +263,6 @@ export default function AdminProductEditPage() {
       return hasChange ? next : prev;
     });
   }, [combinations, form.name_product]);
-
-  const handleApplyDefaults = () => {
-    setVariants((prev) => {
-      const next = { ...prev };
-      combinations.forEach(({ key }) => {
-        if (next[key]) {
-          const basePrice = defaultPrice ? parsePriceNumber(defaultPrice) : parsePriceNumber(next[key].price);
-          if (defaultPrice) next[key].price = defaultPrice;
-          if (defaultSalePercent !== '') {
-            const pct = Number(defaultSalePercent);
-            next[key].sale_percent = defaultSalePercent;
-            if (pct > 0 && pct < 100 && basePrice > 0) {
-              next[key].sale_price = formatNumberWithDots(Math.round(basePrice * (100 - pct) / 100));
-            } else {
-              next[key].sale_price = '';
-              next[key].sale_percent = '';
-            }
-          }
-          if (saleStartAt) next[key].sale_start_at = saleStartAt;
-          if (saleEndAt) next[key].sale_end_at = saleEndAt;
-          if (defaultStock) next[key].stock = defaultStock;
-        }
-      });
-      return next;
-    });
-    toast.success('Đã áp dụng giá và tồn kho cho tất cả biến thể!');
-  };
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -298,7 +279,7 @@ export default function AdminProductEditPage() {
         return next;
       });
       toast.success(`Đã tải lên ${uploaded.length} ảnh!`);
-    } catch (err) {
+    } catch {
       toast.error('Tải ảnh thất bại.');
     }
   };
@@ -336,7 +317,7 @@ export default function AdminProductEditPage() {
       }
       await refreshCategories();
       setCategoryModal({ open: false, editing: null, initialParentId: '' });
-    } catch (err) {
+    } catch {
       toast.error('Không thể lưu danh mục');
     }
   };
@@ -355,15 +336,26 @@ export default function AdminProductEditPage() {
       return;
     }
 
+    const price = parsePriceNumber(defaultPrice);
+    if (price <= 0) {
+      toast.error('Vui lòng nhập giá bán hợp lệ.');
+      return;
+    }
+    const salePercent = Number(defaultSalePercent || 0);
+    const salePrice = salePercent > 0 && salePercent < 100
+      ? Math.round(price * (100 - salePercent) / 100)
+      : null;
+
     const payloadVariants = combinations.map(({ color, size, key }) => {
       const v = variants[key] || {};
       return {
+        ...(v.product_variant_id ? { product_variant_id: v.product_variant_id } : {}),
         sku: v.sku || generateSkuSuggestion(form.name_product, [{ value_option: color }, { value_option: size }]),
-        price: parsePriceNumber(v.price) || parsePriceNumber(defaultPrice) || 0,
-        sale_price: parseSalePriceNumber(v.sale_price) || parseSalePriceNumber(defaultSalePrice) || null,
+        price,
+        sale_price: salePrice,
         sale_start_at: v.sale_start_at || null,
         sale_end_at: v.sale_end_at || null,
-        quantity_stock: Number(v.stock) || Number(defaultStock) || 0,
+        quantity_stock: Number(defaultStock) || 0,
         is_active: v.is_active ?? true,
         option_values: {
           'Màu sắc': color,
@@ -376,6 +368,7 @@ export default function AdminProductEditPage() {
       name_product: form.name_product.trim(),
       description: form.description || '',
       category_ids: [Number(form.primary_category_id)],
+      primary_category_id: Number(form.primary_category_id),
       collection_ids: form.collection_ids.map(Number),
       options: [
         { name_option: 'Màu sắc', values: colors },
@@ -393,7 +386,7 @@ export default function AdminProductEditPage() {
       setSubmitting(true);
       if (isEditMode) {
         await updateAdminFullProductApi(productId, payload);
-        if (publishNow) await publishAdminProductApi(productId);
+        if (publishNow && productStatus === 'draft') await publishAdminProductApi(productId);
         toast.success('Cập nhật sản phẩm thành công!');
       } else {
         const res = await createAdminFullProductApi(payload);
@@ -406,7 +399,19 @@ export default function AdminProductEditPage() {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       navigate('/admin/products');
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Lỗi khi lưu sản phẩm');
+      const missing = err.response?.data?.errors?.missing;
+      const missingLabels = {
+        variants: 'variant',
+        valid_variant_inventory: 'tồn kho hợp lệ',
+        categories: 'danh mục',
+        primary_category: 'danh mục chính',
+        images: 'ảnh sản phẩm',
+        variant_options: 'option của variant',
+      };
+      const detail = Array.isArray(missing)
+        ? `Thiếu: ${missing.map((item) => missingLabels[item] || item).join(', ')}`
+        : null;
+      toast.error(detail || err.response?.data?.message || err.message || 'Lỗi khi lưu sản phẩm');
     } finally {
       setSubmitting(false);
     }
@@ -451,7 +456,7 @@ export default function AdminProductEditPage() {
             onClick={() => handleSave(true)}
             isLoading={submitting}
           >
-            Đăng bán ngay
+            {productStatus === 'draft' ? 'Đăng bán ngay' : 'Lưu thay đổi'}
           </PrimaryButton>
         </div>
       </div>
@@ -498,7 +503,7 @@ export default function AdminProductEditPage() {
           {/* Section 2: Options & Variants Builder */}
           <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
             <h2 className="text-sm font-black uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
-              2. Màu sắc, Kích thước & Biến thể
+              2. Màu sắc, kích thước & giá bán
             </h2>
 
             {/* Colors */}
@@ -558,12 +563,12 @@ export default function AdminProductEditPage() {
               </div>
             </div>
 
-            {/* Bulk Fast Fill Bar */}
+            {/* Shared pricing */}
             <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-                Áp dụng nhanh giá & tồn kho cho toàn bộ {combinations.length} biến thể
+                Giá bán chung
               </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <input
                   type="text"
                   inputMode="numeric"
@@ -586,130 +591,15 @@ export default function AdminProductEditPage() {
                 </div>
                 <input
                   type="number"
-                  placeholder="Tồn kho"
+                  min="0"
+                  placeholder="Số lượng tồn kho"
                   value={defaultStock}
                   onChange={(e) => setDefaultStock(e.target.value)}
-                  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 text-xs"
+                  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 text-xs font-bold"
                 />
-                <button
-                  type="button"
-                  onClick={handleApplyDefaults}
-                  className="bg-black text-white dark:bg-white dark:text-black rounded-xl text-xs font-black uppercase tracking-wider px-4 py-2 hover:opacity-80 transition-opacity cursor-pointer"
-                >
-                  Áp dụng tất cả
-                </button>
               </div>
             </div>
 
-            {/* Variants Matrix Table */}
-            {combinations.length > 0 && (
-              <div className="overflow-x-auto border border-neutral-200 dark:border-neutral-800 rounded-2xl">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-neutral-100 dark:bg-neutral-800/80 text-neutral-500 font-bold uppercase tracking-wider">
-                    <tr>
-                      <th className="p-3">Biến thể</th>
-                      <th className="p-3">SKU</th>
-                      <th className="p-3">Giá bán (VND)</th>
-                      <th className="p-3 text-rose-500">Sale (%)</th>
-                      <th className="p-3">Kho</th>
-                      <th className="p-3 text-center">Bật</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                    {combinations.map(({ color, size, key }) => {
-                      const v = variants[key] || {};
-                      return (
-                        <tr key={key} className={v.is_active === false ? 'opacity-40' : ''}>
-                          <td className="p-3 font-bold">
-                            <span className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded mr-1">{color}</span>
-                            <span className="px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded font-black">{size}</span>
-                          </td>
-                          <td className="p-3">
-                            <input
-                              type="text"
-                              value={v.sku || ''}
-                              onChange={(e) => setVariants((prev) => ({ ...prev, [key]: { ...prev[key], sku: e.target.value } }))}
-                              className="w-32 rounded-lg border border-neutral-200 dark:border-neutral-800 px-2 py-1 bg-white dark:bg-neutral-900 font-mono text-xs"
-                            />
-                          </td>
-                          <td className="p-3">
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              placeholder="0"
-                              value={formatNumberWithDots(v.price)}
-                              onChange={(e) => {
-                                const newPrice = formatNumberWithDots(e.target.value);
-                                const pNum = parsePriceNumber(newPrice);
-                                const pct = Number(v.sale_percent || 0);
-                                const newSalePrice = pct > 0 && pct < 100 && pNum > 0
-                                  ? formatNumberWithDots(Math.round(pNum * (100 - pct) / 100))
-                                  : v.sale_price;
-                                setVariants((prev) => ({
-                                  ...prev,
-                                  [key]: {
-                                    ...prev[key],
-                                    price: newPrice,
-                                    sale_price: newSalePrice,
-                                  },
-                                }));
-                              }}
-                              className="w-28 rounded-lg border border-neutral-200 dark:border-neutral-800 px-2 py-1 bg-white dark:bg-neutral-900 text-xs font-bold"
-                            />
-                          </td>
-                          <td className="p-3">
-                            <div className="relative w-20">
-                              <input
-                                type="number"
-                                min="0"
-                                max="99"
-                                placeholder="0"
-                                value={v.sale_percent ?? ''}
-                                onChange={(e) => {
-                                  const rawPct = e.target.value;
-                                  const pct = Number(rawPct);
-                                  const pNum = parsePriceNumber(v.price);
-                                  let calculatedSalePrice = '';
-                                  if (rawPct !== '' && pct > 0 && pct < 100 && pNum > 0) {
-                                    calculatedSalePrice = formatNumberWithDots(Math.round(pNum * (100 - pct) / 100));
-                                  }
-                                  setVariants((prev) => ({
-                                    ...prev,
-                                    [key]: {
-                                      ...prev[key],
-                                      sale_percent: rawPct,
-                                      sale_price: calculatedSalePrice,
-                                    },
-                                  }));
-                                }}
-                                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-800 px-2 py-1 pr-6 bg-white dark:bg-neutral-900 text-xs text-rose-500 font-black text-center"
-                              />
-                              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 text-xs font-bold pointer-events-none">%</span>
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <input
-                              type="number"
-                              value={v.stock || ''}
-                              onChange={(e) => setVariants((prev) => ({ ...prev, [key]: { ...prev[key], stock: e.target.value } }))}
-                              className="w-16 rounded-lg border border-neutral-200 dark:border-neutral-800 px-2 py-1 bg-white dark:bg-neutral-900 text-xs text-center font-bold"
-                            />
-                          </td>
-                          <td className="p-3 text-center">
-                            <input
-                              type="checkbox"
-                              checked={v.is_active !== false}
-                              onChange={(e) => setVariants((prev) => ({ ...prev, [key]: { ...prev[key], is_active: e.target.checked } }))}
-                              className="rounded border-neutral-300 w-4 h-4 cursor-pointer"
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
           </div>
 
         </div>
@@ -762,10 +652,10 @@ export default function AdminProductEditPage() {
                         <div key={root.__id}>
                           {/* Parent row */}
                           <div
-                            className={`group flex items-center gap-2 px-4 py-2.5 cursor-pointer select-none transition-colors ${
+                            className={`group flex items-center gap-2 px-4 py-2.5 select-none transition-colors ${
                               isRootSelected
                                 ? 'bg-black text-white dark:bg-white dark:text-black'
-                                : 'hover:bg-neutral-50 dark:hover:bg-neutral-800'
+                                : 'text-neutral-400'
                             }`}
                           >
                             {/* Expand toggle */}
@@ -782,7 +672,6 @@ export default function AdminProductEditPage() {
                             {/* Name */}
                             <span
                               className="flex-1 text-xs font-bold uppercase tracking-wide truncate"
-                              onClick={() => { setForm((p) => ({ ...p, primary_category_id: root.__id })); setCatDropdownOpen(false); }}
                             >
                               {root.name_category || root.name}
                             </span>
@@ -857,7 +746,7 @@ export default function AdminProductEditPage() {
               Bộ sưu tập (Collections)
             </span>
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {collections.map((col) => {
+              {collections.filter((col) => col.parent_collection_id).map((col) => {
                 const colId = String(col.collection_id || col.id);
                 const isSelected = form.collection_ids.includes(colId);
                 return (
@@ -963,10 +852,10 @@ export default function AdminProductEditPage() {
             Lưu bản nháp
           </PrimaryButton>
           <PrimaryButton
-            onClick={() => handleSave(true)}
+            onClick={() => handleSave(productStatus === 'draft')}
             isLoading={submitting}
           >
-            Đăng bán ngay
+            {productStatus === 'draft' ? 'Đăng bán ngay' : 'Lưu thay đổi'}
           </PrimaryButton>
         </div>
       </div>

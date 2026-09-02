@@ -81,11 +81,9 @@ export default function AdminCategoriesPage() {
       <section className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <span className="text-xs font-black uppercase tracking-widest text-neutral-400">Cấu trúc cửa hàng</span>
-            <h1 className="mt-1 text-balance font-display text-3xl font-black uppercase tracking-tight text-black dark:text-white">Quản lý danh mục</h1>
-            <p className="mt-2 text-pretty text-sm text-neutral-500">Nhóm sản phẩm theo danh mục cha và danh mục con. Cấu trúc này được dùng trực tiếp trong menu Shop.</p>
+            <h1 className="text-balance font-display text-3xl font-black uppercase tracking-tight text-black dark:text-white">Quản lý danh mục</h1>
           </div>
-          <PrimaryButton icon="solar:add-circle-linear" onClick={() => openCreate()} size="sm">Thêm danh mục cấp cao nhất</PrimaryButton>
+          <PrimaryButton icon="solar:add-circle-linear" onClick={() => openCreate()} size="sm">Thêm danh mục gốc</PrimaryButton>
         </div>
         <div className="mt-6 grid grid-cols-3 gap-3 border-t border-neutral-100 pt-5 dark:border-neutral-800">
           {[

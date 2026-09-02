@@ -13,29 +13,49 @@ export default function CartItem({
   const itemId = item.cart_item_id || item.variantId || item.id;
   const isOutOfStock = item.has_stock_issue || item.quantity > item.quantity_available;
 
+  // Format variant into Color and Size
+  let colorText = '';
+  let sizeText = '';
+
+  if (item.variant) {
+    if (item.variant.includes('/')) {
+      const parts = item.variant.split('/').map((s) => s.trim());
+      colorText = parts[0] || '';
+      sizeText = parts[1] || '';
+    } else if (item.variant.includes('·')) {
+      const parts = item.variant.split('·').map((s) => s.trim());
+      colorText = parts[0] || '';
+      sizeText = parts[1] || '';
+    } else if (['S', 'M', 'L', 'XL', '2XL', 'XXL'].includes(item.variant.toUpperCase())) {
+      sizeText = item.variant;
+    } else {
+      colorText = item.variant;
+    }
+  }
+
+  if (item.color) colorText = item.color;
+  if (item.size) sizeText = item.size;
+
   return (
     <div
-      className={`group flex gap-4 py-4 border-b border-neutral-100 dark:border-neutral-800/80 transition-all duration-300 ${
+      className={`flex gap-4 py-5 border-b border-neutral-100 dark:border-neutral-800 transition-all duration-300 ${
         isRemoving ? 'opacity-30 scale-95' : 'opacity-100'
       }`}
-      style={{
-        animation: `fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.04}s both`,
-      }}
     >
       {/* Product Image Thumbnail */}
-      <div className="relative w-18 h-24 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shrink-0 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center transition-all duration-300 group-hover:border-neutral-300 dark:group-hover:border-neutral-700">
+      <div className="relative w-24 h-28 border border-neutral-200 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900 flex items-center justify-center p-1">
         {item.image ? (
           <img
             src={item.image}
             alt={item.title}
-            className="w-full h-full object-contain p-1 transition-transform duration-500 ease-out group-hover:scale-105"
+            className="w-full h-full object-contain"
           />
         ) : (
-          <Icon icon="solar:t-shirt-bold-duotone" className="text-2xl text-neutral-400" />
+          <Icon icon="solar:t-shirt-bold-duotone" className="text-3xl text-neutral-300" />
         )}
         {isOutOfStock && (
           <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px] flex items-center justify-center p-1 animate-fade-in">
-            <span className="text-[9px] font-black text-rose-400 uppercase text-center leading-tight">
+            <span className="text-[9px] font-bold text-rose-400 uppercase text-center leading-tight">
               Quá tồn kho
             </span>
           </div>
@@ -45,59 +65,57 @@ export default function CartItem({
       {/* Product Info & Controls */}
       <div className="flex-1 flex flex-col justify-between min-w-0">
         <div>
-          <div className="flex items-start justify-between gap-2">
-            <h4 className="font-normal text-xs text-black dark:text-white line-clamp-1 uppercase tracking-tight transition-colors group-hover:text-neutral-700 dark:group-hover:text-neutral-200">
-              {item.title}
-            </h4>
-            <button
-              type="button"
-              onClick={() => onRemove(itemId)}
-              disabled={isRemoving}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-neutral-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all duration-200 cursor-pointer disabled:opacity-40 active:scale-90"
-              title="Xóa khỏi giỏ"
-              aria-label="Xóa sản phẩm"
-            >
-              {isRemoving ? (
-                <Icon icon="solar:spinner-linear" className="animate-spin text-base" />
-              ) : (
-                <Icon icon="solar:trash-bin-minimalistic-linear" className="text-base transition-transform hover:scale-110" />
-              )}
-            </button>
+          <h4 className="font-normal text-sm text-neutral-900 dark:text-neutral-100 line-clamp-2 leading-snug">
+            {item.title}
+          </h4>
+
+          <div className="font-normal text-sm text-neutral-800 dark:text-neutral-200 mt-1">
+            {formatPriceVND(item.price || item.line_total)}
           </div>
 
-          {item.variant && (
-            <p className="text-[10px] font-normal text-neutral-400 mt-0.5 uppercase tracking-wider">
-              {item.variant}
-            </p>
-          )}
+          <div className="mt-2 space-y-0.5 text-xs text-neutral-500 font-normal">
+            {colorText && (
+              <div className="flex items-center gap-1.5">
+                <span className="inline-block w-2 h-2 rounded-full border border-neutral-400 bg-transparent" />
+                <span>{colorText}</span>
+              </div>
+            )}
+            {sizeText && (
+              <div>
+                <span>Kích thước: {sizeText}</span>
+              </div>
+            )}
+            {!colorText && !sizeText && item.variant && (
+              <div>
+                <span>Phân loại: {item.variant}</span>
+              </div>
+            )}
+          </div>
 
           {isOutOfStock && (
-            <p className="text-[10px] font-bold text-rose-500 mt-1 flex items-center gap-1 animate-pulse">
+            <p className="text-[10px] font-normal text-rose-500 mt-1 flex items-center gap-1">
               <Icon icon="solar:danger-triangle-bold" />
               <span>Chỉ còn {item.quantity_available} sản phẩm sẵn có</span>
             </p>
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-2">
-          <span className="font-[550] text-xs text-black dark:text-white tracking-tight">
-            {formatPriceVND(item.line_total || item.price * item.quantity)}
-          </span>
-
-          {/* Stepper Buttons */}
-          <div className="flex items-center border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden bg-neutral-50 dark:bg-neutral-900 p-0.5 shadow-sm transition-all hover:border-neutral-300 dark:hover:border-neutral-700">
+        {/* Stepper + Xoá link */}
+        <div className="flex items-center justify-between mt-3">
+          {/* Stepper Pill */}
+          <div className="inline-flex items-center gap-4 px-3 py-1 rounded-full border border-neutral-300 dark:border-neutral-700 bg-transparent text-xs font-normal">
             <button
               type="button"
               onClick={() => onUpdateQuantity(itemId, item.quantity - 1)}
               disabled={isUpdating || isRemoving}
-              className="w-6 h-6 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 text-xs font-[550] cursor-pointer rounded-lg disabled:opacity-30 active:scale-90 transition-all duration-150"
+              className="text-neutral-500 hover:text-black dark:hover:text-white cursor-pointer disabled:opacity-30 transition-colors select-none text-sm leading-none"
               aria-label="Giảm số lượng"
             >
-              -
+              −
             </button>
-            <span className="w-7 text-center text-xs font-[550] text-black dark:text-white tabular-nums select-none">
+            <span className="w-4 text-center text-xs font-normal text-black dark:text-white tabular-nums select-none">
               {isUpdating ? (
-                <Icon icon="solar:spinner-linear" className="animate-spin inline-block text-[11px]" />
+                <Icon icon="solar:spinner-linear" className="animate-spin inline-block text-[10px]" />
               ) : (
                 item.quantity
               )}
@@ -105,16 +123,25 @@ export default function CartItem({
             <button
               type="button"
               onClick={() => onUpdateQuantity(itemId, item.quantity + 1)}
-              disabled={isUpdating || isRemoving || (item.quantity_available > 0 && item.quantity >= item.quantity_available)}
-              className="w-6 h-6 flex items-center justify-center text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 text-xs font-[550] cursor-pointer rounded-lg disabled:opacity-30 active:scale-90 transition-all duration-150"
+              disabled={isUpdating || isRemoving || isOutOfStock}
+              className="text-neutral-500 hover:text-black dark:hover:text-white cursor-pointer disabled:opacity-30 transition-colors select-none text-sm leading-none"
               aria-label="Tăng số lượng"
             >
               +
             </button>
           </div>
+
+          {/* Xoá Link */}
+          <button
+            type="button"
+            onClick={() => onRemove(itemId)}
+            disabled={isRemoving}
+            className="text-xs text-neutral-500 hover:text-black dark:hover:text-white underline cursor-pointer disabled:opacity-40 transition-colors"
+          >
+            {isRemoving ? 'Đang xóa...' : 'Xoá'}
+          </button>
         </div>
       </div>
     </div>
   );
 }
-

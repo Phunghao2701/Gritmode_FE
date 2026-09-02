@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Icon from '../../../shared/components/Icon';
 import ProductCard from '../../products/components/ProductCard';
 import { useProducts, useCategories } from '../../products/hooks/useProducts';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
@@ -135,16 +134,13 @@ export default function LandingPage() {
         {/* Header with Title and Dynamic Category Filter Tabs */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-4">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-              Streetwear Drop 2026
-            </span>
             <h2 className="font-sans font-black text-2xl sm:text-3xl lg:text-4xl text-black dark:text-white tracking-widest uppercase mt-0.5">
-              Sản phẩm mới nhất
+              New Arrivals
             </h2>
           </div>
 
           {/* Sub-category Filter Tabs */}
-          <div className="flex items-center gap-6 overflow-x-auto pb-1 text-xs text-neutral-400 select-none scrollbar-none">
+          <div className="flex items-center gap-6 overflow-x-auto pb-1 text-md text-neutral-400 select-none scrollbar-none">
             {filterTabs.map((tab) => (
               <button
                 key={tab.id}

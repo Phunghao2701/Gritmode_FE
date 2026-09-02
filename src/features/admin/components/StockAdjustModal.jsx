@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 
@@ -10,8 +10,6 @@ export default function StockAdjustModal({ item, onClose, onAdjustSubmit, isLoad
   if (!item) return null;
 
   const variantId = item.product_variant_id || item.variantId || item.id;
-  const newAvailable = Math.max(0, newStock - reserved);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (newStock < reserved) {
@@ -45,22 +43,17 @@ export default function StockAdjustModal({ item, onClose, onAdjustSubmit, isLoad
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-800 space-y-2">
             <p className="font-bold text-black dark:text-white uppercase">{item.name_product || item.productTitle || item.name}</p>
-            <p className="text-neutral-400 text-[10px]">Variant: {item.variant || item.size || 'Default'}</p>
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-700 text-[11px]">
+            <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700 text-[11px]">
               <div>
                 <span className="text-neutral-400 block">Tồn hiện tại:</span>
                 <span className="font-black text-black dark:text-white">{currentStock} chiếc</span>
-              </div>
-              <div>
-                <span className="text-neutral-400 block">Đang giữ chỗ:</span>
-                <span className="font-black text-amber-500">{reserved} chiếc</span>
               </div>
             </div>
           </div>
 
           <div className="space-y-1.5">
             <label className="font-bold uppercase tracking-wider text-neutral-500 block">
-              Tổng số lượng tồn kho thực tế mới (quantity_stock) *
+              Số lượng
             </label>
             <input
               type="number"
@@ -70,9 +63,6 @@ export default function StockAdjustModal({ item, onClose, onAdjustSubmit, isLoad
               onChange={(e) => setNewStock(Math.max(0, parseInt(e.target.value, 10) || 0))}
               className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800 text-black dark:text-white font-black text-base focus:outline-none focus:border-black dark:focus:border-white"
             />
-            <p className="text-[10px] text-neutral-400">
-              Số lượng có thể bán dự kiến (Available): <span className="font-bold text-emerald-500">{newAvailable} chiếc</span>
-            </p>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800">

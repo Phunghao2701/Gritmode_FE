@@ -10,6 +10,14 @@ import { publicApi } from '../../../shared/services/api';
  */
 export const getProductsApi = (params = {}) => {
   const query = { ...params };
+  if (params.categorySlug !== undefined) {
+    query.category = params.categorySlug;
+    delete query.categorySlug;
+  }
+  if (params.collectionSlug !== undefined) {
+    query.collection = params.collectionSlug;
+    delete query.collectionSlug;
+  }
   if (params.categoryId !== undefined) {
     query.category_id = params.categoryId;
     delete query.categoryId;

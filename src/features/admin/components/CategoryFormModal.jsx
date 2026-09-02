@@ -16,24 +16,16 @@ export const slugify = (text = '') => {
     .replace(/-+/g, '-');
 };
 
-const flattenCategories = (items = [], depth = 0) => items.flatMap((item) => [
-  { ...item, depth: item.__depth ?? depth },
-  ...flattenCategories(item.children || item.subcategories || [], depth + 1),
-]);
-
 export default function CategoryFormModal({ category, categories = [], initialParentId = '', onClose, onSubmitCategory }) {
   const dialogRef = useRef(null);
   const [formData, setFormData] = useState({
     name_category: category?.name_category || '',
     slug_category: category?.slug_category || '',
-    description_category: category?.description_category || '',
     parent_category_id: category?.parent_category_id ? String(category.parent_category_id) : String(initialParentId || ''),
     position_category: Number(category?.position_category || 0),
   });
 
-  const [isSlugManual, setIsSlugManual] = useState(Boolean(category?.slug_category));
-
-  const parentChoices = flattenCategories(categories).filter(
+  const parentChoices = categories.filter(
     (item) => Number(item.category_id || item.id) !== Number(category?.category_id || category?.id),
   );
 
@@ -65,13 +57,8 @@ export default function CategoryFormModal({ category, categories = [], initialPa
     setFormData((prev) => ({
       ...prev,
       name_category: val,
-      slug_category: isSlugManual ? prev.slug_category : slugify(val),
+      slug_category: slugify(val),
     }));
-  };
-
-  const handleSlugChange = (val) => {
-    setIsSlugManual(true);
-    setFormData((prev) => ({ ...prev, slug_category: val }));
   };
 
   const handleSubmit = (e) => {
@@ -104,7 +91,7 @@ export default function CategoryFormModal({ category, categories = [], initialPa
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <InputField
             name="name_category"
-            label="Tên danh mục *"
+            label="Tên danh mục"
             placeholder="Ví dụ: Tops & Tees"
             value={formData.name_category}
             onChange={(e) => handleNameChange(e.target.value)}
@@ -119,16 +106,14 @@ export default function CategoryFormModal({ category, categories = [], initialPa
               onChange={(e) => setFormData({ ...formData, parent_category_id: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800 text-black dark:text-white font-medium focus:outline-none"
             >
-              <option value="">Không có — danh mục cấp cao nhất (Danh mục gốc)</option>
+              <option value="">Không có — danh mục gốc</option>
               {parentChoices.map((item) => (
                 <option key={item.category_id || item.id} value={item.category_id || item.id}>
-                  {item.depth === 0
-                    ? `[Gốc] ${(item.name_category || item.name).toUpperCase()}`
-                    : `\u00A0\u00A0\u00A0\u00A0↳ ${item.name_category || item.name}`}
+                  {item.name_category || item.name}
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-neutral-400">Ví dụ: đặt “Áo thun” bên trong “Tops”.</p>
+            <p className="text-[11px] text-neutral-400">Chỉ danh mục gốc có thể được chọn làm danh mục cha.</p>
           </div>
 
           <InputField
@@ -138,27 +123,9 @@ export default function CategoryFormModal({ category, categories = [], initialPa
             min="0"
             value={formData.position_category}
             onChange={(e) => setFormData({ ...formData, position_category: Number(e.target.value) })}
+            disabled={!formData.parent_category_id}
+            helperText={!formData.parent_category_id ? 'Chọn danh mục gốc để thiết lập thứ tự hiển thị.' : undefined}
           />
-
-          <InputField
-            name="slug_category"
-            label="Slug (Đường dẫn tĩnh)"
-            placeholder="tops-and-tees"
-            value={formData.slug_category}
-            onChange={(e) => handleSlugChange(e.target.value)}
-          />
-
-          <div className="space-y-1.5">
-            <label className="font-bold uppercase tracking-wider text-neutral-500 block">Mô tả</label>
-            <textarea
-              name="description_category"
-              rows={3}
-              placeholder="Mô tả về dòng sản phẩm..."
-              value={formData.description_category}
-              onChange={(e) => setFormData({ ...formData, description_category: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800 text-black dark:text-white font-medium focus:outline-none"
-            />
-          </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800">
             <button

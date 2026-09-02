@@ -13,7 +13,7 @@ import { toast } from '../../../shared/utils/toast';
 
 export const useCheckout = () => {
   const navigate = useNavigate();
-  const { items, getSubtotal, resetCartState, fetchCart } = useCartStore();
+  const { items, getSubtotal, resetCartState, fetchCart, updateQuantity, removeItem } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const { addresses, defaultAddress, isLoadingAddresses } = useAddresses();
 
@@ -194,7 +194,9 @@ const normalizePhone = (phone) => {
       toast.success('Đặt hàng thành công!');
 
       // Directly navigate to finalized order page with embedded VietQR / order details
-      navigate(orderData?.order_id ? `/order-success/${orderData.order_id}` : '/profile');
+      navigate(orderData?.order_id ? `/order-success/${orderData.order_id}` : '/profile', {
+        state: { order: orderData },
+      });
     } catch (err) {
       const status = err.response?.status;
       const firstErrorMsg = err.response?.data?.errors?.[0]?.message;
@@ -238,5 +240,7 @@ const normalizePhone = (phone) => {
     setPaymentMethod,
     setAppliedVoucher,
     handlePlaceOrder,
+    updateQuantity,
+    removeItem,
   };
 };

@@ -76,14 +76,9 @@ export default function OrderDetailModal({
         {/* Header */}
         <div className="flex items-start justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                Chi tiết đơn hàng Admin
-              </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-                {isGuest ? 'Khách vãng lai' : 'Khách đã đăng ký'}
-              </span>
-            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+              Chi tiết đơn hàng Admin
+            </span>
             <h3 className="font-mono font-black text-xl text-black dark:text-white uppercase mt-0.5">
               {activeOrder.order_code || `#ORD-${orderId}`}
             </h3>
@@ -164,7 +159,7 @@ export default function OrderDetailModal({
               Đang tải danh sách sản phẩm...
             </div>
           ) : (
-            <div className="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-48 overflow-y-auto pr-1 scrollbar-none">
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-60 overflow-y-auto pr-1 scrollbar-none">
               {items.length === 0 ? (
                 <div className="py-3 text-center text-neutral-400 text-xs">
                   Không có thông tin chi tiết sản phẩm.
@@ -177,11 +172,11 @@ export default function OrderDetailModal({
                         {item.name_product_order_item || item.name_product || 'Sản phẩm'}
                       </h5>
                       <p className="text-neutral-400 text-[10px] uppercase font-mono">
-                        SKU: {item.sku_order_item || 'N/A'} {item.variant_order_item ? `• ${item.variant_order_item}` : ''} • SL: x{item.quantity_order_item || item.quantity}
+                        {item.variant_order_item ? `${item.variant_order_item} • ` : ''}SL: x{item.quantity_order_item || item.quantity}
                       </p>
                     </div>
                     <span className="font-black text-black dark:text-white shrink-0">
-                      {formatPriceVND(item.total_order_item || item.price_order_item * (item.quantity_order_item || item.quantity))}
+                      {formatPriceVND(item.total_order_item || (item.price_order_item || 0) * (item.quantity_order_item || item.quantity))}
                     </span>
                   </div>
                 ))

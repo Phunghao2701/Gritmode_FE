@@ -6,7 +6,7 @@ import useAuth from '../../features/auth/hooks/useAuth';
 import ROUTES from '../routes/routePaths';
 import { cn } from '../../shared/utils/cn';
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
@@ -51,14 +51,21 @@ export default function AdminSidebar() {
     return pathname.startsWith(itemPath);
   };
 
+  const goTo = (path) => {
+    navigate(path);
+    onClose();
+  };
+
   return (
-    <aside className="sticky top-0 h-screen w-64 bg-black text-white flex flex-col justify-between border-r border-neutral-800 shrink-0 select-none z-40 overflow-hidden">
+    <>
+      {isOpen && <button type="button" className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" onClick={onClose} aria-label="Đóng menu quản trị" />}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-[min(16rem,85vw)] shrink-0 select-none flex-col justify-between overflow-hidden border-r border-neutral-800 bg-black text-white transition-transform duration-300 lg:sticky lg:top-0 lg:z-40 lg:h-screen lg:w-64 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Scrollable upper container */}
       <div className="flex-1 overflow-y-auto overscroll-contain flex flex-col min-h-0">
         {/* Brand Header */}
         <div className="p-6 border-b border-neutral-800/80 shrink-0">
           <div 
-            onClick={() => navigate(ROUTES.ADMIN_DASHBOARD)}
+            onClick={() => goTo(ROUTES.ADMIN_DASHBOARD)}
             className="cursor-pointer group flex flex-col items-start"
           >
             <div className="flex items-center gap-1.5">
@@ -88,7 +95,7 @@ export default function AdminSidebar() {
                   <button
                     key={item.path}
                     type="button"
-                    onClick={() => navigate(item.path)}
+                    onClick={() => goTo(item.path)}
                     className={cn(
                       "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all text-left cursor-pointer",
                       active
@@ -127,7 +134,7 @@ export default function AdminSidebar() {
         <div className="space-y-1">
           <button
             type="button"
-            onClick={() => navigate('/')}
+            onClick={() => goTo('/')}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-neutral-400 hover:bg-neutral-900 hover:text-white transition-all text-left cursor-pointer"
           >
             <Icon icon="solar:shop-2-linear" className="text-base shrink-0" />
@@ -138,7 +145,7 @@ export default function AdminSidebar() {
             type="button"
             onClick={() => {
               logout();
-              navigate('/login');
+              goTo('/login');
             }}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all text-left cursor-pointer"
           >
@@ -147,6 +154,7 @@ export default function AdminSidebar() {
           </button>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

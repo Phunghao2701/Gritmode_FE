@@ -32,10 +32,10 @@ export default function InputField({
       {label && (
         <label 
           htmlFor={name}
-          className="block text-xs font-black uppercase tracking-wider text-black dark:text-white mb-1.5"
+          className="block text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300 mb-1.5"
         >
           {label}
-          {required && <span className="text-black dark:text-white ml-1">*</span>}
+          {required && <span className="text-rose-500 ml-1">*</span>}
         </label>
       )}
 

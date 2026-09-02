@@ -43,6 +43,7 @@ export const useProducts = (params = {}) => {
   return {
     ...query,
     products: items,
+    items,
     pagination,
     total: pagination.total,
     page: pagination.page,

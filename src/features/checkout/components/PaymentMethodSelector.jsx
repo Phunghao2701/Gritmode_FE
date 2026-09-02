@@ -59,12 +59,12 @@ export default function PaymentMethodSelector({
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Icon icon={m.icon} className="text-lg text-black dark:text-white" />
-                  <h4 className="font-black text-xs uppercase tracking-tight text-black dark:text-white">
+                  <h4 className="font-[550] text-xs uppercase tracking-tight text-black dark:text-white">
                     {m.title}
                   </h4>
                 </div>
                 {m.badge && (
-                  <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  <span className={`text-[10px] font-[550] uppercase tracking-wider px-2 py-0.5 rounded-full ${
                     isSelected
                       ? 'bg-black text-white dark:bg-white dark:text-black'
                       : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
@@ -73,7 +73,7 @@ export default function PaymentMethodSelector({
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+              <p className="text-[11px] font-normal uppercase tracking-wider text-neutral-500 dark:text-neutral-400 leading-relaxed">
                 {m.description}
               </p>
             </div>

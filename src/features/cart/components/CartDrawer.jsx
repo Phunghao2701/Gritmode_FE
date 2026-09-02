@@ -87,42 +87,19 @@ export default function CartDrawer() {
           }`}
         >
           {/* Header */}
-          <div className="p-5 sm:p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="font-sans font-[550] text-lg uppercase tracking-tight">
-                Giỏ hàng của bạn
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-[550] bg-black text-white dark:bg-white dark:text-black transition-transform duration-300">
-                {totalItems}
-              </span>
-            </div>
+          <div className="p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+            <h2 className="font-normal text-xl text-black dark:text-white">
+              {totalItems} sản phẩm trong giỏ hàng
+            </h2>
 
-            <div className="flex items-center gap-3">
-              {items.length > 0 && (
-                <button
-                  type="button"
-                  onClick={clearCart}
-                  disabled={isMutating}
-                  className="text-[11px] font-normal uppercase tracking-wider text-neutral-400 hover:text-rose-500 transition-colors underline cursor-pointer disabled:opacity-40"
-                >
-                  Xóa tất cả
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={closeDrawer}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all cursor-pointer text-xl"
-                aria-label="Đóng giỏ hàng"
-              >
-                <Icon icon="solar:close-circle-linear" />
-              </button>
-            </div>
-          </div>
-
-          {/* Freeship Highlight Banner */}
-          <div className="bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-200/80 dark:border-emerald-900/50 px-6 py-2.5 flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-            <Icon icon="solar:delivery-bold" className="text-base text-emerald-500 shrink-0" />
-            <span>Đơn hàng của bạn được <strong>FREESHIP TOÀN QUỐC 0Đ</strong>!</span>
+            <button
+              type="button"
+              onClick={closeDrawer}
+              className="p-1 text-neutral-400 hover:text-black dark:hover:text-white transition-all cursor-pointer text-2xl"
+              aria-label="Đóng giỏ hàng"
+            >
+              <Icon icon="solar:close-linear" />
+            </button>
           </div>
 
           {/* Cart Items List */}

@@ -99,7 +99,7 @@ export default function AddressSelectGroup({
     <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 ${className}`}>
       {/* Province Select */}
       <div className="space-y-1.5">
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+        <label className="block text-[11px] font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
           Tỉnh / Thành phố {required && <span className="text-rose-500">*</span>}
         </label>
         <div className="relative">
@@ -115,7 +115,7 @@ export default function AddressSelectGroup({
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <option value="" disabled className="text-neutral-400">
-              -- Chọn Tỉnh / Thành phố --
+              Chọn Tỉnh / Thành phố
             </option>
             {provinceOptions.map((pName) => (
               <option key={pName} value={pName} className="bg-white dark:bg-neutral-900 text-black dark:text-white">
@@ -134,7 +134,7 @@ export default function AddressSelectGroup({
 
       {/* District Select */}
       <div className="space-y-1.5">
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+        <label className="block text-[11px] font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
           Quận / Huyện {required && <span className="text-rose-500">*</span>}
         </label>
         <div className="relative">
@@ -150,7 +150,7 @@ export default function AddressSelectGroup({
             } ${disabled || !province || districtOptions.length === 0 ? 'opacity-50 cursor-not-allowed bg-neutral-100/60 dark:bg-neutral-900/40' : ''}`}
           >
             <option value="" disabled className="text-neutral-400">
-              {province ? '-- Chọn Quận / Huyện --' : '-- Chọn Tỉnh/Thành trước --'}
+              {province ? 'Chọn Quận / Huyện' : 'Chọn Tỉnh / Thành trước'}
             </option>
             {districtOptions.map((dName) => (
               <option key={dName} value={dName} className="bg-white dark:bg-neutral-900 text-black dark:text-white">
@@ -169,7 +169,7 @@ export default function AddressSelectGroup({
 
       {/* Ward Select */}
       <div className="space-y-1.5">
-        <label className="block text-[11px] font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+        <label className="block text-[11px] font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
           Phường / Xã {required && <span className="text-rose-500">*</span>}
         </label>
         <div className="relative">
@@ -185,7 +185,7 @@ export default function AddressSelectGroup({
             } ${disabled || !district || wardOptions.length === 0 ? 'opacity-50 cursor-not-allowed bg-neutral-100/60 dark:bg-neutral-900/40' : ''}`}
           >
             <option value="" disabled className="text-neutral-400">
-              {district ? '-- Chọn Phường / Xã --' : '-- Chọn Quận/Huyện trước --'}
+              {district ? 'Chọn Phường / Xã' : 'Chọn Quận / Huyện trước'}
             </option>
             {wardOptions.map((wName) => (
               <option key={wName} value={wName} className="bg-white dark:bg-neutral-900 text-black dark:text-white">

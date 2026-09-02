@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAdminInventory } from '../hooks/useAdmin';
 import StockAdjustModal from '../components/StockAdjustModal';
 import Icon from '../../../shared/components/Icon';
@@ -62,15 +62,9 @@ export default function AdminInventoryPage() {
       {/* Top Banner */}
       <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
-            Stock Tracking & Audit
-          </span>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
-            Quản lý tồn kho Variant ({total})
+          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
+            Quản lý kho
           </h1>
-          <p className="text-xs text-neutral-500 mt-1">
-            Kiểm soát số lượng tồn thực tế (On Hand), giữ chỗ đơn hàng (Reserved), và khả dụng (Available).
-          </p>
         </div>
       </div>
 
@@ -80,7 +74,7 @@ export default function AdminInventoryPage() {
           <Icon icon="solar:magnifer-linear" className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 text-lg" />
           <input
             type="text"
-            placeholder="Tìm theo mã SKU hoặc tên sản phẩm..."
+            placeholder="Tìm theo mã sản phẩm hoặc tên sản phẩm..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -93,7 +87,7 @@ export default function AdminInventoryPage() {
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 scrollbar-none">
           {[
             { id: 'ALL', label: 'Tất cả trạng thái' },
-            { id: 'LOW_STOCK', label: 'Sắp hết hàng (<=5)' },
+            { id: 'LOW_STOCK', label: 'Sắp hết hàng' },
             { id: 'OUT_OF_STOCK', label: 'Hết hàng (0)' },
           ].map((tab) => (
             <button
@@ -128,10 +122,9 @@ export default function AdminInventoryPage() {
               <table className="w-full text-left text-xs">
                 <thead className="uppercase text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                   <tr>
-                    <th className="pb-3 font-black">Mã SKU</th>
+                    <th className="pb-3 font-black">Mã sản phẩm</th>
                     <th className="pb-3 font-black">Tên sản phẩm</th>
                     <th className="pb-3 font-black text-center">Tồn thực tế</th>
-                    <th className="pb-3 font-black text-center">Giữ chỗ (Order)</th>
                     <th className="pb-3 font-black text-center">Có thể bán</th>
                     <th className="pb-3 font-black text-center">Trạng thái</th>
                     <th className="pb-3 font-black text-right">Điều chỉnh kho</th>
@@ -140,8 +133,8 @@ export default function AdminInventoryPage() {
                 <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
                   {inventory.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-neutral-400">
-                        Không tìm thấy SKU tồn kho nào.
+                      <td colSpan={6} className="py-8 text-center text-neutral-400">
+                        Không tìm thấy sản phẩm tồn kho nào.
                       </td>
                     </tr>
                   ) : (
@@ -157,9 +150,6 @@ export default function AdminInventoryPage() {
                         </td>
                         <td className="py-4 font-black text-center text-black dark:text-white">
                           {item.quantity_stock ?? 0}
-                        </td>
-                        <td className="py-4 font-black text-center text-amber-500">
-                          {item.quantity_reserved ?? 0}
                         </td>
                         <td className="py-4 font-black text-center text-emerald-600 dark:text-emerald-400">
                           {item.quantity_available ?? 0}

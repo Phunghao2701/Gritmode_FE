@@ -64,15 +64,9 @@ export default function AdminOrdersPage() {
       {/* Top Banner */}
       <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
-            Order Fulfillment
-          </span>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
+          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
             Quản lý đơn hàng ({total})
           </h1>
-          <p className="text-xs text-neutral-500 mt-1">
-            Theo dõi vòng đời đơn hàng, xác nhận đơn COD / payOS, chuẩn bị hàng, giao hàng và hoàn tất.
-          </p>
         </div>
       </div>
 
@@ -186,14 +180,9 @@ export default function AdminOrdersPage() {
                       return (
                         <tr key={orderId} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
                           <td className="py-4">
-                            <div className="flex flex-col">
-                              <span className="font-mono font-black text-black dark:text-white uppercase">
-                                {ord.order_code || `#ORD-${orderId}`}
-                              </span>
-                              <span className="text-[9px] text-neutral-400 font-bold uppercase">
-                                {isGuest ? 'Khách vãng lai' : 'Thành viên'}
-                              </span>
-                            </div>
+                            <span className="font-mono font-black text-black dark:text-white uppercase">
+                              {ord.order_code || `#ORD-${orderId}`}
+                            </span>
                           </td>
                           <td className="py-4">
                             <p className="font-bold text-black dark:text-white line-clamp-1">{ord.email_order}</p>

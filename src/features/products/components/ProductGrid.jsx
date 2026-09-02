@@ -1,4 +1,3 @@
-import React from 'react';
 import ProductCard from './ProductCard';
 import EmptyState from '../../../shared/components/EmptyState';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
@@ -7,6 +6,7 @@ import PaginationControls from '../../../shared/components/PaginationControls';
 export default function ProductGrid({
   products = [],
   isLoading = false,
+  isFetching = false,
   onResetFilter,
   page = 1,
   totalPages = 1,
@@ -43,7 +43,7 @@ export default function ProductGrid({
   return (
     <div className="space-y-12">
       {/* Products Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 animate-fade-in">
+      <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 animate-fade-in transition-opacity duration-300 ${isFetching ? 'opacity-50' : 'opacity-100'}`}>
         {products.map((product) => (
           <ProductCard
             key={product.product_id || product.id || product._id}

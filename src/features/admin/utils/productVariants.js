@@ -8,6 +8,7 @@ export const generateVariantCombinations = (options = []) => {
 };
 
 const slugPart = (value) => String(value || '')
+  .replace(/[đĐ]/g, 'D')
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .replace(/[^a-zA-Z0-9]+/g, '-')
   .replace(/^-|-$/g, '').toUpperCase();

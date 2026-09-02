@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import MainLayout from '../layouts/MainLayout';
@@ -27,6 +26,7 @@ import AdminOrdersPage from '../../features/admin/pages/AdminOrdersPage';
 import AdminInventoryPage from '../../features/admin/pages/AdminInventoryPage';
 import AdminCategoriesPage from '../../features/admin/pages/AdminCategoriesPage';
 import AdminCollectionsPage from '../../features/admin/pages/AdminCollectionsPage';
+import AdminCollectionCreatePage from '../../features/admin/pages/AdminCollectionCreatePage';
 import AdminUsersPage from '../../features/admin/pages/AdminUsersPage';
 import AdminAuditLogsPage from '../../features/admin/pages/AdminAuditLogsPage';
 
@@ -97,6 +97,7 @@ export default function AppRoutes() {
           <Route path="inventory" element={<AdminInventoryPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
           <Route path="collections" element={<AdminCollectionsPage />} />
+          <Route path="collections/create" element={<AdminCollectionCreatePage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="audit-logs" element={<AdminAuditLogsPage />} />
         </Route>

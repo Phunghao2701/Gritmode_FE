@@ -100,7 +100,7 @@ export default function ShippingAddressForm({
         {/* Full Name & Phone */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <InputField
-            label="Họ và tên người nhận"
+            label="Họ và tên"
             name="fullName"
             autoComplete="name"
             placeholder=""
@@ -128,7 +128,7 @@ export default function ShippingAddressForm({
 
         {/* Email */}
         <InputField
-          label="Địa chỉ Email nhận thông tin đơn hàng"
+          label="Địa chỉ Email"
           name="email"
           type="email"
           autoComplete="email"
@@ -167,7 +167,7 @@ export default function ShippingAddressForm({
 
         {/* Order Note */}
         <div className="space-y-1.5 pt-1">
-          <label htmlFor="checkout-note" className="block text-xs font-black uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
+          <label htmlFor="checkout-note" className="block text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
             Ghi chú đơn hàng (Tùy chọn)
           </label>
           <textarea

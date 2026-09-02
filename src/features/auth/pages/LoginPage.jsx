@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useGoogleLogin } from '@react-oauth/google';
 import AuthLayout from '../../../app/layouts/AuthLayout';
 import { toast } from '../../../shared/utils/toast';
-import { requestOtpApi, verifyOtpApi } from '../apis/auth.api';
+import { googleLoginApi, requestOtpApi, verifyOtpApi } from '../apis/auth.api';
 import { tokenService } from '../services/token.service';
 import { useAuthStore } from '../../../app/store/authStore';
 import { useCartStore } from '../../../app/store/cartStore';
+import gritmodeLogo from '../../../assets/icons/GM den.jpg';
 
 // ----------------------------------------------------------------
 // OTP Input — 6 ô số riêng biệt
@@ -112,6 +114,26 @@ export default function LoginPage() {
   const [isVerifying, setIsVerifying] = useState(false);
 
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  const handleGoogleLogin = async ({ access_token }) => {
+    try {
+      const currentGuestToken = useCartStore.getState().guestToken;
+      const res = await googleLoginApi({ access_token, guest_token: currentGuestToken || undefined });
+      const data = res.data?.data;
+      tokenService.setTokens({ access_token: data.access_token });
+      useAuthStore.getState().loginSuccess(data.user);
+      if (currentGuestToken) useCartStore.getState().clearGuestToken();
+      toast.success(data.is_new_user ? 'Chào mừng bạn đến với Gritmode!' : 'Đăng nhập thành công!');
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Không thể đăng nhập bằng Google.');
+    }
+  };
+
+  const startGoogleLogin = useGoogleLogin({
+    onSuccess: handleGoogleLogin,
+    onError: () => toast.error('Không thể đăng nhập bằng Google.'),
+  });
 
   // ---- Step 1: Gửi OTP ----
   const handleRequestOtp = async (e) => {
@@ -229,25 +251,59 @@ export default function LoginPage() {
   // ================================================================
   return (
     <AuthLayout>
-      <div className="bg-white p-8 rounded-3xl border border-neutral-200 shadow-xl space-y-8">
+      <section className="w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-10">
 
         {/* Header */}
-        <div className="space-y-1">
-          <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-            {step === 'email' ? 'Đăng nhập' : 'Nhập mã OTP'}
-          </h1>
-          <p className="text-xs text-neutral-500">
-            {step === 'email'
-              ? 'Nhập email của bạn để nhận mã xác thực.'
-              : `Nhập mã 6 số đã gửi đến ${email}`}
-          </p>
+        <div className="mb-8 text-center">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className={`inline-flex min-h-11 cursor-pointer items-center justify-center transition-opacity hover:opacity-70 ${step === 'otp' ? 'mb-6' : ''}`}
+            aria-label="Về trang chủ Gritmode"
+          >
+            <img
+              src={gritmodeLogo}
+              alt="Gritmode"
+              width="160"
+              height="128"
+              className="h-32 w-40 object-contain"
+            />
+          </button>
+          {step === 'otp' && (
+            <>
+              <h1 className="text-xl font-bold tracking-tight text-neutral-900">Nhập mã OTP</h1>
+              <p className="mt-2 text-sm leading-6 text-neutral-600">
+                Nhập mã 6 số đã gửi đến {email}
+              </p>
+            </>
+          )}
         </div>
 
         {/* ---- Step 1: Email ---- */}
         {step === 'email' && (
           <form onSubmit={handleRequestOtp} className="space-y-5" noValidate>
-            <div className="space-y-1.5">
-              <label htmlFor="login-email" className="block text-xs font-semibold text-neutral-700 uppercase tracking-wider">
+            <button
+              type="button"
+              onClick={() => startGoogleLogin()}
+              className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-lg bg-neutral-100 px-4 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-200 active:bg-neutral-300"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0">
+                <path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.4-.19-2.07H12v3.91h5.38a4.6 4.6 0 0 1-2 3.02v2.54h3.24c1.9-1.75 2.98-4.33 2.98-7.4Z" />
+                <path fill="#34A853" d="M12 22c2.7 0 4.98-.9 6.63-2.43l-3.24-2.54c-.9.6-2.05.96-3.39.96-2.61 0-4.82-1.76-5.61-4.13H3.04v2.62A10 10 0 0 0 12 22Z" />
+                <path fill="#FBBC05" d="M6.39 13.86A6.02 6.02 0 0 1 6.08 12c0-.65.11-1.28.31-1.86V7.52H3.04A10 10 0 0 0 2 12c0 1.61.39 3.14 1.04 4.48l3.35-2.62Z" />
+                <path fill="#EA4335" d="M12 6.01c1.47 0 2.79.5 3.82 1.5l2.87-2.87A9.64 9.64 0 0 0 12 2a10 10 0 0 0-8.96 5.52l3.35 2.62C7.18 7.77 9.39 6.01 12 6.01Z" />
+              </svg>
+              Tiếp tục với Google
+            </button>
+
+            <div className="flex items-center gap-4" aria-hidden="true">
+              <span className="h-px flex-1 bg-neutral-200" />
+              <span className="text-xs font-medium text-neutral-500">Hoặc</span>
+              <span className="h-px flex-1 bg-neutral-200" />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="login-email" className="block text-sm font-medium text-neutral-700">
                 Email
               </label>
               <input
@@ -260,15 +316,17 @@ export default function LoginPage() {
                   setEmail(e.target.value);
                   if (emailError) setEmailError('');
                 }}
-                placeholder=""
-                className={`w-full px-4 py-3 rounded-xl border text-sm font-medium outline-none transition-all
+                placeholder="Nhập địa chỉ email"
+                aria-invalid={Boolean(emailError)}
+                aria-describedby={emailError ? 'login-email-error' : undefined}
+                className={`min-h-12 w-full rounded-lg border px-4 text-base outline-none transition-colors
                   ${emailError
                     ? 'border-red-400 bg-red-50 text-red-900 placeholder-red-300'
-                    : 'border-neutral-200 bg-neutral-50 text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 focus:bg-white focus:ring-2 focus:ring-neutral-900/10'
+                    : 'border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10'
                   }`}
               />
               {emailError && (
-                <p className="text-xs text-red-600 font-medium">{emailError}</p>
+                <p id="login-email-error" role="alert" className="text-sm font-medium text-red-600">{emailError}</p>
               )}
             </div>
 
@@ -276,9 +334,9 @@ export default function LoginPage() {
               id="btn-request-otp"
               type="submit"
               disabled={isRequesting}
-              className="w-full py-3.5 rounded-xl bg-neutral-900 text-white text-sm font-bold tracking-wide
-                hover:bg-neutral-700 active:scale-[0.98] transition-all
-                disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 text-sm font-bold text-white transition-colors
+                hover:bg-neutral-700 active:bg-black
+                disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isRequesting ? (
                 <>
@@ -286,13 +344,17 @@ export default function LoginPage() {
                   Đang gửi...
                 </>
               ) : (
-                'Gửi mã OTP'
+                'Tiếp tục'
               )}
             </button>
 
-            <p className="text-center text-xs text-neutral-500">
-              Không cần mật khẩu — chúng tôi gửi mã xác thực qua email.
-            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="min-h-11 w-full cursor-pointer text-sm text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-900"
+            >
+              Quay lại và tiếp tục mua hàng
+            </button>
           </form>
         )}
 
@@ -362,7 +424,7 @@ export default function LoginPage() {
             </button>
           </form>
         )}
-      </div>
+      </section>
     </AuthLayout>
   );
 }

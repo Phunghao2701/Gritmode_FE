@@ -80,14 +80,24 @@ export const useProductDetail = (productId) => {
 
   // Effective price
   const displayPrice = useMemo(() => {
-    if (selectedVariant && typeof selectedVariant.price === 'number') {
-      return selectedVariant.price;
+    const effectivePrice = Number(selectedVariant?.effective_price);
+    if (selectedVariant && Number.isFinite(effectivePrice)) {
+      return effectivePrice;
+    }
+    const variantPrice = Number(selectedVariant?.price);
+    if (selectedVariant && Number.isFinite(variantPrice)) {
+      return variantPrice;
     }
     if (product) {
       return product.min_price || product.price || 0;
     }
     return 0;
   }, [selectedVariant, product]);
+
+  const originalPrice = Number(selectedVariant?.price) || displayPrice;
+  const hasSale = Boolean(
+    selectedVariant && Number(selectedVariant.effective_price) < Number(selectedVariant.price),
+  );
 
   // Identify Color option value for image filtering
   const colorOptionValueId = useMemo(() => {
@@ -147,6 +157,8 @@ export const useProductDetail = (productId) => {
     isAvailable,
     availableStock,
     displayPrice,
+    originalPrice,
+    hasSale,
     displayImages,
     selectedImageIndex,
     setSelectedImageIndex,

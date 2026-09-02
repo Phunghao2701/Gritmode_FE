@@ -30,6 +30,8 @@ export default function CheckoutPage() {
     setPaymentMethod,
     setAppliedVoucher,
     handlePlaceOrder,
+    updateQuantity,
+    removeItem,
   } = useCheckout();
 
   if (items.length === 0 && !isPayOSModalOpen) {
@@ -49,25 +51,17 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in">
       {/* Top Header & Breadcrumb */}
-      <div className="border-b border-neutral-200 dark:border-neutral-800 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <Link
-            to="/products"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-400 hover:text-black dark:hover:text-white transition-colors mb-2"
-          >
-            <Icon icon="solar:arrow-left-linear" />
-            <span>Tiếp tục mua sắm</span>
-          </Link>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-black dark:text-white uppercase tracking-tight">
-            Thanh toán đơn hàng
-          </h1>
-        </div>
-
-        {/* Real SSL / Security Badge */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 text-xs font-bold self-start sm:self-auto">
-          <Icon icon="solar:shield-check-bold" className="text-emerald-500 text-base" />
-          <span>Bảo mật SSL 256-bit</span>
-        </div>
+      <div className="border-b border-neutral-200 dark:border-neutral-800 pb-5">
+        <Link
+          to="/products"
+          className="inline-flex items-center gap-1.5 text-xs font-normal text-neutral-400 hover:text-black dark:hover:text-white transition-colors mb-2"
+        >
+          <Icon icon="solar:arrow-left-linear" />
+          <span>Tiếp tục mua sắm</span>
+        </Link>
+        <h1 className="font-sans font-[550] text-2xl sm:text-3xl text-black dark:text-white uppercase tracking-tight">
+          Thanh toán đơn hàng
+        </h1>
       </div>
 
       {/* 2-Column Checkout Layout */}
@@ -79,10 +73,10 @@ export default function CheckoutPage() {
           {/* 1. Shipping Address */}
           <section className="space-y-4">
             <div className="flex items-center gap-2.5 pb-2 border-b border-neutral-100 dark:border-neutral-900">
-              <span className="w-6 h-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-black text-xs flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-[550] text-xs flex items-center justify-center">
                 1
               </span>
-              <h2 className="font-display font-black text-base uppercase tracking-tight text-black dark:text-white">
+              <h2 className="font-sans font-[550] text-base uppercase tracking-tight text-black dark:text-white">
                 Thông tin giao hàng
               </h2>
             </div>
@@ -101,10 +95,10 @@ export default function CheckoutPage() {
           {/* 2. Payment Method */}
           <section className="space-y-4 pt-4 border-t border-neutral-100 dark:border-neutral-900">
             <div className="flex items-center gap-2.5 pb-2 border-b border-neutral-100 dark:border-neutral-900">
-              <span className="w-6 h-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-black text-xs flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-[550] text-xs flex items-center justify-center">
                 2
               </span>
-              <h2 className="font-display font-black text-base uppercase tracking-tight text-black dark:text-white">
+              <h2 className="font-sans font-[550] text-base uppercase tracking-tight text-black dark:text-white">
                 Phương thức thanh toán
               </h2>
             </div>
@@ -130,6 +124,8 @@ export default function CheckoutPage() {
               onApplyVoucher={setAppliedVoucher}
               onRemoveVoucher={() => setAppliedVoucher(null)}
               onSubmitOrder={handlePlaceOrder}
+              onUpdateQuantity={updateQuantity}
+              onRemoveItem={removeItem}
               isLoading={isLoading}
             />
           </div>

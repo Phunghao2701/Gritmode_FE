@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import Icon from '../../shared/components/Icon';
 import PrimaryButton from '../../shared/components/Button/PrimaryButton';
@@ -25,7 +25,8 @@ export default function MainLayout({ children }) {
   const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [mobileExpandedSection, setMobileExpandedSection] = useState('shop');
+  const [mobileMenuLevel, setMobileMenuLevel] = useState('main'); // 'main' | 'shop' | 'collections'
+  const [mobileExpandedCategory, setMobileExpandedCategory] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -84,7 +85,7 @@ export default function MainLayout({ children }) {
       title: root?.name_category || '',
       items: menuItems.map((item) => ({
         label: item.name_category,
-        path: `/products?category_id=${item.category_id}`,
+        path: `/products?category=${item.slug_category || item.slug}`,
       })),
     }];
   }));
@@ -98,7 +99,7 @@ export default function MainLayout({ children }) {
       .map((collection) => ({
         id: collection.collection_id,
         label: collection.name_collection,
-        path: `/products?collection_id=${collection.collection_id}`,
+        path: `/products?collection=${collection.slug_collection || collection.slug}`,
       })),
   })).filter((group) => group.items.length > 0);
 
@@ -559,117 +560,295 @@ export default function MainLayout({ children }) {
         </div>
       )}
 
-      {/* Slide-out Mobile Navigation Drawer */}
+      {/* Slide-out Mobile Navigation Drawer (Light Theme Drill-down Navigation) */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="fixed inset-y-0 left-0 max-w-sm w-full bg-black/95 text-white backdrop-blur-2xl p-6 flex flex-col justify-between shadow-2xl border-r border-white/10 animate-in slide-in-from-left duration-300">
-            <div className="space-y-6 overflow-y-auto">
-              <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                <div className="flex flex-col">
-                  <span className="font-display font-black text-xl tracking-tight text-white uppercase leading-none">
-                    GRITMODE®
-                  </span>
-                  <span className="text-[8px] font-black tracking-widest uppercase text-white/50">madeinvietnam</span>
-                </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 text-2xl text-white/60 hover:text-white cursor-pointer">
-                  <Icon icon="solar:close-circle-linear" />
-                </button>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              setMobileMenuLevel('main');
+            }} 
+          />
+          
+          <div className="fixed inset-y-0 left-0 max-w-sm w-full bg-white text-black shadow-2xl flex flex-col justify-between animate-in slide-in-from-left duration-300">
+            {/* 1. Header Bar */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setMobileMenuLevel('main');
+                }}
+                className="p-1 text-2xl text-neutral-800 hover:text-black cursor-pointer"
+                aria-label="Đóng menu"
+              >
+                <Icon icon="solar:close-linear" />
+              </button>
+
+              <div className="flex flex-col items-center">
+                <span className="font-display font-black text-lg tracking-tight text-black uppercase leading-none">
+                  GRITMODE®
+                </span>
+                <span className="text-[8px] font-black tracking-widest uppercase text-neutral-500">madeinvietnam</span>
               </div>
 
-              {/* Mobile Accordion Nav */}
-              <nav className="flex flex-col space-y-3 text-xs font-black uppercase tracking-wider">
-                
-                {/* SHOP Accordion */}
-                <div className="border-b border-white/10 pb-2">
-                  <button 
-                    onClick={() => setMobileExpandedSection(mobileExpandedSection === 'shop' ? '' : 'shop')}
-                    className="w-full flex items-center justify-between py-2 text-left text-sm text-white cursor-pointer"
-                  >
-                    <span>SHOP</span>
-                    <Icon icon={mobileExpandedSection === 'shop' ? "solar:alt-arrow-up-linear" : "solar:alt-arrow-down-linear"} />
-                  </button>
-                  {mobileExpandedSection === 'shop' && (
-                    <div className="pl-3 py-2 space-y-3 text-white/70">
-                      <div>
-                        <p className="font-bold text-white text-[11px] mb-1">{shopMegaMenu.tops.title}</p>
-                        {shopMegaMenu.tops.items.map((i, idx) => (
-                          <Link key={idx} to={i.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1">
-                            {i.label}
-                          </Link>
-                        ))}
-                      </div>
-                      <div>
-                        <p className="font-bold text-white text-[11px] mb-1">{shopMegaMenu.bottoms.title}</p>
-                        {shopMegaMenu.bottoms.items.map((i, idx) => (
-                          <Link key={idx} to={i.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1">
-                            {i.label}
-                          </Link>
-                        ))}
-                      </div>
-                      <div>
-                        <p className="font-bold text-white text-[11px] mb-1">
-                          {[shopMegaMenu.accessories.title, shopMegaMenu.bags.title].filter(Boolean).join(' & ')}
-                        </p>
-                        {shopMegaMenu.accessories.items.map((i, idx) => (
-                          <Link key={idx} to={i.path} onClick={() => setIsMobileMenuOpen(false)} className="block py-1">
-                            {i.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsSearchOpen(true);
+                  }}
+                  className="p-1.5 text-neutral-800 hover:text-black cursor-pointer text-lg"
+                  aria-label="Tìm kiếm"
+                >
+                  <Icon icon="solar:magnifer-linear" />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    navigate(isAuthenticated ? ROUTES.PROFILE : ROUTES.LOGIN);
+                  }}
+                  className="p-1.5 text-neutral-800 hover:text-black cursor-pointer text-lg"
+                  aria-label="Tài khoản"
+                >
+                  <Icon icon="solar:user-linear" />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    openDrawer();
+                  }}
+                  className="relative p-1.5 text-neutral-800 hover:text-black cursor-pointer text-lg"
+                  aria-label="Giỏ hàng"
+                >
+                  <Icon icon="solar:bag-linear" />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-black text-white text-[9px] font-black flex items-center justify-center">
+                      {cartItemCount}
+                    </span>
                   )}
-                </div>
-
-                <Link to="/collections" onClick={() => setIsMobileMenuOpen(false)} className="py-2 border-b border-white/10 block text-sm text-white">
-                  COLLECTIONS
-                </Link>
-
-                <Link to={ROUTES.CONTACT} onClick={() => setIsMobileMenuOpen(false)} className="py-2 text-white/70 hover:text-white block text-sm font-bold">
-                  CONTACT
-                </Link>
-                <Link to={ROUTES.ABOUT_US} onClick={() => setIsMobileMenuOpen(false)} className="py-2 text-white/70 hover:text-white block text-sm font-bold">
-                  ABOUT US
-                </Link>
-              </nav>
+                </button>
+              </div>
             </div>
 
-            <div className="pt-6 border-t border-white/10 space-y-3">
+            {/* 2. Menu Content Area */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+              {/* LEVEL 1: Main Menu */}
+              {mobileMenuLevel === 'main' && (
+                <nav className="space-y-4 text-sm font-bold uppercase tracking-wider text-neutral-900">
+                  <button
+                    onClick={() => setMobileMenuLevel('shop')}
+                    className="w-full flex items-center justify-between py-2 text-left hover:text-neutral-600 transition-colors cursor-pointer"
+                  >
+                    <span>SHOP</span>
+                    <Icon icon="solar:alt-arrow-right-linear" className="text-base text-neutral-800" />
+                  </button>
+
+                  <button
+                    onClick={() => setMobileMenuLevel('collections')}
+                    className="w-full flex items-center justify-between py-2 text-left hover:text-neutral-600 transition-colors cursor-pointer"
+                  >
+                    <span>COLLECTIONS</span>
+                    <Icon icon="solar:alt-arrow-right-linear" className="text-base text-neutral-800" />
+                  </button>
+
+                  <Link
+                    to={ROUTES.CONTACT}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-2 hover:text-neutral-600 transition-colors"
+                  >
+                    CONTACT
+                  </Link>
+
+                  <Link
+                    to={ROUTES.ABOUT_US}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-2 hover:text-neutral-600 transition-colors"
+                  >
+                    ABOUT US
+                  </Link>
+                </nav>
+              )}
+
+              {/* LEVEL 2: Shop Submenu */}
+              {mobileMenuLevel === 'shop' && (
+                <div className="space-y-4 animate-in slide-in-from-right duration-200">
+                  {/* Back Bar */}
+                  <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
+                    <button
+                      onClick={() => setMobileMenuLevel('main')}
+                      className="w-7 h-7 rounded-full bg-neutral-900 text-white flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+                      aria-label="Quay lại"
+                    >
+                      <Icon icon="solar:arrow-left-linear" className="text-sm" />
+                    </button>
+                    <span className="text-xs text-neutral-400 font-normal">
+                      Menu/<span className="text-black font-semibold">Shop</span>
+                    </span>
+                  </div>
+
+                  {/* Categories Tree */}
+                  <div className="space-y-3">
+                    {categoryTree && categoryTree.length > 0 ? (
+                      categoryTree.map((cat) => {
+                        const hasChildren = cat.children && cat.children.length > 0;
+                        const isExpanded = mobileExpandedCategory === cat.category_id;
+
+                        return (
+                          <div key={cat.category_id} className="border-b border-neutral-100 pb-2">
+                            <div className="flex items-center justify-between">
+                              <Link
+                                to={`/products?category=${cat.slug_category || cat.slug}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="text-sm font-bold uppercase tracking-wider text-black hover:text-neutral-600 py-1"
+                              >
+                                {cat.name_category}
+                              </Link>
+                              {hasChildren && (
+                                <button
+                                  onClick={() => setMobileExpandedCategory(isExpanded ? null : cat.category_id)}
+                                  className="p-1.5 text-neutral-700 hover:text-black cursor-pointer"
+                                >
+                                  <Icon
+                                    icon={isExpanded ? "solar:alt-arrow-up-linear" : "solar:alt-arrow-right-linear"}
+                                    className="text-base"
+                                  />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Subcategories list */}
+                            {hasChildren && isExpanded && (
+                              <div className="pl-3 pt-2 pb-1 space-y-2 text-neutral-600 text-xs font-normal">
+                                {cat.children.map((sub) => (
+                                  <Link
+                                    key={sub.category_id}
+                                    to={`/products?category=${sub.slug_category || sub.slug}`}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="block py-1 hover:text-black"
+                                  >
+                                    {sub.name_category}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      // Fallback categories
+                      ['TOPS', 'BOTTOMS', 'ACCESSORIES', 'BAGS', 'WOMENSWEAR'].map((name, idx) => (
+                        <div key={idx} className="border-b border-neutral-100 pb-2">
+                          <Link
+                            to="/products"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="text-sm font-bold uppercase tracking-wider text-black hover:text-neutral-600 py-1 block"
+                          >
+                            {name}
+                          </Link>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* LEVEL 2: Collections Submenu */}
+              {mobileMenuLevel === 'collections' && (
+                <div className="space-y-4 animate-in slide-in-from-right duration-200">
+                  {/* Back Bar */}
+                  <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
+                    <button
+                      onClick={() => setMobileMenuLevel('main')}
+                      className="w-7 h-7 rounded-full bg-neutral-900 text-white flex items-center justify-center cursor-pointer active:scale-90 transition-transform"
+                      aria-label="Quay lại"
+                    >
+                      <Icon icon="solar:arrow-left-linear" className="text-sm" />
+                    </button>
+                    <span className="text-xs text-neutral-400 font-normal">
+                      Menu/<span className="text-black font-semibold">Collections</span>
+                    </span>
+                  </div>
+
+                  {/* Collections List */}
+                  <div className="space-y-2 text-sm font-bold uppercase tracking-wider">
+                    <Link
+                      to="/collections"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block py-2 text-black hover:text-neutral-600 border-b border-neutral-100"
+                    >
+                      TẤT CẢ BỘ SƯU TẬP
+                    </Link>
+                    {collections && collections.length > 0 ? (
+                      collections.map((col) => (
+                        <Link
+                          key={col.collection_id}
+                          to={`/products?collection=${col.slug_collection || col.slug}`}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="block py-2 text-neutral-700 hover:text-black border-b border-neutral-100 font-normal text-xs"
+                        >
+                          {col.name_collection}
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="text-xs text-neutral-400 py-2 font-normal">Đang cập nhật...</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Footer Auth Bar */}
+            <div className="p-6 border-t border-neutral-200 bg-neutral-50 space-y-3">
               {isAuthenticated ? (
                 <div className="space-y-2">
-                  <p className="text-xs font-bold text-white/60">{user?.email}</p>
-                  <PrimaryButton 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full text-white border-white/30 hover:bg-white/10"
-                    onClick={() => { setIsMobileMenuOpen(false); navigate(ROUTES.PROFILE); }}
+                  <p className="text-xs font-normal text-neutral-600">{user?.email}</p>
+                  <PrimaryButton
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-black border-neutral-300 hover:bg-neutral-200 text-xs font-[550]"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setMobileMenuLevel('main');
+                      navigate(ROUTES.PROFILE);
+                    }}
                   >
                     Tài khoản của tôi
                   </PrimaryButton>
-                  <button 
-                    onClick={() => { logout(); setIsMobileMenuOpen(false); }}
-                    className="w-full py-2 text-xs font-bold text-neutral-400 hover:text-white underline text-center cursor-pointer"
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                      setMobileMenuLevel('main');
+                    }}
+                    className="w-full text-center text-xs font-normal text-neutral-500 hover:text-rose-600 cursor-pointer pt-1"
                   >
                     Đăng xuất
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <PrimaryButton 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 text-white border-white/30 hover:bg-white/10"
-                    onClick={() => { setIsMobileMenuOpen(false); navigate(ROUTES.LOGIN); }}
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setMobileMenuLevel('main');
+                      navigate(ROUTES.LOGIN);
+                    }}
+                    className="py-2.5 rounded-xl border border-neutral-300 text-black text-xs font-[550] uppercase tracking-wider hover:bg-neutral-100 transition-colors"
                   >
                     Đăng nhập
-                  </PrimaryButton>
-                  <PrimaryButton 
-                    size="sm" 
-                    className="flex-1 bg-white text-black hover:bg-white/90"
-                    onClick={() => { setIsMobileMenuOpen(false); navigate(ROUTES.LOGIN); }}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setMobileMenuLevel('main');
+                      navigate(ROUTES.LOGIN);
+                    }}
+                    className="py-2.5 rounded-xl bg-black text-white text-xs font-[550] uppercase tracking-wider hover:opacity-85 transition-opacity"
                   >
                     Đăng ký
-                  </PrimaryButton>
+                  </button>
                 </div>
               )}
             </div>
@@ -719,13 +898,13 @@ export default function MainLayout({ children }) {
                 name="newsletter_email"
                 type="email"
                 autoComplete="email"
-                placeholder=""
+                placeholder="Nhập địa chỉ email của bạn..."
                 required
-                className="flex-1 px-4 py-3 text-xs font-[550] rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all"
+                className="min-w-0 flex-1 px-4 py-3 text-xs font-[550] rounded-xl border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 text-black dark:text-white placeholder:text-neutral-400 placeholder:font-normal focus:outline-none focus:border-black dark:focus:border-white transition-all"
               />
               <button 
                 type="submit" 
-                className="px-6 py-3 text-xs font-[550] uppercase tracking-wider rounded-xl bg-black text-white dark:bg-white dark:text-black hover:opacity-85 transition-opacity cursor-pointer shrink-0"
+                className="px-4 sm:px-6 py-3 text-xs font-[550] uppercase tracking-wider rounded-xl bg-black text-white dark:bg-white dark:text-black hover:opacity-85 transition-opacity cursor-pointer shrink-0"
               >
                 ĐĂNG KÝ
               </button>

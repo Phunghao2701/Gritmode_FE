@@ -1,4 +1,3 @@
-import React from 'react';
 import Icon from '../../../shared/components/Icon';
 
 export default function ProductFilterBar({
@@ -12,36 +11,21 @@ export default function ProductFilterBar({
   onSearchChange,
   sortBy = 'newest',
   onSortChange,
-  onResetFilters,
 }) {
-  const activeCategoryObj = categories.find(
-    (c) => String(c.category_id || c.id) === String(selectedCategory)
-  );
-  const activeCollectionObj = collections.find(
-    (c) => String(c.collection_id || c.id) === String(selectedCollection)
-  );
-
-  const hasActiveFilters = Boolean(
-    selectedCategory ||
-    selectedCollection ||
-    searchQuery ||
-    sortBy !== 'newest'
-  );
-
   return (
     <div className="space-y-4">
-      {/* Category Pills Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 select-none scrollbar-none">
+      {/* Category Tabs */}
+      <div className="flex items-center gap-6 overflow-x-auto pb-2 select-none scrollbar-none">
         <button
           type="button"
           onClick={() => onSelectCategory('')}
-          className={`px-4 py-2.5 rounded-full text-xs uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+          className={`relative py-1 text-xs uppercase tracking-wider transition-colors duration-300 whitespace-nowrap cursor-pointer after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:bg-black dark:after:bg-white after:origin-center after:transition-transform after:duration-300 ${
             !selectedCategory
-              ? 'font-[550] bg-black text-white dark:bg-white dark:text-black shadow-sm'
-              : 'font-normal bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
+              ? 'font-normal text-black dark:text-white after:scale-x-100'
+              : 'font-normal text-neutral-400 hover:text-black dark:hover:text-white after:scale-x-0'
           }`}
         >
-          Tất cả sản phẩm
+          Shop
         </button>
 
         {categories.map((cat) => {
@@ -54,10 +38,10 @@ export default function ProductFilterBar({
               key={catId}
               type="button"
               onClick={() => onSelectCategory(catId)}
-              className={`px-4 py-2.5 rounded-full text-xs uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              className={`relative py-1 text-xs uppercase tracking-wider transition-colors duration-300 whitespace-nowrap cursor-pointer after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:bg-black dark:after:bg-white after:origin-center after:transition-transform after:duration-300 ${
                 isActive
-                  ? 'font-[550] bg-black text-white dark:bg-white dark:text-black shadow-sm'
-                  : 'font-normal bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300'
+                  ? 'font-normal text-black dark:text-white after:scale-x-100'
+                  : 'font-normal text-neutral-400 hover:text-black dark:hover:text-white after:scale-x-0'
               }`}
             >
               {catName}
@@ -98,7 +82,7 @@ export default function ProductFilterBar({
               <select
                 value={selectedCollection}
                 onChange={(e) => onSelectCollection(e.target.value)}
-                className="appearance-none px-4 py-2.5 pr-8 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-black dark:text-white text-xs font-bold focus:outline-none cursor-pointer"
+                className="appearance-none px-4 py-2.5 pr-8 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-black dark:text-white text-xs font-normal uppercase tracking-wider focus:outline-none cursor-pointer"
               >
                 <option value="">Tất cả bộ sưu tập</option>
                 {collections.map((col) => (
@@ -116,7 +100,7 @@ export default function ProductFilterBar({
             <select
               value={sortBy}
               onChange={(e) => onSortChange(e.target.value)}
-              className="appearance-none px-4 py-2.5 pr-8 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-black dark:text-white text-xs font-bold focus:outline-none cursor-pointer"
+              className="appearance-none px-4 py-2.5 pr-8 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-black dark:text-white text-xs font-normal uppercase tracking-wider focus:outline-none cursor-pointer"
             >
               <option value="newest">Sắp xếp: Mới nhất</option>
               <option value="oldest">Sắp xếp: Cũ nhất</option>
@@ -128,50 +112,9 @@ export default function ProductFilterBar({
             <Icon icon="solar:alt-arrow-down-linear" className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400 text-xs" />
           </div>
 
-          {/* Reset Filters */}
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={onResetFilters}
-              className="px-3.5 py-2.5 rounded-full border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              <Icon icon="solar:restart-linear" className="text-sm" />
-              <span>Xóa bộ lọc</span>
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Active Filter Chips Summary */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-          <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">Đang lọc:</span>
-          {activeCategoryObj && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-bold text-[11px]">
-              Danh mục: {activeCategoryObj.name_category}
-              <button type="button" onClick={() => onSelectCategory('')} className="hover:text-rose-500 cursor-pointer">
-                ×
-              </button>
-            </span>
-          )}
-          {activeCollectionObj && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-bold text-[11px]">
-              BST: {activeCollectionObj.name_collection}
-              <button type="button" onClick={() => onSelectCollection('')} className="hover:text-rose-500 cursor-pointer">
-                ×
-              </button>
-            </span>
-          )}
-          {searchQuery && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-bold text-[11px]">
-              Từ khóa: "{searchQuery}"
-              <button type="button" onClick={() => onSearchChange('')} className="hover:text-rose-500 cursor-pointer">
-                ×
-              </button>
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }

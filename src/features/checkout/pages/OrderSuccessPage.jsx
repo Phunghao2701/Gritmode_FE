@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getMyOrderByIdApi } from '../../orders/apis/order.api';
 import { useOrderPayment, useCreatePayOSPayment, usePaymentCountdown } from '../../payments/hooks/usePayment';
@@ -14,26 +14,29 @@ import { toast } from '../../../shared/utils/toast';
 export default function OrderSuccessPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const stateOrder = location.state?.order;
   const { isAuthenticated } = useAuthStore();
   const [copiedField, setCopiedField] = useState(null);
 
-  // 1. Fetch Order Details (if authenticated)
-  const { data: order, isLoading: isOrderLoading, refetch: refetchOrder } = useQuery({
+  // 1. Fetch Order Details (Both Guest & Authenticated)
+  const { data: fetchedOrder, isLoading: isOrderLoading, refetch: refetchOrder } = useQuery({
     queryKey: ['order-detail', orderId],
     queryFn: async () => {
       if (!orderId) return null;
       try {
-        if (isAuthenticated) {
-          const res = await getMyOrderByIdApi(orderId);
-          return res.data?.data || res.data;
-        }
-        return null;
-      } catch {
+        const res = await getMyOrderByIdApi(orderId);
+        return res.data?.data || res.data;
+      } catch (err) {
+        console.warn('Could not fetch order detail:', err);
         return null;
       }
     },
-    enabled: !!orderId && isAuthenticated,
+    initialData: stateOrder,
+    enabled: !!orderId,
   });
+
+  const order = fetchedOrder || stateOrder;
 
   // 2. Polling Payment Status (every 3s for payOS until paid)
   const {
@@ -77,57 +80,45 @@ export default function OrderSuccessPage() {
       {/* 1. Top Status Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 ${
-            effectivePaid || !isPayOS
-              ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-              : effectiveExpired || isFailed
-                ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                : 'bg-amber-500/10 text-amber-500 border border-amber-500/30 animate-pulse'
-          }`}>
-            <Icon icon={
+          <Icon
+            icon={
               effectivePaid || !isPayOS
                 ? 'solar:check-circle-bold'
                 : effectiveExpired || isFailed
                   ? 'solar:danger-triangle-bold'
                   : 'solar:qr-code-bold'
-            } />
-          </div>
+            }
+            className={`text-3xl sm:text-4xl shrink-0 ${
+              effectivePaid || !isPayOS
+                ? 'text-emerald-500'
+                : effectiveExpired || isFailed
+                  ? 'text-rose-500'
+                  : 'text-amber-500 animate-pulse'
+            }`}
+          />
 
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+              <span className="text-[10px] font-[550] uppercase tracking-widest text-neutral-400">
                 Mã đơn hàng:
               </span>
-              <span className="font-mono font-black text-sm uppercase text-black dark:text-white">
+              <span className="font-mono font-[550] text-sm uppercase text-black dark:text-white">
                 {order?.order_code || `#ORD-${orderId}`}
               </span>
-              <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                effectivePaid
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                  : isPayOS
-                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse'
-                    : 'bg-black text-white dark:bg-white dark:text-black'
-              }`}>
-                {effectivePaid
-                  ? 'ĐÃ THANH TOÁN'
-                  : isPayOS
-                    ? 'CHỜ CHUYỂN KHOẢN VIETQR'
-                    : 'THANH TOÁN KHI NHẬN HÀNG (COD)'}
-              </span>
             </div>
-            <h1 className="font-display font-black text-xl sm:text-2xl text-black dark:text-white uppercase tracking-tight">
+            <h1 className="font-sans font-[550] text-xl sm:text-2xl text-black dark:text-white uppercase tracking-tight">
               {effectivePaid
-                ? 'Thanh toán thành công — Đơn hàng đã được xác nhận!'
+                ? 'Thanh toán thành công'
                 : isPayOS
-                  ? 'Đơn hàng đã chốt — Vui lòng quét mã VietQR để hoàn tất'
-                  : 'Đặt hàng thành công — Cảm ơn bạn đã mua sắm!'}
+                  ? 'Đơn hàng đã chốt — Quét mã VietQR để hoàn tất'
+                  : 'Đặt hàng thành công'}
             </h1>
           </div>
         </div>
 
         <Link
           to="/products"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-black uppercase tracking-wider text-black dark:text-white transition-all self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-[550] uppercase tracking-wider text-black dark:text-white transition-all self-start sm:self-auto cursor-pointer"
         >
           <Icon icon="solar:arrow-left-linear" />
           <span>Tiếp tục mua sắm</span>
@@ -146,7 +137,7 @@ export default function OrderSuccessPage() {
           <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
             <div className="flex items-center gap-2 pb-3 border-b border-neutral-100 dark:border-neutral-800">
               <Icon icon="solar:map-point-bold" className="text-lg text-black dark:text-white" />
-              <h2 className="font-display font-black text-sm uppercase tracking-tight text-black dark:text-white">
+              <h2 className="font-sans font-[550] text-sm uppercase tracking-tight text-black dark:text-white">
                 Thông tin giao hàng
               </h2>
             </div>
@@ -159,32 +150,38 @@ export default function OrderSuccessPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Người nhận</span>
-                  <p className="font-bold text-black dark:text-white">
-                    {order?.receiver_name_order_address || order?.email_order || 'Khách hàng Gritmode'}
+                  <span className="text-[10px] font-normal uppercase tracking-wider text-neutral-400">Người nhận</span>
+                  <p className="font-normal text-black dark:text-white">
+                    {order?.address?.receiver_name_order_address ||
+                      order?.receiver_name_order_address ||
+                      order?.email_order ||
+                      'Khách hàng Gritmode'}
                   </p>
-                  <p className="text-neutral-500 font-mono">
-                    {order?.phone_order_address || order?.phone_order || ''}
+                  <p className="text-neutral-500 font-mono font-normal">
+                    {order?.address?.phone_order_address ||
+                      order?.phone_order_address ||
+                      order?.phone_order ||
+                      ''}
                   </p>
-                  <p className="text-neutral-500">
+                  <p className="text-neutral-500 font-normal">
                     {order?.email_order || ''}
                   </p>
                 </div>
 
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Địa chỉ giao hàng</span>
-                  <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                  <span className="text-[10px] font-normal uppercase tracking-wider text-neutral-400">Địa chỉ giao hàng</span>
+                  <p className="text-neutral-700 dark:text-neutral-300 font-normal leading-relaxed">
                     {[
-                      order?.address_line_order_address,
-                      order?.ward_order_address,
-                      order?.district_order_address,
-                      order?.province_order_address,
+                      order?.address?.address_line_order_address || order?.address_line_order_address,
+                      order?.address?.ward_order_address || order?.ward_order_address,
+                      order?.address?.district_order_address || order?.district_order_address,
+                      order?.address?.province_order_address || order?.province_order_address,
                     ]
                       .filter(Boolean)
                       .join(', ') || 'Đã ghi nhận theo địa chỉ đặt hàng'}
                   </p>
                   {order?.note_order && (
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold pt-1">
+                    <p className="text-[11px] text-amber-600 dark:text-amber-400 font-normal pt-1">
                       Ghi chú: "{order.note_order}"
                     </p>
                   )}
@@ -199,7 +196,7 @@ export default function OrderSuccessPage() {
               <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800">
                 <div className="flex items-center gap-2">
                   <Icon icon="solar:t-shirt-bold-duotone" className="text-lg text-black dark:text-white" />
-                  <h3 className="font-display font-black text-sm uppercase tracking-tight text-black dark:text-white">
+                  <h3 className="font-sans font-[550] text-sm uppercase tracking-tight text-black dark:text-white">
                     Sản phẩm đã đặt ({items.length})
                   </h3>
                 </div>
@@ -221,15 +218,15 @@ export default function OrderSuccessPage() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h4 className="font-bold text-black dark:text-white uppercase truncate text-xs">
+                        <h4 className="font-normal text-black dark:text-white uppercase truncate text-xs">
                           {item.name_product_order_item || item.name_product || 'Sản phẩm Gritmode'}
                         </h4>
-                        <p className="text-[11px] text-neutral-400 mt-0.5">
-                          {item.variant_order_item ? `${item.variant_order_item} · ` : ''}SL: <span className="font-bold text-black dark:text-white">x{item.quantity_order_item || item.quantity}</span>
+                        <p className="text-[11px] text-neutral-400 mt-0.5 font-normal">
+                          {item.variant_order_item ? `${item.variant_order_item} · ` : ''}SL: <span className="font-[550] text-black dark:text-white">x{item.quantity_order_item || item.quantity}</span>
                         </p>
                       </div>
                     </div>
-                    <span className="font-black text-xs text-black dark:text-white shrink-0">
+                    <span className="font-[550] text-xs text-black dark:text-white shrink-0">
                       {formatPriceVND(item.total_order_item || item.price_order_item * (item.quantity_order_item || item.quantity))}
                     </span>
                   </div>
@@ -240,32 +237,32 @@ export default function OrderSuccessPage() {
 
           {/* Pricing Summary */}
           <div className="p-6 sm:p-7 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-3 text-xs">
-            <h3 className="font-display font-black text-sm uppercase tracking-tight text-black dark:text-white pb-2 border-b border-neutral-200 dark:border-neutral-800">
+            <h3 className="font-sans font-[550] text-sm uppercase tracking-tight text-black dark:text-white pb-2 border-b border-neutral-200 dark:border-neutral-800">
               Chi tiết thanh toán
             </h3>
 
             <div className="space-y-2">
-              <div className="flex justify-between text-neutral-500">
+              <div className="flex justify-between text-neutral-500 font-normal uppercase tracking-wider">
                 <span>Phương thức thanh toán:</span>
-                <span className="font-bold text-black dark:text-white uppercase">
+                <span className="font-[550] text-black dark:text-white uppercase">
                   {isPayOS ? 'Chuyển khoản VietQR (payOS)' : 'Thanh toán khi nhận hàng (COD)'}
                 </span>
               </div>
-              <div className="flex justify-between text-neutral-500">
+              <div className="flex justify-between text-neutral-500 font-normal uppercase tracking-wider">
                 <span>Phí vận chuyển:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                <span className="font-normal text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                   Miễn phí toàn quốc
                 </span>
               </div>
               {order?.discount_order > 0 && (
-                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-normal uppercase tracking-wider">
                   <span>Mã giảm giá ({order.code_voucher_order || 'Voucher'}):</span>
-                  <span>-{formatPriceVND(order.discount_order)}</span>
+                  <span className="font-[550] tracking-normal">-{formatPriceVND(order.discount_order)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-black text-black dark:text-white pt-2.5 border-t border-neutral-200 dark:border-neutral-800">
+              <div className="flex justify-between text-sm font-[550] text-black dark:text-white pt-2.5 border-t border-neutral-200 dark:border-neutral-800">
                 <span className="uppercase tracking-wider">Tổng thanh toán:</span>
-                <span className="text-lg font-display">{formatPriceVND(orderAmount)}</span>
+                <span className="text-lg font-sans font-[550]">{formatPriceVND(orderAmount)}</span>
               </div>
             </div>
           </div>
@@ -274,7 +271,7 @@ export default function OrderSuccessPage() {
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <PrimaryButton
               onClick={() => navigate('/products')}
-              className="px-6 py-3 uppercase tracking-widest text-xs font-black rounded-2xl shadow-md"
+              className="px-6 py-3 uppercase tracking-widest text-xs font-[550] rounded-2xl shadow-md"
             >
               Tiếp tục mua sắm
             </PrimaryButton>
@@ -282,7 +279,7 @@ export default function OrderSuccessPage() {
             {isAuthenticated && (
               <Link
                 to="/profile"
-                className="px-6 py-3 rounded-2xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-black uppercase tracking-widest text-black dark:text-white transition-all text-center"
+                className="px-6 py-3 rounded-2xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-[550] uppercase tracking-widest text-black dark:text-white transition-all text-center"
               >
                 Xem đơn mua của tôi
               </Link>
@@ -455,8 +452,8 @@ export default function OrderSuccessPage() {
             <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-xl space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b border-neutral-100 dark:border-neutral-800">
                 <Icon icon="solar:box-minimalistic-bold-duotone" className="text-xl text-black dark:text-white" />
-                <h3 className="font-display font-black text-sm uppercase tracking-tight text-black dark:text-white">
-                  Tiến trình đơn hàng COD
+                <h3 className="font-sans font-[550] text-sm uppercase tracking-tight text-black dark:text-white">
+                  Tiến trình đơn hàng
                 </h3>
               </div>
 
@@ -468,7 +465,7 @@ export default function OrderSuccessPage() {
                   { step: '4', title: 'Nhận hàng & Thanh toán', desc: 'Kiểm tra hàng và thanh toán tiền mặt', active: false },
                 ].map((s, idx) => (
                   <div key={idx} className="flex items-start gap-3 text-xs">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5 ${
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center font-[550] text-[10px] shrink-0 mt-0.5 ${
                       s.active
                         ? 'bg-black text-white dark:bg-white dark:text-black'
                         : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400'
@@ -476,18 +473,18 @@ export default function OrderSuccessPage() {
                       {s.step}
                     </div>
                     <div>
-                      <h4 className={`font-bold uppercase ${s.active ? 'text-black dark:text-white' : 'text-neutral-400'}`}>
+                      <h4 className={`font-normal uppercase tracking-wider ${s.active ? 'text-black dark:text-white' : 'text-neutral-400'}`}>
                         {s.title}
                       </h4>
-                      <p className="text-[11px] text-neutral-500 mt-0.5">{s.desc}</p>
+                      <p className="text-[11px] font-normal text-neutral-500 mt-0.5">{s.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-xs text-neutral-600 dark:text-neutral-400 space-y-1">
-                <span className="font-bold text-black dark:text-white block">💡 Lưu ý khi nhận hàng:</span>
-                <p className="text-[11px] leading-relaxed">
+                <span className="font-normal text-black dark:text-white block">💡 Lưu ý khi nhận hàng:</span>
+                <p className="text-[11px] font-normal leading-relaxed">
                   Bạn được mở gói hàng kiểm tra đúng mẫu mã, kích cỡ trước khi thanh toán tiền mặt cho bưu tá.
                 </p>
               </div>

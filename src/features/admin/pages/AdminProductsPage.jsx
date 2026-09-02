@@ -15,6 +15,7 @@ export default function AdminProductsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
   const limit = 10;
 
   const {
@@ -25,6 +26,7 @@ export default function AdminProductsPage() {
     archiveProduct,
   } = useAdminProducts({
     search: search.trim() || undefined,
+    status_product: statusFilter || undefined,
     page,
     limit,
   });
@@ -49,20 +51,19 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleStatusChange = (status) => {
+    setStatusFilter(status);
+    setPage(1);
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Top Banner */}
       <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
-            Catalog Management
-          </span>
           <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
             Quản lý sản phẩm ({total})
           </h1>
-          <p className="text-xs text-neutral-500 mt-1">
-            Danh sách trang phục streetwear, thêm mới, sửa đổi thông tin và giá niêm yết.
-          </p>
         </div>
 
         <PrimaryButton icon="solar:add-circle-linear" onClick={() => navigate('/admin/products/create')} size="sm">
@@ -84,6 +85,26 @@ export default function AdminProductsPage() {
               }}
               className="w-full pl-11 pr-4 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
             />
+          </div>
+          <div className="flex items-center gap-6 text-xs uppercase tracking-wider select-none">
+            {[
+              { value: '', label: 'All' },
+              { value: 'active', label: 'Active' },
+              { value: 'draft', label: 'Draft' },
+            ].map((tab) => (
+              <button
+                key={tab.value || 'all'}
+                type="button"
+                onClick={() => handleStatusChange(tab.value)}
+                className={`relative py-2 font-normal transition-colors duration-300 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:bg-black dark:after:bg-white after:origin-center after:transition-transform after:duration-300 ${
+                  statusFilter === tab.value
+                    ? 'text-black dark:text-white after:scale-x-100'
+                    : 'text-neutral-400 hover:text-black dark:hover:text-white after:scale-x-0'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -120,6 +141,12 @@ export default function AdminProductsPage() {
                         const name = p.name_product || p.title;
                         const minPrice = p.min_price ?? p.price ?? 0;
                         const maxPrice = p.max_price ?? p.price ?? 0;
+                        const originalMinPrice = p.original_min_price ?? minPrice;
+                        const originalMaxPrice = p.original_max_price ?? maxPrice;
+                        const hasSale = originalMinPrice > minPrice || originalMaxPrice > maxPrice;
+                        const discountPercent = hasSale && originalMinPrice > 0
+                          ? Math.round((1 - minPrice / originalMinPrice) * 100)
+                          : 0;
                         const isDraft = (p.status_product || 'draft') === 'draft';
 
                         return (
@@ -140,6 +167,11 @@ export default function AdminProductsPage() {
                                 <div>
                                   <h4 className="font-bold text-black dark:text-white uppercase line-clamp-1">{name}</h4>
                                   <span className="text-[10px] font-mono text-neutral-400">ID: #{productId}</span>
+                                  {hasSale && discountPercent > 0 && (
+                                    <span className="ml-2 text-[9px] font-normal uppercase text-rose-600 dark:text-rose-400">
+                                      -{discountPercent}%
+                                    </span>
+                                  )}
                                   <span className={`ml-2 text-[9px] font-black uppercase rounded-full px-2 py-0.5 ${
                                     isDraft
                                       ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'
@@ -153,8 +185,15 @@ export default function AdminProductsPage() {
                             <td className="py-4 text-neutral-400 max-w-xs truncate">
                               {p.description || 'Chưa có mô tả'}
                             </td>
-                            <td className="py-4 text-center font-black text-black dark:text-white">
-                              {minPrice === maxPrice ? formatPriceVND(minPrice) : `${formatPriceVND(minPrice)} - ${formatPriceVND(maxPrice)}`}
+                            <td className="py-4 text-center text-black dark:text-white">
+                              {hasSale && (
+                                <div className="text-neutral-400 line-through font-normal">
+                                  {originalMinPrice === originalMaxPrice ? formatPriceVND(originalMinPrice) : `${formatPriceVND(originalMinPrice)} - ${formatPriceVND(originalMaxPrice)}`}
+                                </div>
+                              )}
+                              <div className={hasSale ? 'font-black text-rose-600 dark:text-rose-400' : 'font-black'}>
+                                {minPrice === maxPrice ? formatPriceVND(minPrice) : `${formatPriceVND(minPrice)} - ${formatPriceVND(maxPrice)}`}
+                              </div>
                             </td>
                             <td className="py-4 text-right">
                               <div className="flex items-center justify-end gap-2">

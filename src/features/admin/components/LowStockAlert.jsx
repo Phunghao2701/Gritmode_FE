@@ -1,4 +1,3 @@
-import React from 'react';
 import Icon from '../../../shared/components/Icon';
 
 export default function LowStockAlert({ lowStockItems = [], onManageInventory }) {
@@ -12,9 +11,6 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory })
               Cảnh báo kho hàng
             </h2>
           </div>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
-            {lowStockItems.length} SKU sắp hết
-          </span>
         </div>
         
         <p className="text-xs text-neutral-400 leading-relaxed">
@@ -27,20 +23,20 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory })
           ) : (
             lowStockItems.map((item) => (
               <div 
-                key={item.id || item.variantSku}
+                key={item.inventory_id || item.product_variant_id || item.id}
                 className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-between"
               >
                 <div>
                   <h4 className="font-bold text-xs text-black dark:text-white line-clamp-1">
-                    {item.productTitle || item.name}
+                    {item.name_product || item.productTitle || item.name}
                   </h4>
                   <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-mono">
-                    {item.size} / {item.color} • SKU: {item.variantSku || item.sku}
+                    {item.sku || item.variantSku || 'Chưa có mã'}
                   </p>
                 </div>
                 <div className="text-right">
                   <span className="text-xs font-black text-rose-500">
-                    Còn {item.available ?? item.onHand ?? 0} cái
+                    Còn {item.quantity_available ?? item.available ?? item.onHand ?? 0} cái
                   </span>
                 </div>
               </div>
@@ -54,7 +50,7 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory })
           onClick={onManageInventory}
           className="w-full py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-black uppercase tracking-wider text-black dark:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
-          <span>Quản lý kho toàn diện</span>
+          <span>Quản lý kho</span>
           <Icon icon="solar:arrow-right-linear" />
         </button>
       </div>
