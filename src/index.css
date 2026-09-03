@@ -99,3 +99,10 @@ html.lenis body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Eliminate all sticky hover and tap highlights on touch/mobile devices */
+@media (hover: none) and (pointer: coarse), (max-width: 1024px) {
+  * {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+}
