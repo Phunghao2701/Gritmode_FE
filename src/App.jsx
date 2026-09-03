@@ -15,12 +15,14 @@ import { useAuthStore } from './app/store/authStore';
  */
 function AuthInit() {
   useEffect(() => {
-    const { loginSuccess, clearAuth, setInitialized, setAuthLoading } =
+    const { isAuthenticated, loginSuccess, clearAuth, setInitialized, setAuthLoading } =
       useAuthStore.getState();
 
     const restore = async () => {
       setAuthLoading(true);
       try {
+        if (!isAuthenticated) return;
+
         // Luôn thử restore vì HttpOnly refresh cookie không thể được JS đọc.
         // Interceptor sẽ refresh access token khi /auth/me trả về 401.
         const res = await getMeApi();

@@ -14,7 +14,15 @@ export const queryClient = new QueryClient({
   },
 });
 
-export const clearQueryCache = () => {
-  queryClient.clear();
-};
+const PUBLIC_QUERY_KEYS = new Set([
+  'products',
+  'product-detail',
+  'categories-public-tree',
+  'category-detail',
+  'collections-public-list',
+  'collection-detail',
+]);
 
+export const clearPrivateQueryCache = () => queryClient.removeQueries({
+  predicate: ({ queryKey }) => !PUBLIC_QUERY_KEYS.has(queryKey[0]),
+});

@@ -23,7 +23,7 @@ import {
   getMeApi,
 } from '../apis/auth.api';
 import { tokenService } from '../services/token.service';
-import { clearQueryCache } from '../../../shared/services/queryClient';
+import { clearPrivateQueryCache } from '../../../shared/services/queryClient';
 
 export default function useAuth() {
   const navigate = useNavigate();
@@ -178,7 +178,7 @@ export default function useAuth() {
     } catch {
       // Dù API lỗi vẫn phải clear local state
     } finally {
-      await clearQueryCache();
+      clearPrivateQueryCache();
       tokenService.clearAllTokens();
       clearAuth();
       toast.info('Đã đăng xuất tài khoản.');

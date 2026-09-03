@@ -73,15 +73,20 @@ export default function LandingPage() {
           className="relative min-h-[92vh] flex flex-col justify-end p-8 sm:p-14 cursor-pointer group overflow-hidden"
         >
           {heroSlides.map((slide, index) => (
+            (index === activeHeroIndex || index === (activeHeroIndex + 1) % heroSlides.length) && (
             <img
               key={slide.id}
               src={slide.image}
               alt={index === activeHeroIndex ? slide.alt : ''}
               aria-hidden={index !== activeHeroIndex}
+              loading={index === activeHeroIndex ? 'eager' : 'lazy'}
+              fetchPriority={index === activeHeroIndex ? 'high' : 'low'}
+              decoding="async"
               className={`absolute inset-0 w-full h-full object-cover object-center brightness-90 grayscale contrast-125 transition-[opacity,transform] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
                 index === activeHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
               }`}
             />
+            )
           ))}
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-black/40" />
           

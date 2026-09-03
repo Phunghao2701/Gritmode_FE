@@ -102,8 +102,8 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         processQueue(refreshError, null);
-        const { clearQueryCache } = await import('./queryClient');
-        await clearQueryCache();
+        const { clearPrivateQueryCache } = await import('./queryClient');
+        clearPrivateQueryCache();
         tokenService.clearAllTokens();
 
         const { useAuthStore } = await import('../../app/store/authStore');

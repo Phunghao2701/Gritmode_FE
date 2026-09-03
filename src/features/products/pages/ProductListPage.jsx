@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts, useCategories, useCollections } from '../hooks/useProducts';
 import ProductFilterBar from '../components/ProductFilterBar';
@@ -20,12 +20,18 @@ export default function ProductListPage() {
   const [selectedCollection, setSelectedCollection] = useState(initialCollection);
   const [selectedCollectionIsSlug, setSelectedCollectionIsSlug] = useState(initialCollectionIsSlug);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [sortBy, setSortBy] = useState(initialSort);
   const [page, setPage] = useState(initialPage);
 
   // Fetch public categories and collections
   const { data: categories = [] } = useCategories();
   const { data: collections = [] } = useCollections();
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(searchQuery), 350);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
 
   // Fetch filtered products
   const {
@@ -37,7 +43,7 @@ export default function ProductListPage() {
   } = useProducts({
     ...(selectedCategory ? (selectedCategoryIsSlug ? { categorySlug: selectedCategory } : { category_id: selectedCategory }) : {}),
     ...(selectedCollection ? (selectedCollectionIsSlug ? { collectionSlug: selectedCollection } : { collection_id: selectedCollection }) : {}),
-    search: searchQuery.trim() || undefined,
+    search: debouncedSearch.trim() || undefined,
     sort: sortBy || 'newest',
     page,
     limit: 20,

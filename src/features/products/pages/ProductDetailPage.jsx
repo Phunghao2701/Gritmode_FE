@@ -10,7 +10,7 @@ import { useCartStore } from '../../../app/store/cartStore';
 import { toast } from '../../../shared/utils/toast';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
-import { formatPriceVND } from '../utils/product.utils';
+import { formatPriceVND, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
 
 export default function ProductDetailPage() {
   const { slug } = useParams();
@@ -244,8 +244,11 @@ export default function ProductDetailPage() {
           >
             {currentImage?.url_product_image ? (
               <img
-                src={currentImage.url_product_image}
+                src={getSizedProductImageUrl(currentImage.url_product_image, 960)}
+                srcSet={getProductImageSrcSet(currentImage.url_product_image, [640, 960, 1280, 1600])}
+                sizes="(min-width: 1024px) 58vw, 100vw"
                 alt={product.name_product}
+                decoding="async"
                 className="w-full h-full object-cover object-center transition-all duration-300 pointer-events-none"
               />
             ) : (
@@ -306,9 +309,11 @@ export default function ProductDetailPage() {
                     }`}
                 >
                   <img
-                    src={img.url_product_image}
+                    src={getSizedProductImageUrl(img.url_product_image, 160)}
                     alt={`${product.name_product} - ${idx}`}
                     className="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </button>
               ))}
@@ -629,9 +634,10 @@ export default function ProductDetailPage() {
             >
               <img
                 key={selectedImageIndex}
-                src={currentImage.url_product_image}
+                src={getSizedProductImageUrl(currentImage.url_product_image, 1600)}
                 alt={product.name_product}
                 draggable="false"
+                decoding="async"
                 style={{ transform: `translate3d(${imagePan.x}px, ${imagePan.y}px, 0) scale(${isZoomed ? 1.5 : 1})` }}
                 className={`w-auto max-w-full h-full object-contain ${isPanningImage ? '' : 'transition-transform duration-300'} ${isZoomed ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-in'}`}
               />
@@ -660,9 +666,11 @@ export default function ProductDetailPage() {
                       }`}
                   >
                     <img
-                      src={img.url_product_image}
+                      src={getSizedProductImageUrl(img.url_product_image, 160)}
                       alt=""
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </button>
                 ))}

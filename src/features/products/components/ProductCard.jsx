@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../../shared/components/Icon';
-import { formatProductPriceRange, slugifyProductName } from '../utils/product.utils';
+import {
+  formatProductPriceRange,
+  getProductImageSrcSet,
+  getSizedProductImageUrl,
+  slugifyProductName,
+} from '../utils/product.utils';
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
@@ -45,11 +50,14 @@ export default function ProductCard({ product }) {
         {/* Product Photo */}
         {thumbnail ? (
           <img
-            src={thumbnail}
+            src={getSizedProductImageUrl(thumbnail, 640)}
+            srcSet={getProductImageSrcSet(thumbnail)}
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
             alt={name}
             className={`w-full h-full object-cover object-center transition-transform duration-700 ease-out ${isHovered ? 'scale-105' : 'scale-100'
               }`}
             loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-neutral-400 gap-1.5">
