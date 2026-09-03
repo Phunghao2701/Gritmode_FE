@@ -161,9 +161,17 @@ export default function LoginPage() {
     } catch (err) {
       const status = err.response?.status;
       let msg;
-      if (status === 429) msg = 'Bạn đã gửi OTP quá nhiều lần. Vui lòng chờ trước khi thử lại.';
-      else if (status === 400) msg = err.response?.data?.message || 'Email không hợp lệ.';
-      else msg = err.response?.data?.message || 'Không thể gửi OTP. Vui lòng thử lại.';
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        msg = 'Máy chủ phản hồi quá lâu. Vui lòng thử lại trong giây lát.';
+      } else if (!err.response) {
+        msg = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng.';
+      } else if (status === 429) {
+        msg = 'Bạn đã gửi OTP quá nhiều lần. Vui lòng chờ 60 giây trước khi thử lại.';
+      } else if (status === 400) {
+        msg = err.response?.data?.message || 'Email không hợp lệ.';
+      } else {
+        msg = err.response?.data?.message || 'Không thể gửi OTP. Vui lòng thử lại.';
+      }
       setEmailError(msg);
       toast.error(msg);
     } finally {
@@ -246,9 +254,6 @@ export default function LoginPage() {
     }
   };
 
-  // ================================================================
-  // RENDER
-  // ================================================================
   return (
     <AuthLayout>
       <section className="w-full rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-10">
