@@ -82,13 +82,13 @@ export default function LandingPage() {
               loading={index === activeHeroIndex ? 'eager' : 'lazy'}
               fetchPriority={index === activeHeroIndex ? 'high' : 'low'}
               decoding="async"
-              className={`absolute inset-0 w-full h-full object-cover object-center brightness-90 grayscale contrast-125 transition-[opacity,transform] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
+              className={`absolute inset-0 w-full h-full object-cover object-center transition-[opacity,transform] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
                 index === activeHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
               }`}
             />
             )
           ))}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30" />
           
           <div className="relative z-10 flex flex-col items-center text-center space-y-3 mb-6 max-w-2xl mx-auto">
             <span className="text-xs font-black uppercase tracking-[0.25em] text-white/80 border-b border-white/30 pb-1">
