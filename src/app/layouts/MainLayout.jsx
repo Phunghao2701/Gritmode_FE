@@ -166,20 +166,20 @@ export default function MainLayout({ children }) {
           setActiveMegaMenu(null);
         }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           
           {/* 1. Left Nav: SHOP | COLLECTIONS */}
-          <div className="flex items-center gap-6 lg:w-1/3">
+          <div className="flex items-center gap-2 sm:gap-6 flex-1 justify-start min-w-0">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className={`lg:hidden p-2 rounded-lg transition-[color,background-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white ${
+              className={`lg:hidden p-1.5 sm:p-2 rounded-lg transition-[color,background-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white ${
                 isWhiteTheme
                   ? 'text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900'
                   : isTextSolidWhite ? 'text-white hover:bg-white/10' : 'text-white/60 hover:text-white hover:bg-white/10'
               }`}
               aria-label="Open mobile menu"
             >
-              <Icon icon="solar:hamburger-menu-linear" className="text-2xl" />
+              <Icon icon="solar:hamburger-menu-linear" className="text-2xl sm:text-2xl" />
             </button>
 
             <nav className="hidden lg:flex items-center gap-6 text-xs font-black tracking-widest uppercase select-none">
@@ -221,17 +221,17 @@ export default function MainLayout({ children }) {
 
           {/* 2. Center Brand Logo */}
           <div 
-            className="flex flex-col items-center justify-center lg:w-1/3 text-center cursor-pointer select-none group" 
+            className="flex flex-col items-center justify-center text-center cursor-pointer select-none group shrink-0 px-2" 
             onClick={() => navigate('/')}
           >
-            <span className={`font-display font-black text-2xl sm:text-3xl tracking-tight uppercase leading-none transition-[color,opacity] duration-150 ease-out group-hover:opacity-75 ${
+            <span className={`font-display font-black text-xl sm:text-2xl lg:text-3xl tracking-tight uppercase leading-none transition-[color,opacity] duration-150 ease-out group-hover:opacity-75 ${
               isWhiteTheme
                 ? 'text-black dark:text-white'
                 : isTextSolidWhite ? 'text-white' : 'text-white/70'
             }`}>
-              GRITMODE<span className="text-xs align-super ml-0.5 font-sans font-black">®</span>
+              GRITMODE<span className="text-[10px] sm:text-xs align-super ml-0.5 font-sans font-black">®</span>
             </span>
-            <span className={`text-[9px] font-black tracking-widest uppercase mt-1 transition-[color,opacity] duration-150 ease-out ${
+            <span className={`text-[8px] sm:text-[9px] font-black tracking-widest uppercase mt-0.5 sm:mt-1 transition-[color,opacity] duration-150 ease-out ${
               isWhiteTheme
                 ? 'text-neutral-400 dark:text-neutral-500'
                 : isTextSolidWhite ? 'text-white/70' : 'text-white/40'
@@ -241,7 +241,7 @@ export default function MainLayout({ children }) {
           </div>
 
           {/* 3. Right Nav */}
-          <div className="flex items-center justify-end gap-5 lg:w-1/3">
+          <div className="flex items-center justify-end gap-3 sm:gap-5 flex-1 min-w-0">
             <nav className="hidden xl:flex items-center gap-6 text-xs font-black tracking-widest uppercase select-none">
               {[
                 { label: 'CONTACT', to: ROUTES.CONTACT },
@@ -262,7 +262,7 @@ export default function MainLayout({ children }) {
             </nav>
 
             {/* Capsule Action Pill */}
-            <div className={`flex items-center rounded-full px-3.5 py-1.5 transition-[border-color,background-color] duration-150 ease-out ${
+            <div className={`flex items-center rounded-full px-2.5 sm:px-3.5 py-1 sm:py-1.5 transition-[border-color,background-color] duration-150 ease-out ${
               isWhiteTheme
                 ? 'border border-neutral-300 dark:border-neutral-700 bg-white/80 dark:bg-black/80 backdrop-blur-sm text-black dark:text-white shadow-sm'
                 : isTextSolidWhite
@@ -281,7 +281,7 @@ export default function MainLayout({ children }) {
                 <Icon icon="solar:magnifer-linear" className="text-base sm:text-lg" />
               </button>
 
-              <span className={`w-px h-3.5 mx-2 transition-colors duration-150 ease-out ${
+              <span className={`w-px h-3.5 mx-1.5 sm:mx-2 transition-colors duration-150 ease-out ${
                 isWhiteTheme ? 'bg-neutral-300 dark:bg-neutral-700' : 'bg-white/20'
               }`} />
 
@@ -297,21 +297,21 @@ export default function MainLayout({ children }) {
                 <Icon icon="solar:user-linear" className="text-base sm:text-lg" />
               </Link>
 
-              <span className={`w-px h-3.5 mx-2 transition-colors duration-150 ease-out ${
+              <span className={`w-px h-3.5 mx-1.5 sm:mx-2 transition-colors duration-150 ease-out ${
                 isWhiteTheme ? 'bg-neutral-300 dark:bg-neutral-700' : 'bg-white/20'
               }`} />
 
               {/* Shopping Bag with live count badge */}
               <button
                 onClick={openDrawer}
-                className={`relative p-1 transition-[color,opacity,transform] duration-150 ease-out flex items-center gap-1.5 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded-full ${
+                className={`relative p-1 transition-[color,opacity,transform] duration-150 ease-out flex items-center gap-1 sm:gap-1.5 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded-full ${
                   isWhiteTheme ? 'text-black dark:text-white hover:opacity-60' : isTextSolidWhite ? 'text-white hover:opacity-75' : 'text-white/60 hover:text-white hover:opacity-100'
                 }`}
                 title="Giỏ hàng"
                 aria-label="Cart"
               >
                 <Icon icon="solar:bag-3-bold" className="text-base sm:text-lg" />
-                <span className="text-xs font-black min-w-[14px] text-center">
+                <span className="text-[11px] sm:text-xs font-black min-w-[12px] sm:min-w-[14px] text-center">
                   {cartItemCount}
                 </span>
               </button>
@@ -333,129 +333,46 @@ export default function MainLayout({ children }) {
             onMouseLeave={() => setActiveMegaMenu(null)}
           >
             <div className="max-w-7xl mx-auto px-8 py-10">
-              <div className="grid grid-cols-5 gap-8">
-                
-                {/* 1. Tops */}
-                <div className="space-y-4">
-                  <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${
-                    isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
-                  }`}>
-                    {shopMegaMenu.tops.title}
-                  </h3>
-                  <ul className={`space-y-2.5 text-xs font-medium ${
-                    isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
-                  }`}>
-                    {shopMegaMenu.tops.items.map((item, idx) => (
-                      <li key={idx}>
+              {categoryTree && categoryTree.length > 0 ? (
+                <div className={`grid grid-cols-${Math.min(categoryTree.length, 5)} gap-8`}>
+                  {categoryTree.map((cat) => (
+                    <div key={cat.category_id} className="space-y-4">
+                      <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${
+                        isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
+                      }`}>
                         <Link 
-                          to={item.path} 
+                          to={`/products?category=${cat.slug_category || cat.slug}`} 
                           onClick={() => setActiveMegaMenu(null)}
-                          className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
+                          className="hover:opacity-75 transition-opacity"
                         >
-                          {item.label}
+                          {cat.name_category}
                         </Link>
-                      </li>
-                    ))}
-                  </ul>
+                      </h3>
+                      {cat.children && cat.children.length > 0 && (
+                        <ul className={`space-y-2.5 text-xs font-medium ${
+                          isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
+                        }`}>
+                          {cat.children.map((sub) => (
+                            <li key={sub.category_id}>
+                              <Link 
+                                to={`/products?category=${sub.slug_category || sub.slug}`} 
+                                onClick={() => setActiveMegaMenu(null)}
+                                className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
+                              >
+                                {sub.name_category}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
                 </div>
-
-                {/* 2. Bottoms */}
-                <div className="space-y-4">
-                  <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${
-                    isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
-                  }`}>
-                    {shopMegaMenu.bottoms.title}
-                  </h3>
-                  <ul className={`space-y-2.5 text-xs font-medium ${
-                    isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
-                  }`}>
-                    {shopMegaMenu.bottoms.items.map((item, idx) => (
-                      <li key={idx}>
-                        <Link 
-                          to={item.path} 
-                          onClick={() => setActiveMegaMenu(null)}
-                          className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+              ) : (
+                <div className="text-center py-6 text-neutral-400 text-xs font-normal">
+                  Chưa có danh mục nào.
                 </div>
-
-                {/* 3. Accessories */}
-                <div className="space-y-4">
-                  <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${
-                    isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
-                  }`}>
-                    {shopMegaMenu.accessories.title}
-                  </h3>
-                  <ul className={`space-y-2.5 text-xs font-medium ${
-                    isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
-                  }`}>
-                    {shopMegaMenu.accessories.items.map((item, idx) => (
-                      <li key={idx}>
-                        <Link 
-                          to={item.path} 
-                          onClick={() => setActiveMegaMenu(null)}
-                          className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 4. Bags */}
-                <div className="space-y-4">
-                  <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${
-                    isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
-                  }`}>
-                    {shopMegaMenu.bags.title}
-                  </h3>
-                  <ul className={`space-y-2.5 text-xs font-medium ${
-                    isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
-                  }`}>
-                    {shopMegaMenu.bags.items.map((item, idx) => (
-                      <li key={idx}>
-                        <Link 
-                          to={item.path} 
-                          onClick={() => setActiveMegaMenu(null)}
-                          className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 5. Womenswear */}
-                <div className="space-y-4">
-                  <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${
-                    isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
-                  }`}>
-                    {shopMegaMenu.womenswear.title}
-                  </h3>
-                  <ul className={`space-y-2.5 text-xs font-medium ${
-                    isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
-                  }`}>
-                    {shopMegaMenu.womenswear.items.map((item, idx) => (
-                      <li key={idx}>
-                        <Link 
-                          to={item.path} 
-                          onClick={() => setActiveMegaMenu(null)}
-                          className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-              </div>
+              )}
             </div>
           </div>
         )}
@@ -737,18 +654,9 @@ export default function MainLayout({ children }) {
                         );
                       })
                     ) : (
-                      // Fallback categories
-                      ['TOPS', 'BOTTOMS', 'ACCESSORIES', 'BAGS', 'WOMENSWEAR'].map((name, idx) => (
-                        <div key={idx} className="border-b border-neutral-100 pb-2">
-                          <Link
-                            to="/products"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="text-sm font-bold uppercase tracking-wider text-black hover:text-neutral-600 py-1 block"
-                          >
-                            {name}
-                          </Link>
-                        </div>
-                      ))
+                      <div className="py-6 text-center text-neutral-400 text-xs font-normal">
+                        Chưa có danh mục nào
+                      </div>
                     )}
                   </div>
                 </div>
