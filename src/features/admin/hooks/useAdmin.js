@@ -230,7 +230,7 @@ export const useAdminProducts = (params = {}) => {
   const deleteMutation = useMutation({
     mutationFn: deleteAdminProductApi,
     onSuccess: () => {
-      toast.success('Xóa sản phẩm thành công!');
+      toast.success('Đã ngừng hiển thị sản phẩm');
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
