@@ -197,7 +197,9 @@ export default function ProductDetailPage() {
       return;
     }
 
-    const res = await addItem({
+    const variantLabel = selectedVariant.option_values?.map((o) => o.value_option).join(' • ') || '';
+
+    const payload = {
       productId: product.product_id,
       variantId: selectedVariant.product_variant_id,
       product_variant_id: selectedVariant.product_variant_id,
@@ -205,14 +207,15 @@ export default function ProductDetailPage() {
       price: selectedVariant.price,
       image: currentImage?.url_product_image || '',
       quantity: selectedQuantity,
-    });
-
-    if (!res?.success) return;
+      variant: variantLabel,
+    };
 
     if (shouldRedirect) {
-      navigate('/checkout');
+      const res = await addItem(payload);
+      if (res?.success) navigate('/checkout');
     } else {
-      openDrawer();
+      // Non-blocking: optimistic store update triggers drawer instantly (< 50ms)
+      addItem(payload);
     }
   };
 
@@ -335,12 +338,12 @@ export default function ProductDetailPage() {
                   {formatPriceVND(originalPrice)}
                 </span>
               )}
-              <span className={hasSale ? 'font-sans font-[550] text-3xl text-rose-600 dark:text-rose-400' : 'font-sans font-[550] text-3xl text-black dark:text-white'}>
+              <span className={hasSale ? 'font-sans font-[550] text-3xl text-red-600 dark:text-red-500' : 'font-sans font-[550] text-3xl text-black dark:text-white'}>
                 {formatPriceVND(displayPrice)}
               </span>
               {hasSale && (
-                <span className="rounded-md bg-rose-600 px-2 py-1 text-[10px] font-normal uppercase tracking-wider text-white">
-                  Sale
+                <span className="rounded-md bg-red-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                  Sale {originalPrice > displayPrice ? `-${Math.round((1 - displayPrice / originalPrice) * 100)}%` : ''}
                 </span>
               )}
             </div>

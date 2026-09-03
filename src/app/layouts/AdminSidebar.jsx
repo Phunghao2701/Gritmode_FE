@@ -39,7 +39,6 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
       group: 'Hệ thống & Khách hàng',
       items: [
         { label: 'Khách hàng', path: ROUTES.ADMIN_USERS, icon: 'solar:users-group-rounded-bold-duotone' },
-        { label: 'Nhật ký quản trị', path: ROUTES.ADMIN_AUDIT_LOGS, icon: 'solar:history-bold-duotone' },
       ]
     }
   ];

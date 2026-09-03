@@ -9,6 +9,7 @@ import {
   getAdminCategoriesApi,
   getAdminCollectionsApi,
   getAdminProductByIdApi,
+  getAdminProductMetaApi,
   createCategoryApi,
   updateCategoryApi,
   createAdminFullProductApi,
@@ -18,7 +19,6 @@ import {
 } from '../apis/admin.api';
 import { generateSkuSuggestion } from '../utils/productVariants';
 import { toast } from '../../../shared/utils/toast';
-import CategoryFormModal from '../components/CategoryFormModal';
 
 const splitValues = (value) => [...new Set(value.split(',').map((item) => item.trim()).filter(Boolean))];
 const combinationKey = (color, size) => `${color}\u0000${size}`;
@@ -101,7 +101,7 @@ export default function AdminProductEditPage() {
   const [collections, setCollections] = useState([]);
   const [productStatus, setProductStatus] = useState('draft');
   const [loadingProduct, setLoadingProduct] = useState(isEditMode);
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState(null); // 'draft' | 'publish' | null
   const [error, setError] = useState('');
 
   // Category modal state
@@ -115,18 +115,16 @@ export default function AdminProductEditPage() {
   const sizes = useMemo(() => [...new Set([...selectedSizes, ...customSizes])], [selectedSizes, customSizes]);
   const combinations = useMemo(() => colors.flatMap((color) => sizes.map((size) => ({ color, size, key: combinationKey(color, size) }))), [colors, sizes]);
 
-  // Fetch Categories & Collections references
+  // Fetch Categories & Collections references via 1 meta API
   useEffect(() => {
     let mounted = true;
     const fetchRefs = async () => {
       try {
-        const [catsRes, colsRes] = await Promise.all([
-          getAdminCategoriesApi(),
-          getAdminCollectionsApi(),
-        ]);
+        const metaRes = await getAdminProductMetaApi();
+        const meta = metaRes.data?.data || metaRes.data || {};
         if (mounted) {
-          setCategories(organizeCategories(responseItems(catsRes)));
-          setCollections(responseItems(colsRes));
+          setCategories(organizeCategories(meta.categories || []));
+          setCollections(meta.collections || []);
         }
       } catch {
         if (mounted) setError('Không thể tải danh mục hoặc bộ sưu tập.');
@@ -265,23 +263,56 @@ export default function AdminProductEditPage() {
   }, [combinations, form.name_product]);
 
   const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    try {
-      const res = await uploadAdminProductImagesApi(files);
-      const uploaded = res.data?.data || res.data || [];
-      setImages((prev) => {
-        const next = [...prev, ...uploaded.map((img, i) => ({
-          url_product_image: img.url,
-          is_thumbnail: prev.length === 0 && i === 0,
-          position: prev.length + i,
-        }))];
-        return next;
-      });
-      toast.success(`Đã tải lên ${uploaded.length} ảnh!`);
-    } catch {
-      toast.error('Tải ảnh thất bại.');
-    }
+    const rawFiles = Array.from(e.target.files || []);
+    if (!rawFiles.length) return;
+    e.target.value = ''; // Reset input to allow selecting same files again
+
+    const newItems = rawFiles.map((file, i) => ({
+      __tempId: `upload-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 7)}`,
+      file,
+      url_product_image: URL.createObjectURL(file),
+      isUploading: true,
+      progress: 5,
+      is_thumbnail: images.length === 0 && i === 0,
+      position: images.length + i,
+    }));
+
+    setImages((prev) => [...prev, ...newItems]);
+
+    // Upload concurrently with live individual progress
+    await Promise.all(
+      newItems.map(async (item) => {
+        try {
+          const res = await uploadAdminProductImagesApi([item.file], (progressEvent) => {
+            const percent = progressEvent.total
+              ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total))
+              : 60;
+            setImages((prev) =>
+              prev.map((img) => (img.__tempId === item.__tempId ? { ...img, progress: percent } : img))
+            );
+          });
+          const uploaded = res.data?.data || res.data || [];
+          const serverUrl = uploaded[0]?.url;
+          if (serverUrl) {
+            setImages((prev) =>
+              prev.map((img) =>
+                img.__tempId === item.__tempId
+                  ? {
+                      ...img,
+                      url_product_image: serverUrl,
+                      isUploading: false,
+                      progress: 100,
+                    }
+                  : img
+              )
+            );
+          }
+        } catch {
+          toast.error(`Không thể tải lên ảnh: ${item.file.name}`);
+          setImages((prev) => prev.filter((img) => img.__tempId !== item.__tempId));
+        }
+      })
+    );
   };
 
   const handleSetThumbnail = (index) => {
@@ -323,6 +354,10 @@ export default function AdminProductEditPage() {
   };
 
   const handleSave = async (publishNow = false) => {
+    if (images.some((img) => img.isUploading)) {
+      toast.warning('Ảnh đang được tải lên, vui lòng đợi hoàn tất trước khi lưu!');
+      return;
+    }
     if (!form.name_product.trim()) {
       toast.error('Vui lòng nhập tên sản phẩm.');
       return;
@@ -367,7 +402,6 @@ export default function AdminProductEditPage() {
     const payload = {
       name_product: form.name_product.trim(),
       description: form.description || '',
-      category_ids: [Number(form.primary_category_id)],
       primary_category_id: Number(form.primary_category_id),
       collection_ids: form.collection_ids.map(Number),
       options: [
@@ -375,24 +409,30 @@ export default function AdminProductEditPage() {
         { name_option: 'Kích thước', values: sizes },
       ],
       variants: payloadVariants,
-      images: images.map((img, idx) => ({
-        url_product_image: img.url_product_image,
-        is_thumbnail: Boolean(img.is_thumbnail),
-        position_product_image: idx,
-      })),
+      images: images
+        .filter((img) => !img.isUploading && img.url_product_image)
+        .map((img, idx) => ({
+          url_product_image: img.url_product_image,
+          is_thumbnail: Boolean(img.is_thumbnail),
+          position_product_image: idx,
+        })),
     };
 
     try {
-      setSubmitting(true);
+      setSubmittingAction(publishNow ? 'publish' : 'draft');
       if (isEditMode) {
-        await updateAdminFullProductApi(productId, payload);
-        if (publishNow && productStatus === 'draft') await publishAdminProductApi(productId);
-        toast.success('Cập nhật sản phẩm thành công!');
+        const updatePayload = {
+          ...payload,
+          ...(publishNow ? { status_product: 'active' } : {}),
+        };
+        await updateAdminFullProductApi(productId, updatePayload);
+        toast.success(publishNow ? 'Đăng bán sản phẩm thành công!' : 'Cập nhật sản phẩm thành công!');
       } else {
-        const res = await createAdminFullProductApi(payload);
-        const created = res.data?.data || res.data;
-        const newId = created.product_id || created.id;
-        if (publishNow && newId) await publishAdminProductApi(newId);
+        const createPayload = {
+          ...payload,
+          status_product: publishNow ? 'active' : 'draft',
+        };
+        await createAdminFullProductApi(createPayload);
         toast.success(publishNow ? 'Đăng bán sản phẩm thành công!' : 'Tạo nháp sản phẩm thành công!');
       }
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
@@ -413,7 +453,7 @@ export default function AdminProductEditPage() {
         : null;
       toast.error(detail || err.response?.data?.message || err.message || 'Lỗi khi lưu sản phẩm');
     } finally {
-      setSubmitting(false);
+      setSubmittingAction(null);
     }
   };
 
@@ -448,13 +488,15 @@ export default function AdminProductEditPage() {
           <PrimaryButton
             variant="outline"
             onClick={() => handleSave(false)}
-            isLoading={submitting}
+            isLoading={submittingAction === 'draft'}
+            disabled={submittingAction !== null}
           >
             Lưu bản nháp
           </PrimaryButton>
           <PrimaryButton
             onClick={() => handleSave(true)}
-            isLoading={submitting}
+            isLoading={submittingAction === 'publish'}
+            disabled={submittingAction !== null}
           >
             {productStatus === 'draft' ? 'Đăng bán ngay' : 'Lưu thay đổi'}
           </PrimaryButton>
@@ -611,13 +653,6 @@ export default function AdminProductEditPage() {
           <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-neutral-400">Danh mục chính *</span>
-              <button
-                type="button"
-                onClick={() => setCategoryModal({ open: true, editing: null, initialParentId: '' })}
-                className="text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white underline cursor-pointer"
-              >
-                + Thêm mới
-              </button>
             </div>
 
             {/* Collapsible Category Tree Dropdown */}
@@ -792,39 +827,81 @@ export default function AdminProductEditPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
                 {images.map((img, i) => (
                   <div
-                    key={i}
-                    className={`relative rounded-2xl overflow-hidden border aspect-square group ${
-                      img.is_thumbnail ? 'ring-2 ring-black dark:ring-white border-transparent' : 'border-neutral-200 dark:border-neutral-800'
+                    key={img.__tempId || img.url_product_image || i}
+                    className={`relative rounded-2xl overflow-hidden border aspect-square group transition-all ${
+                      img.is_thumbnail
+                        ? 'ring-2 ring-black dark:ring-white border-transparent'
+                        : 'border-neutral-200 dark:border-neutral-800'
                     }`}
                   >
-                    <img src={img.url_product_image} alt={`img-${i}`} className="w-full h-full object-cover" />
+                    <img
+                      src={img.url_product_image}
+                      alt={`img-${i}`}
+                      className={`w-full h-full object-cover transition-opacity duration-300 ${
+                        img.isUploading ? 'opacity-40 filter blur-[1px]' : 'opacity-100'
+                      }`}
+                    />
                     
-                    {img.is_thumbnail && (
-                      <span className="absolute top-2 left-2 bg-black text-white dark:bg-white dark:text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow">
+                    {/* Live Upload Progress Ring & Percentage */}
+                    {img.isUploading && (
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-white z-10 select-none animate-fade-in">
+                        <div className="relative w-12 h-12 flex items-center justify-center">
+                          <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                            <path
+                              className="text-white/20"
+                              strokeWidth="3.5"
+                              stroke="currentColor"
+                              fill="none"
+                              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            />
+                            <path
+                              className="text-white transition-all duration-300 ease-out"
+                              strokeDasharray={`${img.progress || 5}, 100`}
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                              stroke="currentColor"
+                              fill="none"
+                              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            />
+                          </svg>
+                          <span className="absolute text-[11px] font-black font-mono">
+                            {img.progress || 5}%
+                          </span>
+                        </div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-white/90 mt-1">
+                          Đang tải lên
+                        </span>
+                      </div>
+                    )}
+
+                    {!img.isUploading && img.is_thumbnail && (
+                      <span className="absolute top-2 left-2 bg-black text-white dark:bg-white dark:text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow z-10">
                         Thumbnail
                       </span>
                     )}
 
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
-                      {!img.is_thumbnail && (
+                    {!img.isUploading && (
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity z-10">
+                        {!img.is_thumbnail && (
+                          <button
+                            type="button"
+                            onClick={() => handleSetThumbnail(i)}
+                            title="Đặt làm ảnh đại diện"
+                            className="p-1.5 bg-white text-black rounded-full hover:scale-110 transition-transform cursor-pointer"
+                          >
+                            <Icon icon="solar:star-bold" className="text-xs" />
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => handleSetThumbnail(i)}
-                          title="Đặt làm ảnh đại diện"
-                          className="p-1.5 bg-white text-black rounded-full hover:scale-110 transition-transform cursor-pointer"
+                          onClick={() => handleRemoveImage(i)}
+                          title="Xóa ảnh"
+                          className="p-1.5 bg-rose-500 text-white rounded-full hover:scale-110 transition-transform cursor-pointer"
                         >
-                          <Icon icon="solar:star-bold" className="text-xs" />
+                          <Icon icon="solar:trash-bin-trash-linear" className="text-xs" />
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(i)}
-                        title="Xóa ảnh"
-                        className="p-1.5 bg-rose-500 text-white rounded-full hover:scale-110 transition-transform cursor-pointer"
-                      >
-                        <Icon icon="solar:trash-bin-trash-linear" className="text-xs" />
-                      </button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -847,13 +924,15 @@ export default function AdminProductEditPage() {
           <PrimaryButton
             variant="outline"
             onClick={() => handleSave(false)}
-            isLoading={submitting}
+            isLoading={submittingAction === 'draft'}
+            disabled={submittingAction !== null}
           >
             Lưu bản nháp
           </PrimaryButton>
           <PrimaryButton
-            onClick={() => handleSave(productStatus === 'draft')}
-            isLoading={submitting}
+            onClick={() => handleSave(true)}
+            isLoading={submittingAction === 'publish'}
+            disabled={submittingAction !== null}
           >
             {productStatus === 'draft' ? 'Đăng bán ngay' : 'Lưu thay đổi'}
           </PrimaryButton>

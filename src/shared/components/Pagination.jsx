@@ -17,7 +17,7 @@ export default function Pagination({
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * limit + 1;
   const endItem = Math.min(totalItems, currentPage * limit);
 
-  if (totalItems === 0 || totalPages <= 1) {
+  if (totalItems === 0) {
     return null;
   }
 
@@ -43,4 +43,3 @@ export default function Pagination({
     </div>
   );
 }
-

@@ -5,37 +5,36 @@ import AppToast from './shared/components/AppToast';
 import SmoothScrollProvider from './shared/components/SmoothScrollProvider';
 import ScrollToTop from './shared/components/ScrollToTop';
 import { tokenService } from './features/auth/services/token.service';
-import { getMeApi } from './features/auth/apis/auth.api';
+import { refreshTokenApi } from './features/auth/apis/auth.api';
 import { useAuthStore } from './app/store/authStore';
 
 /**
- * AuthInit — Khôi phục session khi App reload.
- * Tách thành component riêng để dùng hooks trong BrowserRouter context nếu cần.
+ * AuthInit — Khôi phục session khi App reload / khởi động.
+ * Do Access Token nằm trong RAM và Refresh Token nằm trong HttpOnly Cookie,
+ * khi reload trang AuthInit sẽ tự động gọi refresh để lấy lại access token và user info.
  * Phải gọi setInitialized(true) trong mọi trường hợp.
  */
 function AuthInit() {
   useEffect(() => {
-    const { isAuthenticated, loginSuccess, clearAuth, setInitialized, setAuthLoading } =
+    const { loginSuccess, clearAuth, setInitialized, setAuthLoading } =
       useAuthStore.getState();
 
     const restore = async () => {
       setAuthLoading(true);
       try {
-        if (!isAuthenticated) return;
+        // Tự động khôi phục session bằng HttpOnly cookie refresh_token
+        const res = await refreshTokenApi();
+        const data = res.data?.data;
 
-        // Luôn thử restore vì HttpOnly refresh cookie không thể được JS đọc.
-        // Interceptor sẽ refresh access token khi /auth/me trả về 401.
-        const res = await getMeApi();
-        const userData = res.data?.data;
-
-        if (userData) {
-          loginSuccess(userData);
+        if (data?.access_token && data?.user) {
+          tokenService.setAccessToken(data.access_token);
+          loginSuccess(data.user);
         } else {
           tokenService.clearAllTokens();
           clearAuth();
         }
       } catch {
-        // Session không hợp lệ hoặc refresh thất bại
+        // Chưa đăng nhập hoặc cookie refresh token hết hạn -> chuyển về trạng thái Guest
         tokenService.clearAllTokens();
         clearAuth();
       } finally {

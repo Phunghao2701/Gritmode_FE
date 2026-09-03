@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useAdminStats, useAdminOrders, useAdminInventory } from '../hooks/useAdmin';
+import { useAdminDashboardOverview } from '../hooks/useAdmin';
 import DashboardStatCard from '../components/DashboardStatCard';
 import RecentOrdersTable from '../components/RecentOrdersTable';
 import LowStockAlert from '../components/LowStockAlert';
@@ -7,9 +7,10 @@ import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
-  const { data: stats } = useAdminStats();
-  const { orders } = useAdminOrders({ limit: 5 });
-  const { inventory } = useAdminInventory({ low_stock: true, limit: 5 });
+  const { data: overview, isLoading } = useAdminDashboardOverview();
+  const stats = overview?.stats;
+  const orders = overview?.orders || [];
+  const inventory = overview?.inventory || [];
 
   const lowStockItems = inventory.filter(
     (item) => Number(item.quantity_available ?? (item.quantity_stock - item.quantity_reserved)) <= 5

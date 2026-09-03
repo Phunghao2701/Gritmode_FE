@@ -20,6 +20,7 @@ import {
   requestOtpApi,
   verifyOtpApi,
   logoutApi,
+  refreshTokenApi,
   getMeApi,
 } from '../apis/auth.api';
 import { tokenService } from '../services/token.service';
@@ -193,17 +194,19 @@ export default function useAuth() {
     setAuthLoading(true);
 
     try {
-      // Luôn thử restore vì HttpOnly refresh cookie không thể được JS đọc.
-      // Gọi /auth/me với access token hiện tại
-      // api interceptor sẽ tự refresh nếu access token expired
-      const res = await getMeApi();
-      const userData = res.data?.data;
+      // Gọi refreshTokenApi để lấy lại access_token và user info từ HttpOnly Cookie
+      const res = await refreshTokenApi();
+      const data = res.data?.data;
 
-      if (userData) {
-        useAuthStore.getState().loginSuccess(userData);
+      if (data?.access_token && data?.user) {
+        tokenService.setAccessToken(data.access_token);
+        useAuthStore.getState().loginSuccess(data.user);
+      } else {
+        tokenService.clearAllTokens();
+        clearAuth();
       }
     } catch {
-      // Session invalid → Guest mode
+      // Session invalid hoặc chưa login → Guest mode
       tokenService.clearAllTokens();
       clearAuth();
     } finally {

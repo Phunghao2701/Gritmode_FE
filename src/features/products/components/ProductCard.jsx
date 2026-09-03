@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../../shared/components/Icon';
+import { queryClient } from '../../../shared/services/queryClient';
+import { getProductDetailApi } from '../apis/product.api';
 import {
   formatProductPriceRange,
   getProductImageSrcSet,
@@ -37,10 +39,25 @@ export default function ProductCard({ product }) {
   // Category name or tag
   const primaryCategory = product.categories?.find((c) => c.is_primary)?.name_category || product.category_name || '';
 
+  const handleMouseEnter = useCallback(() => {
+    setIsHovered(true);
+    if (productSlug) {
+      queryClient.prefetchQuery({
+        queryKey: ['product-detail', productSlug],
+        queryFn: async () => {
+          const res = await getProductDetailApi(productSlug);
+          return res.data?.data || res.data;
+        },
+        staleTime: 1000 * 60 * 3,
+      });
+      import('../pages/ProductDetailPage');
+    }
+  }, [productSlug]);
+
   return (
     <div
       onClick={() => navigate(`/products/${productSlug}`)}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
       className="group cursor-pointer select-none flex flex-col space-y-3 relative transition-all duration-300"
     >
@@ -67,7 +84,7 @@ export default function ProductCard({ product }) {
         )}
 
         {hasSale && discountPercent > 0 && (
-          <span className="absolute top-2 left-2 z-10 rounded-md bg-rose-600 px-2 py-1 text-[10px] font-normal uppercase tracking-wider text-white">
+          <span className="absolute top-2 left-2 z-10 rounded-md bg-red-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
             -{discountPercent}%
           </span>
         )}
@@ -102,7 +119,7 @@ export default function ProductCard({ product }) {
               {formattedOriginalPrice}
             </span>
           )}
-          <span className={hasSale ? 'font-[600] text-rose-600 dark:text-rose-400' : 'font-[600] text-black dark:text-white'}>
+          <span className={hasSale ? 'font-[600] text-red-600 dark:text-red-500' : 'font-[600] text-black dark:text-white'}>
             {formattedPrice}
           </span>
         </div>

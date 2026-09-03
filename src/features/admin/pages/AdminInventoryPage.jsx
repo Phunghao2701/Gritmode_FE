@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAdminInventory } from '../hooks/useAdmin';
 import StockAdjustModal from '../components/StockAdjustModal';
 import Icon from '../../../shared/components/Icon';
@@ -7,13 +7,22 @@ import Pagination from '../../../shared/components/Pagination';
 
 export default function AdminInventoryPage() {
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [adjustItem, setAdjustItem] = useState(null);
   const [page, setPage] = useState(1);
   const limit = 10;
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const { inventory, isLoading, total, updateStock, isUpdatingStock } = useAdminInventory({
-    search: search.trim() || undefined,
+    search: debouncedSearch.trim() || undefined,
     low_stock: statusFilter === 'LOW_STOCK' ? true : undefined,
     out_of_stock: statusFilter === 'OUT_OF_STOCK' ? true : undefined,
     page,

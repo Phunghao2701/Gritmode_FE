@@ -71,11 +71,11 @@ export default function RecentOrdersTable({ orders = [], onViewAll }) {
               orders.map((ord) => (
                 <tr key={ord.order_id || ord.id || ord._id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
                   <td className="py-4 font-black text-black dark:text-white">
-                    {ord.order_code || `#ORD-${ord.order_id || ord.id || ord._id}`}
+                    {ord.code_order || ord.order_code || `#ORD-${ord.order_id || ord.id || ord._id}`}
                   </td>
                   <td className="py-4">
-                    <p className="font-bold text-neutral-800 dark:text-neutral-200">{ord.customer?.name || ord.recipientName || ord.email_order || 'Khách hàng'}</p>
-                    <p className="text-[10px] text-neutral-400">{ord.customer?.phone || ord.recipientPhone || ord.phone_order}</p>
+                    <p className="font-bold text-neutral-800 dark:text-neutral-200">{ord.user_name || ord.shipping_name || ord.customer?.name || ord.email_order || 'Khách hàng'}</p>
+                    <p className="text-[10px] text-neutral-400">{ord.user_email || ord.shipping_email || ord.customer?.phone || ord.phone_order}</p>
                   </td>
                   <td className="py-4 font-black text-black dark:text-white">
                     {formatPriceVND(ord.total_order ?? ord.finalAmount ?? ord.totalAmount)}

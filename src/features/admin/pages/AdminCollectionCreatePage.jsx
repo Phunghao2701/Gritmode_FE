@@ -128,32 +128,34 @@ export default function AdminCollectionCreatePage() {
 
           <div className="space-y-2">
             <label htmlFor="collection-name" className="text-xs font-black uppercase tracking-wider text-neutral-500">
-              Tên nhóm <span className="text-rose-500">*</span>
+              {parentId ? 'Tên bộ sưu tập con' : 'Tên nhóm bộ sưu tập'} <span className="text-rose-500">*</span>
             </label>
             <input
               id="collection-name"
               type="text"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Ví dụ: New Arrivals"
+              placeholder={parentId ? "Ví dụ: Áo khoác dù, Quần cargo..." : "Ví dụ: Summer 2026, Limited Graphics..."}
               maxLength={255}
               autoFocus
               className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-3 text-sm text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="collection-parent" className="text-xs font-black uppercase tracking-wider text-neutral-500">Nhóm cha</label>
-            <select
-              id="collection-parent"
-              value={parentId}
-              onChange={(event) => setParentId(event.target.value)}
-              className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-3 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white"
-            >
-              <option value="">Tạo nhóm cha</option>
-              {parents.map((parent) => <option key={parent.collection_id} value={parent.collection_id}>{parent.name_collection}</option>)}
-            </select>
-          </div>
+          {/* If creating child collection, show fixed parent information */}
+          {parentId && (
+            <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">Thuộc nhóm cha</span>
+                <span className="font-black text-sm text-black dark:text-white mt-0.5 block">
+                  {collections.find((c) => String(c.collection_id) === String(parentId))?.name_collection || `Nhóm #${parentId}`}
+                </span>
+              </div>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+                Bộ sưu tập con
+              </span>
+            </div>
+          )}
         </section>
 
         {parentId && (

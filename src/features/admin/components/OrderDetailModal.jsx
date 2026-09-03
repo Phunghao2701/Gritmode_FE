@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Icon from '../../../shared/components/Icon';
-import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import {
   getOrderStatusInfo,
   getPaymentStatusInfo,
@@ -25,6 +25,15 @@ export default function OrderDetailModal({
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   const orderId = order?.order_id || order?.id;
+
+  // Lock body scroll when modal is active
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -62,33 +71,39 @@ export default function OrderDetailModal({
 
   const address = activeOrder.address || {};
   const items = Array.isArray(activeOrder.items) ? activeOrder.items : [];
-  const isGuest = !activeOrder.user && !activeOrder.user_id;
 
   const handleCancelSubmit = () => {
     onCancel({ orderId, reason: cancelReason.trim() });
     setShowCancelInput(false);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+  const modalContent = (
+    <div 
+      className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in"
+      onClick={onClose}
+    >
+      <div 
+        className="relative w-full max-w-xl rounded-[28px] bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xl overflow-hidden p-7 sm:p-8 space-y-5 max-h-[92vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
+        <div className="flex items-start justify-between">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-              Chi tiết đơn hàng Admin
+            <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 block">
+              CHI TIẾT ĐƠN HÀNG ADMIN
             </span>
-            <h3 className="font-mono font-black text-xl text-black dark:text-white uppercase mt-0.5">
-              {activeOrder.order_code || `#ORD-${orderId}`}
+            <h3 className="font-mono font-bold text-xl text-black dark:text-white uppercase mt-0.5 tracking-tight">
+              {activeOrder.order_code || activeOrder.code_order || `#ORD-${orderId}`}
             </h3>
-            <p className="text-[11px] text-neutral-500">
-              Đặt lúc: {new Date(activeOrder.created_at || Date.now()).toLocaleString('vi-VN')}
+            <p className="text-[11px] text-neutral-400 mt-0.5">
+              Đặt lúc: {new Date(activeOrder.created_at || Date.now()).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {new Date(activeOrder.created_at || Date.now()).toLocaleDateString('vi-VN')}
             </p>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 text-neutral-400 hover:text-black dark:hover:text-white text-xl cursor-pointer"
+            className="text-neutral-400 hover:text-black dark:hover:text-white text-xl transition-colors cursor-pointer"
           >
             <Icon icon="solar:close-circle-linear" />
           </button>
@@ -96,119 +111,141 @@ export default function OrderDetailModal({
 
         {/* Status Badges */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
-            <span className="text-[10px] font-bold text-neutral-400 uppercase">Trạng thái đơn hàng</span>
-            <div className="mt-1">
-              <span className={`inline-block text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full border ${orderStatus.color}`}>
-                {orderStatus.label}
-              </span>
-            </div>
+          <div className="p-3.5 rounded-2xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-100/80 dark:border-neutral-800">
+            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+              TRẠNG THÁI ĐƠN HÀNG
+            </span>
+            <span className={`inline-block text-[10px] font-bold uppercase px-3 py-0.5 rounded-full border ${orderStatus.color || 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+              {orderStatus.label}
+            </span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800">
-            <span className="text-[10px] font-bold text-neutral-400 uppercase">Thanh toán</span>
-            <div className="mt-1">
-              <span className={`inline-block text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full border ${paymentStatus.color}`}>
-                {paymentMethod.toUpperCase()} • {paymentStatus.label}
-              </span>
-            </div>
+          <div className="p-3.5 rounded-2xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-100/80 dark:border-neutral-800">
+            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+              THANH TOÁN
+            </span>
+            <span className={`inline-block text-[10px] font-bold uppercase px-3 py-0.5 rounded-full border ${paymentStatus.color || 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+              {paymentMethod.toUpperCase()} • {paymentStatus.label}
+            </span>
           </div>
         </div>
 
-        {/* Customer & Shipping Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-800">
-          <div className="space-y-1">
-            <span className="font-bold uppercase tracking-wider text-neutral-400 text-[10px]">Người nhận & Liên hệ</span>
-            <p className="font-black text-black dark:text-white">
-              {address.receiver_name_order_address || activeOrder.receiver_name_order_address || activeOrder.email_order}
+        {/* Customer & Shipping Info Box */}
+        <div className="p-4 rounded-2xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-100/80 dark:border-neutral-800 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="space-y-0.5">
+            <span className="font-bold uppercase tracking-wider text-neutral-400 text-[10px] block mb-1">
+              NGƯỜI NHẬN & LIÊN HỆ
+            </span>
+            <p className="font-bold text-xs text-black dark:text-white">
+              {address.receiver_name_order_address || activeOrder.receiver_name_order_address || activeOrder.shipping_name || activeOrder.user_name || 'Khách hàng'}
             </p>
-            <p className="text-neutral-500 font-mono">{address.phone_order_address || activeOrder.phone_order_address || activeOrder.phone_order}</p>
-            <p className="text-neutral-500">{activeOrder.email_order}</p>
+            <p className="text-neutral-500 font-mono text-[11px]">
+              {address.phone_order_address || activeOrder.phone_order_address || activeOrder.phone_order || activeOrder.shipping_phone || '—'}
+            </p>
+            <p className="text-neutral-500 text-[11px]">
+              {activeOrder.email_order || activeOrder.shipping_email || activeOrder.user_email || '—'}
+            </p>
           </div>
-          <div className="space-y-1">
-            <span className="font-bold uppercase tracking-wider text-neutral-400 text-[10px]">Địa chỉ giao hàng</span>
+
+          <div className="space-y-0.5">
+            <span className="font-bold uppercase tracking-wider text-neutral-400 text-[10px] block mb-1">
+              ĐỊA CHỈ GIAO HÀNG
+            </span>
             {loadingDetail ? (
-              <p className="text-neutral-400 italic">Đang tải địa chỉ...</p>
+              <p className="text-neutral-400 italic text-[11px]">Đang tải địa chỉ...</p>
             ) : (
-              <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
-                {[
-                  address.address_line_order_address || activeOrder.address_line_order_address,
-                  address.ward_order_address || activeOrder.ward_order_address,
-                  address.district_order_address || activeOrder.district_order_address,
-                  address.province_order_address || activeOrder.province_order_address,
-                ]
-                  .filter(Boolean)
-                  .join(', ') || 'Chưa cung cấp'}
+              <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed text-[11px]">
+                {activeOrder.shipping_address_detail || [
+                  address.address_line_order_address || address.street || address.address_detail,
+                  address.ward_order_address || address.ward,
+                  address.district_order_address || address.district,
+                  address.province_order_address || address.province || address.city,
+                ].filter(Boolean).join(', ') || 'Chưa cung cấp'}
               </p>
             )}
             {activeOrder.note_order && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold pt-1">
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold pt-1 italic">
                 Ghi chú: "{activeOrder.note_order}"
               </p>
             )}
           </div>
         </div>
 
-        {/* Items snapshot */}
-        <div className="space-y-3">
-          <h4 className="font-bold uppercase tracking-wider text-neutral-500 text-xs">
-            Sản phẩm trong đơn ({items.length})
+        {/* Products Snapshot */}
+        <div className="space-y-2.5">
+          <h4 className="font-bold uppercase tracking-wider text-neutral-400 text-[10px]">
+            SẢN PHẨM TRONG ĐƠN ({items.length})
           </h4>
+
           {loadingDetail ? (
             <div className="py-4 text-center text-neutral-400 text-xs italic">
               Đang tải danh sách sản phẩm...
             </div>
+          ) : items.length === 0 ? (
+            <div className="py-4 text-center text-neutral-400 text-xs">
+              Không có thông tin chi tiết sản phẩm.
+            </div>
           ) : (
-            <div className="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-60 overflow-y-auto pr-1 scrollbar-none">
-              {items.length === 0 ? (
-                <div className="py-3 text-center text-neutral-400 text-xs">
-                  Không có thông tin chi tiết sản phẩm.
-                </div>
-              ) : (
-                items.map((item, idx) => (
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              {items.map((item, idx) => {
+                const optValues = item.variant_order_item || (typeof item.option_values === 'object' && item.option_values
+                  ? Object.entries(item.option_values).map(([k, v]) => `${v}`).join(' / ')
+                  : item.option_values || item.variant_title || '');
+                const itemPrice = Number(item.price_order_item ?? item.price ?? item.unit_price ?? 0);
+                const itemQty = Number(item.quantity_order_item ?? item.quantity ?? 1);
+                const itemTotal = Number(item.total_order_item || (itemPrice * itemQty));
+                const sku = item.sku_order_item || item.sku || '';
+
+                return (
                   <div key={item.order_item_id || idx} className="py-2.5 flex items-center justify-between gap-4 text-xs">
                     <div>
-                      <h5 className="font-bold text-black dark:text-white uppercase line-clamp-1">
-                        {item.name_product_order_item || item.name_product || 'Sản phẩm'}
+                      <h5 className="font-bold text-black dark:text-white uppercase text-xs">
+                        {item.name_product_order_item || item.name_product || item.title || 'SẢN PHẨM'}
                       </h5>
-                      <p className="text-neutral-400 text-[10px] uppercase font-mono">
-                        {item.variant_order_item ? `${item.variant_order_item} • ` : ''}SL: x{item.quantity_order_item || item.quantity}
+                      <p className="text-neutral-400 text-[10px] uppercase font-mono mt-0.5">
+                        {sku ? `SKU: ${sku} • ` : ''}{optValues ? `${optValues} • ` : ''}SL: X{itemQty}
                       </p>
                     </div>
-                    <span className="font-black text-black dark:text-white shrink-0">
-                      {formatPriceVND(item.total_order_item || (item.price_order_item || 0) * (item.quantity_order_item || item.quantity))}
+                    <span className="font-bold text-black dark:text-white shrink-0 text-xs tabular-nums">
+                      {formatPriceVND(itemTotal)}
                     </span>
                   </div>
-                ))
-              )}
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* Total breakdown */}
-        <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 space-y-1.5 text-xs">
+        {/* Price Breakdown */}
+        <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 space-y-1 text-xs">
           <div className="flex justify-between text-neutral-500">
             <span>Tạm tính:</span>
-            <span className="font-bold text-black dark:text-white">{formatPriceVND(activeOrder.subtotal_order)}</span>
+            <span className="font-medium text-black dark:text-white tabular-nums">
+              {formatPriceVND(activeOrder.subtotal_order || activeOrder.total_order || 0)}
+            </span>
           </div>
           <div className="flex justify-between text-neutral-500">
             <span>Phí giao hàng:</span>
-            <span className="font-bold text-black dark:text-white">{formatPriceVND(activeOrder.shipping_fee_order)}</span>
+            <span className="font-medium text-black dark:text-white tabular-nums">
+              {formatPriceVND(activeOrder.shipping_fee_order || activeOrder.shipping_fee || 0)}
+            </span>
           </div>
-          {activeOrder.discount_order > 0 && (
+          {Number(activeOrder.discount_order || activeOrder.discount_amount || 0) > 0 && (
             <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
-              <span>Mã giảm giá ({activeOrder.code_voucher_order || 'Voucher'}):</span>
-              <span>-{formatPriceVND(activeOrder.discount_order)}</span>
+              <span>Giảm giá ({activeOrder.code_voucher_order || 'Voucher'}):</span>
+              <span className="tabular-nums">-{formatPriceVND(activeOrder.discount_order || activeOrder.discount_amount)}</span>
             </div>
           )}
-          <div className="flex justify-between font-black text-sm text-black dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-800">
-            <span className="uppercase tracking-wider">Tổng thanh toán:</span>
-            <span className="text-base font-display">{formatPriceVND(activeOrder.total_order)}</span>
+          <div className="flex justify-between font-bold text-sm text-black dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-800">
+            <span className="uppercase tracking-wider">TỔNG THANH TOÁN:</span>
+            <span className="text-sm font-bold tabular-nums">
+              {formatPriceVND(activeOrder.total_order || 0)}
+            </span>
           </div>
         </div>
 
-        {/* Transition Actions */}
-        <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 space-y-3">
+        {/* Bottom Actions */}
+        <div className="pt-2">
           {showCancelInput ? (
             <div className="space-y-2 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-xs">
               <label className="font-bold text-rose-600 dark:text-rose-400 block">Lý do hủy đơn hàng:</label>
@@ -223,7 +260,7 @@ export default function OrderDetailModal({
                 <button
                   type="button"
                   onClick={() => setShowCancelInput(false)}
-                  className="px-3 py-1.5 rounded-lg border border-neutral-300 text-neutral-600 font-bold text-xs"
+                  className="px-4 py-1.5 rounded-full border border-neutral-300 text-neutral-600 font-bold text-xs cursor-pointer"
                 >
                   Đóng
                 </button>
@@ -231,21 +268,36 @@ export default function OrderDetailModal({
                   type="button"
                   onClick={handleCancelSubmit}
                   disabled={isActionPending}
-                  className="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold text-xs hover:bg-rose-700"
+                  className="px-4 py-1.5 rounded-full bg-rose-600 text-white font-bold uppercase tracking-wider text-xs hover:bg-rose-700 cursor-pointer"
                 >
                   Xác nhận hủy đơn
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-3">
+              {/* Left Action: Hủy đơn */}
+              <div>
+                {allowedActions.includes('cancel') && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCancelInput(true)}
+                    disabled={isActionPending}
+                    className="px-4 py-1.5 rounded-full border border-rose-200 dark:border-rose-900/60 bg-transparent text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
+                  >
+                    HỦY ĐƠN
+                  </button>
+                )}
+              </div>
+
+              {/* Right Actions: Workflow action button + ĐÓNG */}
               <div className="flex items-center gap-2">
                 {allowedActions.includes('confirm') && (
                   <button
                     type="button"
                     onClick={() => onConfirm(orderId)}
                     disabled={isActionPending}
-                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wider transition-colors cursor-pointer shadow-md disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm disabled:opacity-40"
                   >
                     Xác nhận đơn
                   </button>
@@ -255,7 +307,7 @@ export default function OrderDetailModal({
                     type="button"
                     onClick={() => onProcess(orderId)}
                     disabled={isActionPending}
-                    className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-wider transition-colors cursor-pointer shadow-md disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm disabled:opacity-40"
                   >
                     Chuẩn bị hàng
                   </button>
@@ -265,7 +317,7 @@ export default function OrderDetailModal({
                     type="button"
                     onClick={() => onShip(orderId)}
                     disabled={isActionPending}
-                    className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black uppercase tracking-wider transition-colors cursor-pointer shadow-md disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm disabled:opacity-40"
                   >
                     Giao hàng
                   </button>
@@ -275,30 +327,20 @@ export default function OrderDetailModal({
                     type="button"
                     onClick={() => onComplete(orderId)}
                     disabled={isActionPending}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition-colors cursor-pointer shadow-md disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm disabled:opacity-40"
                   >
-                    Hoàn thành
+                    Hoàn tất
                   </button>
                 )}
-                {allowedActions.includes('cancel') && (
-                  <button
-                    type="button"
-                    onClick={() => setShowCancelInput(true)}
-                    disabled={isActionPending}
-                    className="px-3.5 py-2.5 rounded-xl border border-rose-300 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-black uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
-                  >
-                    Hủy đơn
-                  </button>
-                )}
-              </div>
 
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-5 py-2.5 rounded-xl bg-black text-white dark:bg-white dark:text-black text-xs font-black uppercase tracking-wider hover:opacity-85 cursor-pointer shadow-md"
-              >
-                Đóng
-              </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-2 rounded-full bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer shadow-sm"
+                >
+                  ĐÓNG
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -306,4 +348,6 @@ export default function OrderDetailModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

@@ -60,11 +60,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Chỉ xử lý 401 và không phải request refresh chính nó
+    // Chỉ xử lý 401 và không phải request refresh hoặc auth endpoints
     if (
       error.response?.status === 401 &&
+      originalRequest &&
       !originalRequest._retry &&
-      !originalRequest._isRefreshRequest
+      !originalRequest._isRefreshRequest &&
+      !originalRequest.url?.includes('/auth/refresh')
     ) {
       // Nếu đang refresh → queue request hiện tại chờ
       if (isRefreshing) {
@@ -90,9 +92,15 @@ api.interceptors.response.use(
         );
 
         const newAccessToken = res.data?.data?.access_token;
+        const newUser = res.data?.data?.user;
 
         if (newAccessToken) {
           tokenService.setAccessToken(newAccessToken);
+
+          if (newUser) {
+            const { useAuthStore } = await import('../../app/store/authStore');
+            useAuthStore.getState().setUser(newUser);
+          }
 
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
           processQueue(null, newAccessToken);

@@ -1,18 +1,23 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdminCategories } from '../hooks/useAdmin';
-import CategoryFormModal from '../components/CategoryFormModal';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
+import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 
 const normalizeText = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 export default function AdminCategoriesPage() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [initialParentId, setInitialParentId] = useState('');
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [expandedIds, setExpandedIds] = useState(new Set());
-  const { categories, isLoading, createCategory, updateCategory } = useAdminCategories();
+  const [deletingCategory, setDeletingCategory] = useState(null);
+
+  const {
+    categories,
+    isLoading,
+    deleteCategory,
+  } = useAdminCategories();
 
   const categoryTree = useMemo(() => {
     const byParent = new Map();
@@ -27,7 +32,7 @@ export default function AdminCategoriesPage() {
     );
     const build = (parentId = 0) => sort(byParent.get(parentId)).map((category) => ({
       ...category,
-      children: build(Number(category.category_id)),
+      children: build(Number(category.category_id || category.id)),
     }));
     return build();
   }, [categories]);
@@ -44,18 +49,6 @@ export default function AdminCategoriesPage() {
     }, []);
   }, [categoryTree, search]);
 
-  const openCreate = (parentId = '') => {
-    setEditingCategory(null);
-    setInitialParentId(String(parentId || ''));
-    setModalOpen(true);
-  };
-
-  const openEdit = (category) => {
-    setEditingCategory(category);
-    setInitialParentId('');
-    setModalOpen(true);
-  };
-
   const toggleRoot = (categoryId) => {
     setExpandedIds((current) => {
       const next = new Set(current);
@@ -67,27 +60,42 @@ export default function AdminCategoriesPage() {
 
   const isRootExpanded = (categoryId) => Boolean(search.trim()) || expandedIds.has(categoryId);
 
-  const handleSubmit = (formData) => {
-    const payload = { ...formData, parent_category_id: formData.parent_category_id ? Number(formData.parent_category_id) : null };
-    if (editingCategory) updateCategory({ id: editingCategory.category_id, data: payload });
-    else createCategory(payload);
+  const handleDeleteConfirm = () => {
+    if (!deletingCategory) return;
+    deleteCategory(Number(deletingCategory.category_id || deletingCategory.id), {
+      onSettled: () => setDeletingCategory(null),
+    });
   };
 
   const totalProducts = categories.reduce((sum, category) => sum + Number(category.product_count || 0), 0);
   const childCount = categories.filter((category) => category.parent_category_id).length;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
+      {/* Top Banner */}
       <section className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <h1 className="text-balance font-display text-3xl font-black uppercase tracking-tight text-black dark:text-white">Quản lý danh mục</h1>
+          <div>
+            <span className="text-xs font-black uppercase tracking-widest text-neutral-400">Store Taxonomy</span>
+            <h1 className="font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-black dark:text-white mt-1">
+              Quản lý danh mục
+            </h1>
+            <p className="text-xs text-neutral-500 mt-1">Danh mục chính là phân loại lớn; danh mục con chứa chi tiết sản phẩm.</p>
           </div>
-          <PrimaryButton icon="solar:add-circle-linear" onClick={() => openCreate()} size="sm">Thêm danh mục gốc</PrimaryButton>
+          <PrimaryButton
+            icon="solar:add-circle-linear"
+            onClick={() => navigate('/admin/categories/create')}
+            size="sm"
+          >
+            Thêm danh mục gốc
+          </PrimaryButton>
         </div>
+
         <div className="mt-6 grid grid-cols-3 gap-3 border-t border-neutral-100 pt-5 dark:border-neutral-800">
           {[
-            ['Nhóm chính', categoryTree.length], ['Danh mục con', childCount], ['Lượt gắn sản phẩm', totalProducts],
+            ['Nhóm chính', categoryTree.length],
+            ['Danh mục con', childCount],
+            ['Lượt gắn sản phẩm', totalProducts],
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800/60">
               <div className="tabular-nums text-xl font-black text-black dark:text-white">{value}</div>
@@ -97,63 +105,206 @@ export default function AdminCategoriesPage() {
         </div>
       </section>
 
+      {/* Search Input */}
       <div className="relative max-w-md">
-        <Icon icon="solar:magnifer-linear" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
-        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm danh mục..." className="h-11 w-full rounded-2xl border border-neutral-200 bg-white pl-11 pr-4 text-sm outline-none transition-[border-color,box-shadow] focus:border-black focus:ring-2 focus:ring-black/5 dark:border-neutral-800 dark:bg-neutral-900 dark:focus:border-white" />
+        <Icon icon="solar:magnifer-linear" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 text-lg" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Tìm kiếm danh mục..."
+          className="h-11 w-full rounded-2xl border border-neutral-200 bg-white pl-11 pr-4 text-xs font-medium outline-none transition-all focus:border-black focus:ring-2 focus:ring-black/5 dark:border-neutral-800 dark:bg-neutral-900 dark:focus:border-white"
+        />
       </div>
 
+      {/* Categories Tree List */}
       {isLoading ? (
-        <div className="rounded-3xl border border-neutral-200 bg-white p-12 text-center text-sm text-neutral-400 dark:border-neutral-800 dark:bg-neutral-900">Đang tải danh mục...</div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((n) => (
+            <LoadingSkeleton key={n} height="90px" className="rounded-3xl" />
+          ))}
+        </div>
       ) : visibleTree.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-neutral-300 bg-white p-12 text-center dark:border-neutral-700 dark:bg-neutral-900">
           <Icon icon="solar:folder-open-linear" className="mx-auto mb-3 text-4xl text-neutral-300" />
-          <p className="font-bold text-neutral-500">Không tìm thấy danh mục phù hợp.</p>
+          <p className="font-bold text-sm text-neutral-500">Không tìm thấy danh mục phù hợp.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {visibleTree.map((root) => (
-            <section key={root.category_id} className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-              <header className={`flex items-center gap-3 p-5 ${isRootExpanded(root.category_id) ? 'border-b border-neutral-100 dark:border-neutral-800' : ''}`}>
-                <button type="button" onClick={() => toggleRoot(root.category_id)} aria-expanded={isRootExpanded(root.category_id)} className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
-                  <Icon aria-hidden="true" icon="solar:alt-arrow-right-linear" className={`shrink-0 text-lg transition-transform ${isRootExpanded(root.category_id) ? 'rotate-90' : ''}`} />
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="truncate text-lg font-black text-black dark:text-white">{root.name_category}</h2>
-                      <span className="rounded-full bg-neutral-100 px-2 py-1 text-[9px] font-black uppercase tracking-wider text-neutral-500 dark:bg-neutral-800">Nhóm chính</span>
+          {visibleTree.map((root) => {
+            const isExpanded = isRootExpanded(root.category_id || root.id);
+            const rootId = root.category_id || root.id;
+
+            return (
+              <section
+                key={rootId}
+                className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+              >
+                {/* Header / Parent Row */}
+                <header className={`flex flex-wrap items-center gap-3 px-6 py-5 bg-neutral-50 dark:bg-neutral-800/50 ${
+                  isExpanded ? 'border-b border-neutral-200 dark:border-neutral-800' : ''
+                }`}>
+                  <button
+                    type="button"
+                    onClick={() => toggleRoot(rootId)}
+                    aria-expanded={isExpanded}
+                    className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                  >
+                    <Icon
+                      icon="solar:alt-arrow-right-linear"
+                      className={`shrink-0 text-base transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                    />
+                    <div>
+                      <p className="text-[10px] uppercase font-black text-neutral-400">Nhóm cha</p>
+                      <h2 className="font-display font-black text-lg uppercase text-black dark:text-white">
+                        {root.name_category}
+                      </h2>
+                      <p className="text-xs text-neutral-400">
+                        /{root.slug_category} · {root.children.length} danh mục con
+                      </p>
                     </div>
-                    <p className="mt-1 text-xs text-neutral-400">/{root.slug_category} · {root.children.length} danh mục con</p>
+                  </button>
+
+                  {/* Actions for Root Category */}
+                  <div className="flex items-center gap-2">
+                    {/* Edit */}
+                    <button
+                      type="button"
+                      title="Chỉnh sửa danh mục"
+                      onClick={() => navigate(`/admin/categories/${rootId}/edit`)}
+                      className="p-2 text-neutral-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                    >
+                      <Icon icon="solar:pen-2-linear" className="text-base" />
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                      type="button"
+                      title="Xóa danh mục"
+                      onClick={() => setDeletingCategory(root)}
+                      className="p-2 text-neutral-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    >
+                      <Icon icon="solar:trash-bin-trash-linear" className="text-base" />
+                    </button>
+
+                    {/* Add child button */}
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/admin/categories/create?parentId=${rootId}`)}
+                      className="rounded-full border border-black dark:border-white px-4 py-2 text-xs font-black uppercase text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors ml-1 cursor-pointer"
+                    >
+                      + Thêm danh mục con
+                    </button>
                   </div>
-                </button>
-                <button onClick={() => openCreate(root.category_id)} className="hidden min-h-10 px-3 text-xs font-black text-neutral-500 hover:text-black dark:hover:text-white sm:block">Thêm danh mục con</button>
-                <button aria-label={`Sửa ${root.name_category}`} title="Chỉnh sửa tên" onClick={() => openEdit(root)} className="flex size-10 shrink-0 items-center justify-center text-neutral-500 hover:text-black dark:hover:text-white"><Icon icon="solar:pen-2-linear" /></button>
-              </header>
-              {isRootExpanded(root.category_id) && <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-                {root.children.length === 0 ? (
-                  <button onClick={() => openCreate(root.category_id)} className="flex min-h-20 w-full items-center justify-center gap-2 text-sm font-bold text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-black dark:hover:bg-neutral-800/50 dark:hover:text-white"><Icon icon="solar:add-circle-linear" /> Thêm danh mục con đầu tiên</button>
-                ) : root.children.map((child) => (
-                  <div key={child.category_id} className="flex flex-col gap-3 px-5 py-4 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex min-w-0 items-center gap-3 pl-2 sm:pl-8">
-                      <span className="h-px w-5 shrink-0 bg-neutral-300 dark:bg-neutral-700" />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2"><h3 className="truncate text-sm font-black text-black dark:text-white">{child.name_category}</h3>{child.is_active === false && <span className="text-[9px] font-black uppercase text-rose-500">Đang ẩn</span>}</div>
-                        <p className="mt-1 text-xs text-neutral-400">/{child.slug_category}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-5 pl-10 sm:pl-0">
-                      <span className="tabular-nums text-xs font-black text-neutral-600 dark:text-neutral-300">{child.product_count || 0} sản phẩm</span>
-                      <div className="flex gap-1">
-                        <button aria-label={`Sửa ${child.name_category}`} title="Chỉnh sửa tên" onClick={() => openEdit(child)} className="flex size-10 items-center justify-center text-neutral-400 hover:text-black dark:hover:text-white"><Icon icon="solar:pen-2-linear" /></button>
-                      </div>
-                    </div>
+                </header>
+
+                {/* Children List */}
+                {isExpanded && (
+                  <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+                    {root.children.length === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/admin/categories/create?parentId=${rootId}`)}
+                        className="flex min-h-20 w-full items-center justify-center gap-2 text-xs font-bold text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-black dark:hover:bg-neutral-800/50 dark:hover:text-white cursor-pointer"
+                      >
+                        <Icon icon="solar:add-circle-linear" /> Thêm danh mục con đầu tiên
+                      </button>
+                    ) : (
+                      root.children.map((child) => {
+                        const childId = child.category_id || child.id;
+
+                        return (
+                          <div
+                            key={childId}
+                            className="flex flex-col gap-3 px-6 py-4 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/40 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="flex min-w-0 items-center gap-3 pl-2 sm:pl-6">
+                              <span className="h-px w-5 shrink-0 bg-neutral-300 dark:bg-neutral-700" />
+                              <div className="min-w-0">
+                                <h3 className="truncate text-sm font-black text-black dark:text-white">
+                                  {child.name_category}
+                                </h3>
+                                <p className="mt-0.5 text-xs text-neutral-400">/{child.slug_category}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-4 pl-10 sm:pl-0">
+                              <span className="tabular-nums text-xs font-black text-neutral-600 dark:text-neutral-300">
+                                {child.product_count || 0} sản phẩm
+                              </span>
+
+                              <div className="flex items-center gap-2">
+                                {/* Edit */}
+                                <button
+                                  type="button"
+                                  title="Chỉnh sửa danh mục"
+                                  onClick={() => navigate(`/admin/categories/${childId}/edit`)}
+                                  className="p-2 text-neutral-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
+                                >
+                                  <Icon icon="solar:pen-2-linear" className="text-base" />
+                                </button>
+
+                                {/* Delete */}
+                                <button
+                                  type="button"
+                                  title="Xóa danh mục"
+                                  onClick={() => setDeletingCategory(child)}
+                                  className="p-2 text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                                >
+                                  <Icon icon="solar:trash-bin-trash-linear" className="text-base" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
-                ))}
-              </div>}
-            </section>
-          ))}
+                )}
+              </section>
+            );
+          })}
         </div>
       )}
 
-      {modalOpen && <CategoryFormModal category={editingCategory} categories={categoryTree} initialParentId={initialParentId} onClose={() => setModalOpen(false)} onSubmitCategory={handleSubmit} />}
+      {/* Delete Confirmation Modal */}
+      {deletingCategory && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-scale-in">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <Icon icon="solar:trash-bin-trash-bold" className="text-xl" />
+              </div>
+              <div>
+                <h3 className="font-display font-black text-lg uppercase text-black dark:text-white">
+                  Xóa danh mục
+                </h3>
+                <p className="text-xs text-neutral-400">Thao tác này sẽ xóa hoàn toàn khỏi hệ thống</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
+              Bạn có chắc chắn muốn xóa danh mục <span className="font-black text-black dark:text-white">"{deletingCategory.name_category}"</span>?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingCategory(null)}
+                className="px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-800 text-xs font-bold text-neutral-600 dark:text-neutral-400 cursor-pointer"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="px-5 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Xác nhận xóa
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

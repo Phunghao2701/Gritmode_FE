@@ -123,27 +123,88 @@ export const useCartStore = create(
         }
       },
 
-      // Add Item to Cart
-      addItem: async ({ variantId, product_variant_id, quantity = 1, title, price, image }) => {
+      // Add Item to Cart (Optimistic UI)
+      addItem: async ({ variantId, product_variant_id, productId, quantity = 1, title, price, image, variant }) => {
         const targetVariantId = Number(product_variant_id || variantId);
         if (!targetVariantId) {
           toast.error('Vui lòng chọn phân loại sản phẩm hợp lệ.');
           return { success: false };
         }
 
-        set({ isMutating: true });
+        const qty = Math.max(1, Number(quantity) || 1);
+        const prevItems = get().items;
+        const prevSummary = get().summary;
+
+        // 1. Optimistic Update Local Cart
+        const existingIndex = prevItems.findIndex(
+          (item) => Number(item.product_variant_id || item.variantId) === targetVariantId
+        );
+
+        let optimisticItems;
+        if (existingIndex > -1) {
+          optimisticItems = prevItems.map((item, idx) => {
+            if (idx === existingIndex) {
+              const newQty = item.quantity + qty;
+              const lineTotal = newQty * (item.price || price || 0);
+              return {
+                ...item,
+                quantity: newQty,
+                quantity_cart_item: newQty,
+                line_total: lineTotal,
+                total_item: lineTotal,
+              };
+            }
+            return item;
+          });
+        } else {
+          const itemPrice = Number(price || 0);
+          const optimisticItem = normalizeCartItem({
+            id: `temp-${Date.now()}`,
+            cart_item_id: null,
+            product_variant_id: targetVariantId,
+            variantId: targetVariantId,
+            product_id: Number(productId || 0),
+            name_product: title || 'Sản phẩm Gritmode',
+            title: title || 'Sản phẩm Gritmode',
+            price: itemPrice,
+            quantity: qty,
+            quantity_cart_item: qty,
+            image: image || '',
+            variant: variant || '',
+            line_total: itemPrice * qty,
+            total_item: itemPrice * qty,
+          });
+          optimisticItems = [optimisticItem, ...prevItems];
+        }
+
+        const optimisticTotalItems = optimisticItems.reduce((acc, i) => acc + i.quantity, 0);
+        const optimisticSubtotal = optimisticItems.reduce((acc, i) => acc + i.line_total, 0);
+
+        set({
+          items: optimisticItems,
+          summary: { total_items: optimisticTotalItems, subtotal: optimisticSubtotal },
+          isDrawerOpen: true,
+          isMutating: true,
+        });
+
+        // 2. Synchronize with Backend
         try {
           const res = await addToCartApi({
             product_variant_id: targetVariantId,
-            quantity: Number(quantity) || 1,
+            quantity: qty,
           });
 
           const data = res.data?.data || res.data;
           get().setCartFromResponse(data);
-          set({ isDrawerOpen: true });
-          toast.success(`Đã thêm ${quantity} sản phẩm vào giỏ hàng!`);
+          toast.success(`Đã thêm ${qty} sản phẩm vào giỏ hàng!`);
           return { success: true, data };
         } catch (err) {
+          // Rollback on Failure
+          set({
+            items: prevItems,
+            summary: prevSummary,
+          });
+
           const status = err.response?.status;
           if (status === 409) {
             const avail = err.response?.data?.data?.available_quantity;

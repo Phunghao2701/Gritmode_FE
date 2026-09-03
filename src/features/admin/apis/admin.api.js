@@ -4,9 +4,13 @@
  */
 import api from '../../../shared/services/api';
 
-// 1. Dashboard Stats
+// 1. Dashboard Stats & Overview
 export const getAdminStatsApi = () => {
   return api.get('/admin/dashboard/stats');
+};
+
+export const getAdminDashboardOverviewApi = () => {
+  return api.get('/admin/dashboard/overview');
 };
 
 // 2. Orders Lifecycle Management
@@ -43,22 +47,24 @@ export const getAdminProductsApi = (params = {}) => {
   return api.get('/admin/products', { params });
 };
 
+export const getAdminProductMetaApi = () => {
+  return api.get('/admin/products/meta');
+};
+
 export const getAdminProductByIdApi = (productId) => {
   return api.get(`/admin/products/${productId}`);
 };
 
-export const createAdminProductApi = (data) => {
-  return api.post('/admin/products', data);
-};
 
 export const createAdminFullProductApi = (data) => api.post('/admin/products/full', data);
 export const updateAdminFullProductApi = (productId, data) => api.put(`/admin/products/${productId}/full`, data);
 
-export const uploadAdminProductImagesApi = (files) => {
+export const uploadAdminProductImagesApi = (files, onUploadProgress) => {
   const formData = new FormData();
   files.forEach((file) => formData.append('images', file));
   return api.post('/admin/uploads/product-images', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress,
   });
 };
 
@@ -158,13 +164,4 @@ export const unblockAdminUserApi = (userId) => {
 
 export const setAdminUserInactiveApi = (userId) => {
   return api.patch(`/admin/users/${userId}/inactive`);
-};
-
-// 7. Audit Logs
-export const getAdminAuditLogsApi = (params = {}) => {
-  return api.get('/admin/audit-logs', { params });
-};
-
-export const getAdminAuditLogByIdApi = (auditLogId) => {
-  return api.get(`/admin/audit-logs/${auditLogId}`);
 };

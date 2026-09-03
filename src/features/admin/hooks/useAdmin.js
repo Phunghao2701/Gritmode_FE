@@ -4,6 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getAdminStatsApi,
+  getAdminDashboardOverviewApi,
   getAdminOrdersApi,
   getAdminOrderByIdApi,
   confirmAdminOrderApi,
@@ -14,6 +15,7 @@ import {
   getAdminInventoryApi,
   updateVariantInventoryApi,
   getAdminProductsApi,
+  getAdminProductMetaApi,
   createAdminFullProductApi,
   updateAdminProductApi,
   deleteAdminProductApi,
@@ -27,14 +29,53 @@ import {
   blockAdminUserApi,
   unblockAdminUserApi,
   setAdminUserInactiveApi,
-  getAdminAuditLogsApi,
-  getAdminAuditLogByIdApi,
 } from '../apis/admin.api';
 import { toast } from '../../../shared/utils/toast';
+
+export const useAdminDashboardOverview = () => {
+  return useQuery({
+    queryKey: ['admin-dashboard-overview'],
+    staleTime: 1000 * 60, // 1 min cache
+    queryFn: async () => {
+      try {
+        const res = await getAdminDashboardOverviewApi();
+        return res.data?.data || res.data;
+      } catch {
+        return {
+          stats: {
+            revenueThisMonth: 0,
+            revenueChange: '0%',
+            totalOrders: 0,
+            ordersChange: '0%',
+            totalProducts: 0,
+            productsChange: '0',
+            totalUsers: 0,
+            usersChange: '0%',
+            lowStockCount: 0,
+          },
+          orders: [],
+          inventory: [],
+        };
+      }
+    },
+  });
+};
+
+export const useAdminProductMeta = () => {
+  return useQuery({
+    queryKey: ['admin-products-meta'],
+    staleTime: 1000 * 60 * 5, // 5 min cache
+    queryFn: async () => {
+      const res = await getAdminProductMetaApi();
+      return res.data?.data || res.data || { categories: [], collections: [] };
+    },
+  });
+};
 
 export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin-stats'],
+    staleTime: 1000 * 60, // 1 min cache
     queryFn: async () => {
       try {
         const res = await getAdminStatsApi();
@@ -61,6 +102,7 @@ export const useAdminOrders = (params = {}) => {
 
   const query = useQuery({
     queryKey: ['admin-orders', params],
+    staleTime: 1000 * 30, // 30s cache
     queryFn: async () => {
       const res = await getAdminOrdersApi(params);
       const raw = res.data?.data || res.data;
@@ -142,6 +184,7 @@ export const useAdminOrders = (params = {}) => {
 export const useAdminOrderDetail = (orderId) => {
   return useQuery({
     queryKey: ['admin-order-detail', orderId],
+    staleTime: 1000 * 60, // 1 min cache
     queryFn: async () => {
       if (!orderId) return null;
       const res = await getAdminOrderByIdApi(orderId);
@@ -156,6 +199,7 @@ export const useAdminInventory = (params = {}) => {
 
   const query = useQuery({
     queryKey: ['admin-inventory', params],
+    staleTime: 1000 * 30, // 30s cache
     queryFn: async () => {
       const res = await getAdminInventoryApi(params);
       const raw = res.data?.data || res.data;
@@ -195,6 +239,7 @@ export const useAdminProducts = (params = {}) => {
 
   const query = useQuery({
     queryKey: ['admin-products', params],
+    staleTime: 1000 * 30, // 30s cache
     queryFn: async () => {
       const res = await getAdminProductsApi(params);
       const raw = res.data?.data || res.data;
@@ -267,6 +312,7 @@ export const useAdminCategories = () => {
 
   const query = useQuery({
     queryKey: ['admin-categories'],
+    staleTime: 1000 * 60 * 5, // 5 min cache
     queryFn: async () => {
       const res = await getAdminCategoriesApi();
       return res.data?.data || res.data || [];
@@ -317,6 +363,7 @@ export const useAdminUsers = (params = {}) => {
 
   const query = useQuery({
     queryKey: ['admin-users', params],
+    staleTime: 1000 * 30, // 30s cache
     queryFn: async () => {
       const res = await getAdminUsersApi(params);
       const raw = res.data?.data || res.data;
@@ -372,46 +419,12 @@ export const useAdminUsers = (params = {}) => {
 export const useAdminUserDetail = (userId) => {
   return useQuery({
     queryKey: ['admin-user-detail', userId],
+    staleTime: 1000 * 60, // 1 min cache
     queryFn: async () => {
       if (!userId) return null;
       const res = await getAdminUserByIdApi(userId);
       return res.data?.data || res.data;
     },
     enabled: !!userId,
-  });
-};
-
-export const useAdminAuditLogs = (params = {}) => {
-  const query = useQuery({
-    queryKey: ['admin-audit-logs', params],
-    queryFn: async () => {
-      const res = await getAdminAuditLogsApi(params);
-      const raw = res.data?.data || res.data;
-      if (Array.isArray(raw)) return { items: raw, total: raw.length, pagination: { page: 1, limit: raw.length, total: raw.length, total_pages: 1 } };
-      return {
-        items: raw?.items || raw?.logs || [],
-        pagination: raw?.pagination || { page: 1, limit: 20, total: raw?.items?.length || 0, total_pages: 1 },
-        total: raw?.pagination?.total || raw?.items?.length || 0,
-      };
-    },
-  });
-
-  return {
-    ...query,
-    logs: query.data?.items || [],
-    pagination: query.data?.pagination || {},
-    total: query.data?.total || 0,
-  };
-};
-
-export const useAdminAuditLogDetail = (auditLogId) => {
-  return useQuery({
-    queryKey: ['admin-audit-log-detail', auditLogId],
-    queryFn: async () => {
-      if (!auditLogId) return null;
-      const res = await getAdminAuditLogByIdApi(auditLogId);
-      return res.data?.data || res.data;
-    },
-    enabled: !!auditLogId,
   });
 };

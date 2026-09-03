@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import MainLayout from '../layouts/MainLayout';
@@ -5,33 +6,35 @@ import AdminLayout from '../layouts/AdminLayout';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 
-import LandingPage from '../../features/landing/pages/LandingPage';
-import ProductListPage from '../../features/products/pages/ProductListPage';
-import ProductDetailPage from '../../features/products/pages/ProductDetailPage';
-import CheckoutPage from '../../features/checkout/pages/CheckoutPage';
-import OrderSuccessPage from '../../features/checkout/pages/OrderSuccessPage';
-import GuestOrderLookupPage from '../../features/orders/pages/GuestOrderLookupPage';
-import PaymentResultPage from '../../features/payments/pages/PaymentResultPage';
-import ContactPage from '../../features/contact/pages/ContactPage';
-import AboutUsPage from '../../features/about/pages/AboutUsPage';
-import PolicyPage from '../../features/policies/pages/PolicyPage';
-import SizeGuidePage from '../../features/policies/pages/SizeGuidePage';
-import HowToOrderPage from '../../features/policies/pages/HowToOrderPage';
-import LoginPage from '../../features/auth/pages/LoginPage';
-import ProfilePage from '../../features/profile/pages/ProfilePage';
-import AdminDashboardPage from '../../features/admin/pages/AdminDashboardPage';
-import AdminProductsPage from '../../features/admin/pages/AdminProductsPage';
-import AdminProductEditPage from '../../features/admin/pages/AdminProductEditPage';
-import AdminOrdersPage from '../../features/admin/pages/AdminOrdersPage';
-import AdminInventoryPage from '../../features/admin/pages/AdminInventoryPage';
-import AdminCategoriesPage from '../../features/admin/pages/AdminCategoriesPage';
-import AdminCollectionsPage from '../../features/admin/pages/AdminCollectionsPage';
-import AdminCollectionCreatePage from '../../features/admin/pages/AdminCollectionCreatePage';
-import AdminUsersPage from '../../features/admin/pages/AdminUsersPage';
-import AdminAuditLogsPage from '../../features/admin/pages/AdminAuditLogsPage';
+const LandingPage = lazy(() => import('../../features/landing/pages/LandingPage'));
+const ProductListPage = lazy(() => import('../../features/products/pages/ProductListPage'));
+const ProductDetailPage = lazy(() => import('../../features/products/pages/ProductDetailPage'));
+const CheckoutPage = lazy(() => import('../../features/checkout/pages/CheckoutPage'));
+const OrderSuccessPage = lazy(() => import('../../features/checkout/pages/OrderSuccessPage'));
+const GuestOrderLookupPage = lazy(() => import('../../features/orders/pages/GuestOrderLookupPage'));
+const PaymentResultPage = lazy(() => import('../../features/payments/pages/PaymentResultPage'));
+const ContactPage = lazy(() => import('../../features/contact/pages/ContactPage'));
+const AboutUsPage = lazy(() => import('../../features/about/pages/AboutUsPage'));
+const PolicyPage = lazy(() => import('../../features/policies/pages/PolicyPage'));
+const SizeGuidePage = lazy(() => import('../../features/policies/pages/SizeGuidePage'));
+const HowToOrderPage = lazy(() => import('../../features/policies/pages/HowToOrderPage'));
+const LoginPage = lazy(() => import('../../features/auth/pages/LoginPage'));
+const ProfilePage = lazy(() => import('../../features/profile/pages/ProfilePage'));
+const AdminDashboardPage = lazy(() => import('../../features/admin/pages/AdminDashboardPage'));
+const AdminProductsPage = lazy(() => import('../../features/admin/pages/AdminProductsPage'));
+const AdminProductEditPage = lazy(() => import('../../features/admin/pages/AdminProductEditPage'));
+const AdminCategoriesPage = lazy(() => import('../../features/admin/pages/AdminCategoriesPage'));
+const AdminCategoryEditPage = lazy(() => import('../../features/admin/pages/AdminCategoryEditPage'));
+const AdminCollectionsPage = lazy(() => import('../../features/admin/pages/AdminCollectionsPage'));
+const AdminCollectionCreatePage = lazy(() => import('../../features/admin/pages/AdminCollectionCreatePage'));
+const AdminOrdersPage = lazy(() => import('../../features/admin/pages/AdminOrdersPage'));
+const AdminInventoryPage = lazy(() => import('../../features/admin/pages/AdminInventoryPage'));
+const AdminUsersPage = lazy(() => import('../../features/admin/pages/AdminUsersPage'));
+const AdminUserDetailPage = lazy(() => import('../../features/admin/pages/AdminUserDetailPage'));
 
 export default function AppRoutes() {
   return (
+    <Suspense fallback={<div className="min-h-[70vh]" role="status" aria-label="Đang tải trang" />}>
     <Routes>
       {/* ============================================
           Public Customer Routes (Main Layout)
@@ -96,15 +99,18 @@ export default function AppRoutes() {
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="inventory" element={<AdminInventoryPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="categories/create" element={<AdminCategoryEditPage />} />
+          <Route path="categories/:categoryId/edit" element={<AdminCategoryEditPage />} />
           <Route path="collections" element={<AdminCollectionsPage />} />
           <Route path="collections/create" element={<AdminCollectionCreatePage />} />
           <Route path="users" element={<AdminUsersPage />} />
-          <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+          <Route path="users/:userId" element={<AdminUserDetailPage />} />
         </Route>
       </Route>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }

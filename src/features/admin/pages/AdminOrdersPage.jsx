@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAdminOrders } from '../hooks/useAdmin';
-import OrderDetailModal from '../components/OrderDetailModal';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
+import OrderDetailModal from '../components/OrderDetailModal';
 import {
   getOrderStatusInfo,
   getPaymentStatusInfo,
@@ -12,17 +12,25 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 
 export default function AdminOrdersPage() {
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const {
     orders,
     isLoading,
     total,
-    pagination,
     confirmOrder,
     processOrder,
     shipOrder,
@@ -30,15 +38,13 @@ export default function AdminOrdersPage() {
     cancelOrder,
     isActionPending,
   } = useAdminOrders({
-    search: search.trim() || undefined,
+    search: debouncedSearch.trim() || undefined,
     status_order: statusFilter || undefined,
     payment_method: paymentMethodFilter || undefined,
     status_payment: paymentStatusFilter || undefined,
     page,
-    limit: 20,
+    limit: 10,
   });
-
-  const totalPages = pagination?.total_pages || 1;
 
   const tabs = [
     { value: '', label: 'Tất cả' },
@@ -55,16 +61,13 @@ export default function AdminOrdersPage() {
     setPage(1);
   };
 
-  const handleActionSuccess = () => {
-    setSelectedOrder(null);
-  };
-
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
       {/* Top Banner */}
       <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
+          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">Order Management</span>
+          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
             Quản lý đơn hàng ({total})
           </h1>
         </div>
@@ -175,24 +178,31 @@ export default function AdminOrdersPage() {
                       const orderStatus = getOrderStatusInfo(ord.status_order);
                       const paymentMethod = ord.payment_method || ord.payment?.payment_method || null;
                       const paymentStatus = getPaymentStatusInfo(ord.status_payment || ord.payment?.status_payment);
-                      const isGuest = !ord.user && !ord.user_id;
 
                       return (
-                        <tr key={orderId} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
+                        <tr
+                          key={orderId}
+                          onClick={() => setSelectedOrder(ord)}
+                          className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors cursor-pointer"
+                        >
                           <td className="py-4">
                             <span className="font-mono font-black text-black dark:text-white uppercase">
-                              {ord.order_code || `#ORD-${orderId}`}
+                              {ord.order_code || ord.code_order || `#ORD-${orderId}`}
                             </span>
                           </td>
                           <td className="py-4">
-                            <p className="font-bold text-black dark:text-white line-clamp-1">{ord.email_order}</p>
-                            <p className="text-neutral-400 font-mono text-[11px]">{ord.phone_order || 'N/A'}</p>
+                            <p className="font-bold text-black dark:text-white line-clamp-1">
+                              {ord.receiver_name_order_address || ord.shipping_name || ord.user_name || ord.email_order || 'Khách hàng'}
+                            </p>
+                            <p className="text-neutral-400 font-mono text-[11px]">
+                              {ord.phone_order_address || ord.phone_order || ord.shipping_phone || 'N/A'}
+                            </p>
                           </td>
                           <td className="py-4 text-neutral-400">
                             {new Date(ord.created_at || Date.now()).toLocaleDateString('vi-VN')}
                           </td>
                           <td className="py-4 font-black text-black dark:text-white">
-                            {formatPriceVND(ord.total_order || ord.finalAmount)}
+                            {formatPriceVND(ord.total_order ?? ord.finalAmount ?? ord.totalAmount ?? 0)}
                           </td>
                           <td className="py-4">
                             <span className={`inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${paymentStatus.color}`}>
@@ -204,7 +214,7 @@ export default function AdminOrdersPage() {
                               {orderStatus.label}
                             </span>
                           </td>
-                          <td className="py-4 text-right">
+                          <td className="py-4 text-right" onClick={(e) => e.stopPropagation()}>
                             <button
                               type="button"
                               onClick={() => setSelectedOrder(ord)}
@@ -226,7 +236,7 @@ export default function AdminOrdersPage() {
             <Pagination
               totalItems={total}
               currentPage={page}
-              limit={20}
+              limit={10}
               onPageChange={setPage}
               entityName="đơn hàng"
             />
@@ -234,16 +244,16 @@ export default function AdminOrdersPage() {
         )}
       </div>
 
-      {/* Order Detail & Actions Modal */}
+      {/* Order Detail Modal Popup */}
       {selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
-          onConfirm={(orderId) => confirmOrder(orderId, { onSuccess: handleActionSuccess })}
-          onProcess={(orderId) => processOrder(orderId, { onSuccess: handleActionSuccess })}
-          onShip={(orderId) => shipOrder(orderId, { onSuccess: handleActionSuccess })}
-          onComplete={(orderId) => completeOrder(orderId, { onSuccess: handleActionSuccess })}
-          onCancel={({ orderId, reason }) => cancelOrder({ orderId, reason }, { onSuccess: handleActionSuccess })}
+          onConfirm={(id) => confirmOrder(id, { onSuccess: () => setSelectedOrder(null) })}
+          onProcess={(id) => processOrder(id, { onSuccess: () => setSelectedOrder(null) })}
+          onShip={(id) => shipOrder(id, { onSuccess: () => setSelectedOrder(null) })}
+          onComplete={(id) => completeOrder(id, { onSuccess: () => setSelectedOrder(null) })}
+          onCancel={({ orderId, reason }) => cancelOrder({ orderId, reason }, { onSuccess: () => setSelectedOrder(null) })}
           isActionPending={isActionPending}
         />
       )}

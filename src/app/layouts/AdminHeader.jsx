@@ -16,7 +16,6 @@ export default function AdminHeader({ onMenuOpen }) {
     if (path.includes('/admin/collections/create')) return { title: 'Thêm nhóm mới', parent: 'Bộ sưu tập', parentPath: '/admin/collections' };
     if (path.includes('/admin/collections')) return { title: 'Quản lý bộ sưu tập', parent: 'Danh mục & Kho' };
     if (path.includes('/admin/users')) return { title: 'Quản lý khách hàng', parent: 'Hệ thống' };
-    if (path.includes('/admin/audit-logs')) return { title: 'Nhật ký quản trị', parent: 'Hệ thống' };
     return { title: 'Bảng điều khiển tổng quan', parent: 'Tổng quan' };
   };
 

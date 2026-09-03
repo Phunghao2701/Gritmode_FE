@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAdminUsers } from '../hooks/useAdmin';
 import { useAuthStore } from '../../../app/store/authStore';
-import UserDetailModal from '../components/UserDetailModal';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
 
 export default function AdminUsersPage() {
+  const navigate = useNavigate();
   const { user: currentAdmin } = useAuthStore();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const {
     users,
@@ -24,7 +33,7 @@ export default function AdminUsersPage() {
     setUserInactive,
     isUserActionPending,
   } = useAdminUsers({
-    search: search.trim() || undefined,
+    search: debouncedSearch.trim() || undefined,
     role: roleFilter || undefined,
     status: statusFilter || undefined,
     page,
@@ -230,7 +239,7 @@ export default function AdminUsersPage() {
                           <td className="py-4 text-right space-x-2">
                             <button
                               type="button"
-                              onClick={() => setSelectedUser(usr)}
+                              onClick={() => navigate(`/admin/users/${usr.user_id}`)}
                               className="px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-[10px] font-bold uppercase tracking-wider text-black dark:text-white transition-all cursor-pointer"
                             >
                               Chi tiết
@@ -270,19 +279,6 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
-
-      {/* User Detail Modal */}
-      {selectedUser && (
-        <UserDetailModal
-          user={selectedUser}
-          currentAdminId={currentAdmin?.user_id}
-          onClose={() => setSelectedUser(null)}
-          onBlock={(userId) => blockUser(userId, { onSuccess: handleActionSuccess })}
-          onUnblock={(userId) => unblockUser(userId, { onSuccess: handleActionSuccess })}
-          onSetInactive={(userId) => setUserInactive(userId, { onSuccess: handleActionSuccess })}
-          isActionPending={isUserActionPending}
-        />
-      )}
     </div>
   );
 }

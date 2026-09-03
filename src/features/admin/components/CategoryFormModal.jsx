@@ -64,9 +64,12 @@ export default function CategoryFormModal({ category, categories = [], initialPa
   const handleSubmit = (e) => {
     e.preventDefault();
     const finalSlug = formData.slug_category.trim() || slugify(formData.name_category);
+    const parentId = formData.parent_category_id ? Number(formData.parent_category_id) : null;
     onSubmitCategory({
-      ...formData,
+      name_category: formData.name_category.trim(),
       slug_category: finalSlug,
+      parent_category_id: parentId,
+      position_category: Number(formData.position_category) || 0,
     });
     onClose();
   };

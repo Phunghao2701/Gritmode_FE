@@ -54,7 +54,6 @@ const ROUTES = {
   ADMIN_ORDERS:          "/admin/orders",
   ADMIN_USERS:           "/admin/users",
   ADMIN_INVENTORY:       "/admin/inventory",
-  ADMIN_AUDIT_LOGS:      "/admin/audit-logs",
 };
 
 export default ROUTES;

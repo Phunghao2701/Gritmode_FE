@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminProducts } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
@@ -14,9 +14,18 @@ export default function AdminProductsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
   const limit = 10;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const {
     products,
@@ -25,7 +34,7 @@ export default function AdminProductsPage() {
     deleteProduct,
     archiveProduct,
   } = useAdminProducts({
-    search: search.trim() || undefined,
+    search: debouncedSearch.trim() || undefined,
     status_product: statusFilter || undefined,
     page,
     limit,
@@ -168,7 +177,7 @@ export default function AdminProductsPage() {
                                   <h4 className="font-bold text-black dark:text-white uppercase line-clamp-1">{name}</h4>
                                   <span className="text-[10px] font-mono text-neutral-400">ID: #{productId}</span>
                                   {hasSale && discountPercent > 0 && (
-                                    <span className="ml-2 text-[9px] font-normal uppercase text-rose-600 dark:text-rose-400">
+                                    <span className="ml-2 text-[9px] font-bold uppercase rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 px-1.5 py-0.5">
                                       -{discountPercent}%
                                     </span>
                                   )}
@@ -191,7 +200,7 @@ export default function AdminProductsPage() {
                                   {originalMinPrice === originalMaxPrice ? formatPriceVND(originalMinPrice) : `${formatPriceVND(originalMinPrice)} - ${formatPriceVND(originalMaxPrice)}`}
                                 </div>
                               )}
-                              <div className={hasSale ? 'font-black text-rose-600 dark:text-rose-400' : 'font-black'}>
+                              <div className={hasSale ? 'font-black text-red-600 dark:text-red-500' : 'font-black'}>
                                 {minPrice === maxPrice ? formatPriceVND(minPrice) : `${formatPriceVND(minPrice)} - ${formatPriceVND(maxPrice)}`}
                               </div>
                             </td>
