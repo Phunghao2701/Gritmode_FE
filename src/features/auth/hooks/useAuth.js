@@ -21,7 +21,6 @@ import {
   verifyOtpApi,
   logoutApi,
   refreshTokenApi,
-  getMeApi,
 } from '../apis/auth.api';
 import { tokenService } from '../services/token.service';
 import { clearPrivateQueryCache } from '../../../shared/services/queryClient';

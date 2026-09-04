@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getOrderPaymentApi } from '../apis/payment.api';
@@ -15,7 +15,7 @@ export default function PaymentResultPage() {
   const orderId = searchParams.get('orderId') || searchParams.get('order_id');
   const isCancelledFlow = window.location.pathname.includes('cancel');
 
-  const { data: payment, isLoading, refetch } = useQuery({
+  const { data: payment, isLoading } = useQuery({
     queryKey: ['order-payment-result', orderId],
     queryFn: async () => {
       if (!orderId) return null;

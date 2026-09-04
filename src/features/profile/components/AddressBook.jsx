@@ -9,7 +9,6 @@ export default function AddressBook({
   onUpdateAddress,
   onDeleteAddress,
   onSetDefaultAddress,
-  isLoadingAddresses,
   isCreating,
   isUpdating,
   isDeleting,

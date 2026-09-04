@@ -71,7 +71,14 @@ export const createAddressApi = (data) => {
  * }} data
  */
 export const updateAddressApi = (addressId, data) => {
-  const { is_default, user_address_id, user_id, created_at, updated_at, ...updatePayload } = data;
+  const { 
+    is_default: _is_default, 
+    user_address_id: _user_address_id, 
+    user_id: _user_id, 
+    created_at: _created_at, 
+    updated_at: _updated_at, 
+    ...updatePayload 
+  } = data;
   return api.patch(`/users/me/addresses/${addressId}`, updatePayload);
 };
 

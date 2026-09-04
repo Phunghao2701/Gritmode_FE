@@ -54,7 +54,7 @@ export default function GuestOrderLookupPage() {
           },
         },
         {
-          onSuccess: (res) => {
+          onSuccess: () => {
             setSearchedOrder((prev) => ({
               ...prev,
               status_order: 'cancelled',

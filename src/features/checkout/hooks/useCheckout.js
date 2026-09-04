@@ -33,7 +33,7 @@ export const useCheckout = () => {
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [createdOrderId, setCreatedOrderId] = useState(null);
+  const [createdOrderId, _setCreatedOrderId] = useState(null);
   const [isPayOSModalOpen, setIsPayOSModalOpen] = useState(false);
 
   // Initialize or prefill from user profile / default address
@@ -84,6 +84,7 @@ export const useCheckout = () => {
     };
 
     revalidate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
   const selectSavedAddress = (addr) => {

@@ -20,10 +20,8 @@ export default function CartDrawer() {
     subtotal,
     updateQuantity,
     removeItem,
-    clearCart,
     updatingItemIds,
     removingItemIds,
-    isMutating,
   } = useCart();
 
   // Handle Escape key and scroll lock

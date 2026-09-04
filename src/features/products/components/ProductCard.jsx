@@ -14,10 +14,26 @@ export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
+  const name = product?.name_product || product?.title || product?.name || 'Sản phẩm Gritmode';
+  const productSlug = product?.slug_product || (product ? slugifyProductName(name) : '');
+
+  const handleMouseEnter = useCallback(() => {
+    setIsHovered(true);
+    if (productSlug) {
+      queryClient.prefetchQuery({
+        queryKey: ['product-detail', productSlug],
+        queryFn: async () => {
+          const res = await getProductDetailApi(productSlug);
+          return res.data?.data || res.data;
+        },
+        staleTime: 1000 * 60 * 3,
+      });
+      import('../pages/ProductDetailPage');
+    }
+  }, [productSlug]);
+
   if (!product) return null;
 
-  const name = product.name_product || product.title || product.name || 'Sản phẩm Gritmode';
-  const productSlug = product.slug_product || slugifyProductName(name);
   const thumbnail =
     product.thumbnail ||
     product.url_product_image ||
@@ -38,21 +54,6 @@ export default function ProductCard({ product }) {
 
   // Category name or tag
   const primaryCategory = product.categories?.find((c) => c.is_primary)?.name_category || product.category_name || '';
-
-  const handleMouseEnter = useCallback(() => {
-    setIsHovered(true);
-    if (productSlug) {
-      queryClient.prefetchQuery({
-        queryKey: ['product-detail', productSlug],
-        queryFn: async () => {
-          const res = await getProductDetailApi(productSlug);
-          return res.data?.data || res.data;
-        },
-        staleTime: 1000 * 60 * 3,
-      });
-      import('../pages/ProductDetailPage');
-    }
-  }, [productSlug]);
 
   return (
     <div

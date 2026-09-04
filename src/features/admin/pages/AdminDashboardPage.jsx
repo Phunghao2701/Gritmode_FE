@@ -7,7 +7,7 @@ import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
-  const { data: overview, isLoading } = useAdminDashboardOverview();
+  const { data: overview } = useAdminDashboardOverview();
   const stats = overview?.stats;
   const orders = overview?.orders || [];
   const inventory = overview?.inventory || [];

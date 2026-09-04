@@ -3,7 +3,6 @@ import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import Icon from '../../../shared/components/Icon';
 
 export default function CartSummary({
-  subtotal = 0,
   formattedSubtotal = '0 ₫',
   onCheckout,
   totalItems = 0,

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EmptyState from '../../../shared/components/EmptyState';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
-import Icon from '../../../shared/components/Icon';
 import Pagination from '../../../shared/components/Pagination';
 import { useMyOrders, useCancelOrder } from '../../orders/hooks/useOrders';
 import { getOrderStatusInfo, getPaymentStatusInfo, isOrderCancellable } from '../../orders/utils/order.utils';
@@ -15,7 +14,7 @@ export default function MyOrdersList() {
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const { orders, total, totalPages, isLoadingOrders } = useMyOrders({
+  const { orders, total, isLoadingOrders } = useMyOrders({
     page,
     limit: 10,
     status_order: statusFilter || undefined,

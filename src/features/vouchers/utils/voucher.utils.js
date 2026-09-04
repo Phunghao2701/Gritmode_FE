@@ -26,7 +26,7 @@ export const formatVoucherDiscount = (voucher) => {
   const maxDiscount = voucher.maximum_discount_amount ? Number(voucher.maximum_discount_amount) : null;
   const minOrder = voucher.minimum_order_amount ? Number(voucher.minimum_order_amount) : null;
 
-  let label = '';
+  let label;
   if (discountType === 'percentage') {
     label = `Giảm ${discountVal}%`;
     if (maxDiscount) {

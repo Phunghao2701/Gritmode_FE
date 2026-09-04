@@ -42,7 +42,6 @@ export default function OrderSuccessPage() {
   const {
     payment,
     isPaid,
-    isPending,
     isExpired,
     isFailed,
     refetch: refetchPayment,
@@ -60,7 +59,6 @@ export default function OrderSuccessPage() {
   const effectivePaid = isPaid || order?.payment?.status_payment === 'paid';
   const isTimeExpired = Boolean(payment?.expired_at && remainingSeconds <= 0);
   const effectiveExpired = isExpired || (isTimeExpired && !effectivePaid);
-  const effectivePending = (isPending || (!effectivePaid && (order?.payment?.status_payment === 'pending' || !order?.payment))) && !effectiveExpired;
 
   const copyToClipboard = (text, fieldName) => {
     if (!text) return;

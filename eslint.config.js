@@ -18,10 +18,17 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
     rules: {
+      'no-unused-vars': ['warn', { 
+        argsIgnorePattern: '^_', 
+        varsIgnorePattern: '^(React|_)',
+        caughtErrorsIgnorePattern: '^_' 
+      }],
+      'no-empty': ['warn', { allowEmptyCatch: true }],
+      'no-useless-assignment': 'warn',
       // Data-fetching hooks intentionally call setState inside effects through async functions.
-      // Disabling these rules project-wide to avoid false positives.
       'react-hooks/set-state-in-effect': 'off',
       'react-hooks/immutability': 'off',
+      'react-hooks/purity': 'off',
       'react-refresh/only-export-components': 'off',
     },
   },

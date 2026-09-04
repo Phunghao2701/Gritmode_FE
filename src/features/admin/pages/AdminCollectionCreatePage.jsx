@@ -28,8 +28,6 @@ export default function AdminCollectionCreatePage() {
     },
   });
 
-  const parents = collections.filter((collection) => !collection.parent_collection_id);
-
   useEffect(() => {
     if (!editId || !collections.length) return;
     const collection = collections.find((item) => String(item.collection_id) === editId);

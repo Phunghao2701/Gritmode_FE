@@ -153,7 +153,7 @@ export default function PolicyLayout({
                 Liên hệ đội ngũ CSKH Gritmode
               </h4>
               <p className="text-xs text-neutral-400 leading-relaxed">
-                Hotline hỗ trợ 08:30 – 22:00: <strong className="text-white font-sans">0901 234 567</strong>
+                Hotline hỗ trợ 09:30 – 22:00: <strong className="text-white font-sans">0926109229 / 0822600053</strong>
               </p>
               <div className="pt-1">
                 <Link to="/contact">

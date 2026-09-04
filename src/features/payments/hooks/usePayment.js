@@ -13,8 +13,6 @@ import { calculateRemainingSeconds } from '../utils/payment.utils';
 import { toast } from '../../../shared/utils/toast';
 
 export const useOrderPayment = (orderId, options = {}) => {
-  const queryClient = useQueryClient();
-
   const query = useQuery({
     queryKey: ['order-payment', orderId],
     queryFn: async () => {

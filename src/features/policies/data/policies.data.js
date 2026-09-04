@@ -78,9 +78,9 @@ Sản phẩm yêu cầu đổi trả cần đáp ứng đầy đủ các tiêu c
         id: 'contact',
         title: '7. Kênh tiếp nhận hỗ trợ',
         content: `
-- **Hotline CSKH:** 0901 234 567 (08:30 – 22:00 hàng ngày)
+- **Hotline CSKH:** 0926109229 hoặc 0822600053 (09:30 – 22:00 hàng ngày)
 - **Email:** support@gritmode.com
-- **Trực tiếp tại Showroom:** 42 Tôn Thất Thiệp, P. Bến Nghé, Quận 1, TP. HCM.
+- **Kênh:** Online Store (Based in HCM City)
         `,
       },
     ],
@@ -119,10 +119,10 @@ Gritmode cung cấp dịch vụ giao hàng tận nơi đến **tất cả 63 t�
         id: 'timeline',
         title: '3. Thời gian xử lý & Giao hàng dự kiến',
         content: `
-- **Thời gian xử lý đóng gói:** Đơn hàng được xử lý và bàn giao cho đơn vị vận chuyển trong vòng **24 giờ** làm việc sau khi đặt hàng (hoặc sau khi thanh toán VietQR thành công).
-- **Khu vực Nội thành TP. HCM & Hà Nội:** 1 – 2 ngày làm việc.
-- **Khu vực Ngoại thành & Các tỉnh/thành phố khác:** 2 – 4 ngày làm việc.
-*(Lưu ý: Thời gian giao hàng có thể kéo dài thêm 1-2 ngày trong các dịp Lễ Tết, thiên tai hoặc các đợt Siêu Sale lớn).*
+- **Thời gian xử lý đóng gói:** Đơn hàng được xử lý và bàn giao cho đơn vị vận chuyển trong vòng 24 giờ làm việc sau khi đặt hàng (hoặc sau khi thanh toán VietQR thành công).
+- **Khu vực TPHCM & Các tỉnh/thành phố miền Nam:** 1-3 ngày làm việc
+- **Khu vực miền Trung & miền Bắc:** 3-5 ngày làm việc
+- **Lưu ý:** Thời gian giao hàng có thể kéo dài thêm 1-2 ngày trong các dịp Lễ Tết, thiên tai hoặc đợt Siêu Sale lớn
         `,
       },
       {
@@ -169,7 +169,7 @@ Gritmode cung cấp dịch vụ giao hàng tận nơi đến **tất cả 63 t�
         title: '1. Thời hạn & Phạm vi bảo hành',
         content: `
 - **Thời hạn bảo hành:** **30 ngày** kể từ ngày khách hàng nhận sản phẩm.
-- Áp dụng cho tất cả các sản phẩm chính hãng mang thương hiệu **Gritmode®** bao gồm Áo thun Oversize, Hoodie, Quần Cargo, Áo khoác và Phụ kiện.
+- Áp dụng cho tất cả các sản phẩm chính hãng mang thương hiệu **Gritmode®** bao gồm Áo thun, Hoodie, Long Sleeve, Quần.
         `,
       },
       {
@@ -195,7 +195,7 @@ Gritmode hỗ trợ sửa chữa hoặc thay thế linh kiện miễn phí đố
         id: 'process',
         title: '4. Quy trình tiếp nhận & Sửa chữa',
         content: `
-1. Gửi hình ảnh chi tiết vị trí cần bảo hành qua Hotline CSKH **0901 234 567** hoặc email **support@gritmode.com**.
+1. Gửi hình ảnh chi tiết vị trí cần bảo hành qua Hotline CSKH **0926 109 229** hoặc email **support.gritmode@gmail.com**.
 2. Sau khi xác nhận đủ điều kiện, Gritmode tiếp nhận sản phẩm và tiến hành xử lý kỹ thuật trong vòng **3 - 7 ngày làm việc**.
         `,
       },

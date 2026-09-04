@@ -27,10 +27,8 @@ export default function AdminUsersPage() {
     users,
     isLoading,
     total,
-    pagination,
     blockUser,
     unblockUser,
-    setUserInactive,
     isUserActionPending,
   } = useAdminUsers({
     search: debouncedSearch.trim() || undefined,
@@ -40,17 +38,13 @@ export default function AdminUsersPage() {
     limit: 20,
   });
 
-  const totalPages = pagination?.total_pages || 1;
-
   const roleTabs = [
     { value: '', label: 'Tất cả vai trò' },
     { value: 'customer', label: 'Khách hàng' },
     { value: 'admin', label: 'Quản trị viên' },
   ];
 
-  const handleActionSuccess = () => {
-    setSelectedUser(null);
-  };
+  const handleActionSuccess = () => {};
 
   const handleToggleBlock = (usr) => {
     if (usr.user_id === currentAdmin?.user_id) {

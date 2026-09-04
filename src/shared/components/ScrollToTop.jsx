@@ -8,7 +8,7 @@ import { useSmoothScroll } from './SmoothScrollProvider';
  * Works seamlessly with Lenis Smooth Scroll and standard browser window scrolling.
  */
 export default function ScrollToTop() {
-  const { pathname, search, hash } = useLocation();
+  const { pathname, hash } = useLocation();
   const lenis = useSmoothScroll();
 
   useEffect(() => {

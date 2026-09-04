@@ -189,7 +189,7 @@ export default function OrderDetailModal({
             <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {items.map((item, idx) => {
                 const optValues = item.variant_order_item || (typeof item.option_values === 'object' && item.option_values
-                  ? Object.entries(item.option_values).map(([k, v]) => `${v}`).join(' / ')
+                  ? Object.values(item.option_values).map((v) => `${v}`).join(' / ')
                   : item.option_values || item.variant_title || '');
                 const itemPrice = Number(item.price_order_item ?? item.price ?? item.unit_price ?? 0);
                 const itemQty = Number(item.quantity_order_item ?? item.quantity ?? 1);

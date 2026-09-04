@@ -7,17 +7,16 @@ import InputField from '../../../shared/components/InputField';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import {
   getAdminCategoriesApi,
-  getAdminCollectionsApi,
   getAdminProductByIdApi,
   getAdminProductMetaApi,
   createCategoryApi,
   updateCategoryApi,
   createAdminFullProductApi,
   updateAdminFullProductApi,
-  publishAdminProductApi,
   uploadAdminProductImagesApi,
 } from '../apis/admin.api';
 import { generateSkuSuggestion } from '../utils/productVariants';
+import CategoryFormModal from '../components/CategoryFormModal';
 import { toast } from '../../../shared/utils/toast';
 
 const splitValues = (value) => [...new Set(value.split(',').map((item) => item.trim()).filter(Boolean))];

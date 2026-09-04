@@ -48,19 +48,11 @@ export default function ContactPage() {
   const stores = [
     {
       city: 'TP. HỒ CHÍ MINH',
-      name: 'Flagship Store Saigon',
-      address: '42 Tôn Thất Thiệp, Phường Bến Nghé, Quận 1, TP. HCM',
-      phone: '0901 234 567',
-      hours: '09:30 – 21:30 (Tất cả các ngày trong tuần)',
-      tag: 'FLAGSHIP STORE',
-    },
-    {
-      city: 'HÀ NỘI',
-      name: 'Concept Store Hanoi',
-      address: '12 Đặng Thái Thân, Phường Phan Chu Trinh, Quận Hoàn Kiếm, Hà Nội',
-      phone: '0908 765 432',
-      hours: '10:00 – 21:30 (Tất cả các ngày trong tuần)',
-      tag: 'CONCEPT STORE',
+      name: 'Gritmode Online Store',
+      address: 'Based in HCM City',
+      phone: '0926109229 - 0822600053',
+      hours: '09:30 – 22:00 (Hàng ngày)',
+      tag: 'ONLINE STORE',
     },
   ];
 
@@ -71,7 +63,7 @@ export default function ContactPage() {
     },
     {
       q: 'Thời gian giao hàng tiêu chuẩn là bao lâu?',
-      a: 'Đơn hàng nội thành TP. HCM và Hà Nội thường được giao trong 1 - 2 ngày làm việc. Các tỉnh thành khác trên toàn quốc từ 2 - 4 ngày làm việc.',
+      a: 'Đơn hàng khu vực TPHCM & miền Nam từ 1 - 3 ngày làm việc. Khu vực miền Trung & miền Bắc từ 3 - 5 ngày làm việc.',
     },
     {
       q: 'Chất liệu vải áo thun và hoodie của Gritmode có gì đặc biệt?',
@@ -81,7 +73,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white animate-fade-in">
-      
+
       {/* 1. Header Banner */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 py-12 sm:py-16">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
@@ -100,29 +92,29 @@ export default function ContactPage() {
             Liên hệ & Trải nghiệm
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 max-w-2xl leading-relaxed">
-            Đội ngũ Gritmode luôn sẵn sàng lắng nghe câu chuyện, hỗ trợ xử lý đơn hàng và đón tiếp bạn tại các không gian trải nghiệm thời trang streetwear trực tiếp.
+            Đội ngũ Gritmode luôn sẵn sàng lắng nghe câu chuyện, tư vấn phong cách và hỗ trợ xử lý mọi thắc mắc về đơn hàng của bạn.
           </p>
         </div>
       </div>
 
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-16">
-        
+
         {/* 2. Main 2-Column Grid: Left (Store info & Channels) / Right (Message Form) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-          
+
           {/* LEFT: Showroom & Direct Contact Channels (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            
+
             {/* Store Locations */}
             <div className="space-y-4">
               <h2 className="font-display font-black text-base uppercase tracking-tight flex items-center gap-2">
                 <Icon icon="solar:shop-2-bold" className="text-lg" />
-                <span>Hệ thống Store trực tiếp</span>
+                <span>Hệ thống Store</span>
               </h2>
 
               <div className="space-y-3">
                 {stores.map((s, idx) => (
-                  <div 
+                  <div
                     key={idx}
                     className="p-5 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-2.5 transition-all hover:border-neutral-400"
                   >
@@ -162,19 +154,19 @@ export default function ContactPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-400">Hotline CSKH:</span>
                   <a href="tel:0901234567" className="font-bold font-mono hover:underline">
-                    0901 234 567
+                    0926 109 229 - 0822 600 053
                   </a>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-400">Email phản hồi & Đơn hàng:</span>
-                  <a href="mailto:support@gritmode.com" className="font-bold hover:underline">
-                    support@gritmode.com
+                  <a href="mailto:support.gritmode@gmail.com" className="font-bold hover:underline">
+                    support.gritmode@gmail.com
                   </a>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-400">Hợp tác truyền thông & B2B:</span>
-                  <a href="mailto:media@gritmode.com" className="font-bold hover:underline">
-                    media@gritmode.com
+                  <a href="mailto:gritmode.stu@gmail.com" className="font-bold hover:underline">
+                    gritmode.stu@gmail.com
                   </a>
                 </div>
               </div>
@@ -329,7 +321,7 @@ export default function ContactPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {faqs.map((f, idx) => (
-              <div 
+              <div
                 key={idx}
                 className="p-6 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-2.5"
               >

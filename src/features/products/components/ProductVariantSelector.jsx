@@ -22,10 +22,6 @@ export default function ProductVariantSelector({
         const selectedValueId = selectedOptionValues[optionId];
         const selectedValueObj = values.find((v) => v.product_option_value_id === selectedValueId);
 
-        const isColorOption =
-          optionName.toLowerCase().includes('color') ||
-          optionName.toLowerCase().includes('màu');
-
         const isSizeOption =
           optionName.toLowerCase().includes('size') ||
           optionName.toLowerCase().includes('kích');

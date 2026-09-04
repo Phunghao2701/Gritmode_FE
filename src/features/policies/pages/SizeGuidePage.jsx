@@ -8,20 +8,20 @@ export default function SizeGuidePage() {
 
   const sizeCharts = {
     tees: {
-      title: 'Áo Thun Oversized (Heavyweight 280GSM)',
+      title: 'GRITMODE - BOXY T-SHIRT SIZE CHART',
       desc: 'Form áo Boxy Fit vai rơi rộng rãi, chiều dài vừa vặn ngang hông, không bó sát.',
-      headers: ['Size', 'Chiều cao (cm)', 'Cân nặng (kg)', 'Dài áo (cm)', 'Rộng ngực (cm)', 'Dài tay (cm)'],
+      headers: ['Size', 'Cân nặng (kg)', 'Dài áo (cm)', 'Ngang áo (cm)', 'Tay áo (cm)'],
       rows: [
-        ['S', '1m55 – 1m68', '45 – 58 kg', '68', '54', '22'],
-        ['M', '1m68 – 1m75', '58 – 70 kg', '71', '57', '23.5'],
-        ['L', '1m75 – 1m82', '70 – 82 kg', '74', '60', '25'],
-        ['XL', '1m80 – 1m90', '82 – 98 kg', '77', '63', '26.5'],
+        ['S', '< 50 kg', '56', '62', '17'],
+        ['M', '< 65 kg', '58', '64', '18'],
+        ['L', '< 80 kg', '60', '66', '19'],
+        ['XL', '< 95 kg', '62', '68', '20'],
       ],
     },
     hoodies: {
       title: 'Áo Hoodie & Sweatshirt (380GSM)',
       desc: 'Form áo dáng đứng dệt nỉ bông dày dặn, mũ trùm 2 lớp đứng phom.',
-      headers: ['Size', 'Chiều cao (cm)', 'Cân nặng (kg)', 'Dài áo (cm)', 'Rộng ngực (cm)', 'Dài tay (cm)'],
+      headers: ['Size', 'Chiều cao (cm)', 'Cân nặng (kg)', 'Dài áo (cm)', 'Ngang Áo (cm)', 'Dài tay (cm)'],
       rows: [
         ['M', '1m60 – 1m72', '50 – 65 kg', '70', '60', '58'],
         ['L', '1m72 – 1m80', '65 – 78 kg', '73', '63', '60'],
@@ -45,7 +45,7 @@ export default function SizeGuidePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white animate-fade-in">
-      
+
       {/* 1. Header Banner */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 py-12 sm:py-16">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
@@ -72,11 +72,11 @@ export default function SizeGuidePage() {
       </div>
 
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-12">
-        
+
         {/* Category Switcher Tabs */}
         <div className="flex items-center gap-3 border-b border-neutral-200 dark:border-neutral-800 pb-4 overflow-x-auto scrollbar-none">
           {[
-            { id: 'tees', label: 'Áo Thun Oversized (Tees)' },
+            { id: 'tees', label: 'Áo Thun BOXY T-SHIRT' },
             { id: 'hoodies', label: 'Áo Hoodie & Sweatshirt' },
             { id: 'pants', label: 'Quần Cargo & Sweatpants' },
           ].map((tab) => (
@@ -84,11 +84,10 @@ export default function SizeGuidePage() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer ${
-                activeTab === tab.id
-                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
-                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
-              }`}
+              className={`px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer ${activeTab === tab.id
+                ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
+                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+                }`}
             >
               {tab.label}
             </button>

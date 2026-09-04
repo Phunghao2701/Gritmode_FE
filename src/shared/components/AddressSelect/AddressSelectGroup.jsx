@@ -18,7 +18,6 @@ export default function AddressSelectGroup({
   className = '',
 }) {
   const [addressTree, setAddressTree] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;

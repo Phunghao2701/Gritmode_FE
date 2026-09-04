@@ -15,7 +15,7 @@ import { formatPriceVND, getProductImageSrcSet, getSizedProductImageUrl } from '
 export default function ProductDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { addItem, openDrawer } = useCartStore();
+  const { addItem } = useCartStore();
 
   const {
     product,

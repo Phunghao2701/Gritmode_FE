@@ -4,7 +4,6 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 
 export default function CartItem({
   item,
-  index = 0,
   onUpdateQuantity,
   onRemove,
   isUpdating = false,
