@@ -50,7 +50,7 @@ export default function ContactPage() {
       city: 'TP. HỒ CHÍ MINH',
       name: 'Gritmode Online Store',
       address: 'Based in HCM City',
-      phone: '0926109229 - 0822600053',
+      phone: '0326 747 206',
       hours: '09:30 – 22:00 (Hàng ngày)',
       tag: 'ONLINE STORE',
     },
@@ -153,8 +153,8 @@ export default function ContactPage() {
               <div className="space-y-3 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-400">Hotline CSKH:</span>
-                  <a href="tel:0901234567" className="font-bold font-mono hover:underline">
-                    0926 109 229 - 0822 600 053
+                  <a href="tel:0326747206" className="font-bold font-mono hover:underline">
+                    0326 747 206
                   </a>
                 </div>
                 <div className="flex items-center justify-between">

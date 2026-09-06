@@ -10,12 +10,12 @@ export default function SizeGuidePage() {
     tees: {
       title: 'GRITMODE - BOXY T-SHIRT SIZE CHART',
       desc: 'Form áo Boxy Fit vai rơi rộng rãi, chiều dài vừa vặn ngang hông, không bó sát.',
-      headers: ['Size', 'Cân nặng (kg)', 'Dài áo (cm)', 'Ngang áo (cm)', 'Tay áo (cm)'],
+      headers: ['Size', 'Dài áo (cm)', 'Ngang áo (cm)', 'Tay áo (cm)', 'Cân nặng (kg)'],
       rows: [
-        ['S', '< 50 kg', '56', '62', '17'],
-        ['M', '< 65 kg', '58', '64', '18'],
-        ['L', '< 80 kg', '60', '66', '19'],
-        ['XL', '< 95 kg', '62', '68', '20'],
+        ['S', '56', '62', '17', '< 50 kg'],
+        ['M', '58', '64', '18', '< 65 kg'],
+        ['L', '60', '66', '19', '< 80 kg'],
+        ['XL', '62', '68', '20', '< 95 kg'],
       ],
     },
     hoodies: {

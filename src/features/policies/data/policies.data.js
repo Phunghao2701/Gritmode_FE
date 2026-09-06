@@ -53,7 +53,7 @@ Sản phẩm yêu cầu đổi trả cần đáp ứng đầy đủ các tiêu c
         id: 'process',
         title: '4. Quy trình thực hiện đổi trả',
         content: `
-1. **Bước 1 — Liên hệ:** Khách hàng nhắn tin trực tiếp qua Hotline/Zalo **0901 234 567** hoặc gửi email đến **support@gritmode.com** kèm Mã đơn hàng và hình ảnh sản phẩm cần đổi.
+1. **Bước 1 — Liên hệ:** Khách hàng nhắn tin trực tiếp qua Hotline/Zalo **0326 747 206** hoặc gửi email đến **support.gritmode@gmail.com** kèm Mã đơn hàng và hình ảnh sản phẩm cần đổi.
 2. **Bước 2 — Xác nhận:** Đội ngũ CSKH sẽ kiểm tra thông tin và tạo phiếu gửi đổi hàng trong vòng 2-4 giờ làm việc.
 3. **Bước 3 — Đổi hàng tận nơi:** Bưu tá sẽ mang sản phẩm mới đến tận nhà giao cho bạn, đồng thời nhận lại sản phẩm cần đổi (khách hàng không cần tự ra bưu cục).
         `,
@@ -78,8 +78,8 @@ Sản phẩm yêu cầu đổi trả cần đáp ứng đầy đủ các tiêu c
         id: 'contact',
         title: '7. Kênh tiếp nhận hỗ trợ',
         content: `
-- **Hotline CSKH:** 0926109229 hoặc 0822600053 (09:30 – 22:00 hàng ngày)
-- **Email:** support@gritmode.com
+- **Hotline CSKH:** 0326 747 206 (09:30 – 22:00 hàng ngày)
+- **Email:** support.gritmode@gmail.com
 - **Kênh:** Online Store (Based in HCM City)
         `,
       },
@@ -195,7 +195,7 @@ Gritmode hỗ trợ sửa chữa hoặc thay thế linh kiện miễn phí đố
         id: 'process',
         title: '4. Quy trình tiếp nhận & Sửa chữa',
         content: `
-1. Gửi hình ảnh chi tiết vị trí cần bảo hành qua Hotline CSKH **0926 109 229** hoặc email **support.gritmode@gmail.com**.
+1. Gửi hình ảnh chi tiết vị trí cần bảo hành qua Hotline CSKH **0326 747 206** hoặc email **support.gritmode@gmail.com**.
 2. Sau khi xác nhận đủ điều kiện, Gritmode tiếp nhận sản phẩm và tiến hành xử lý kỹ thuật trong vòng **3 - 7 ngày làm việc**.
         `,
       },
@@ -254,7 +254,7 @@ Gritmode hỗ trợ 02 phương thức thanh toán chính thức tại cổng th
         id: 'troubleshooting',
         title: '5. Xử lý sự cố giao dịch & Chuyển nhầm',
         content: `
-- Trường hợp tài khoản ngân hàng của bạn đã bị trừ tiền nhưng trạng thái đơn hàng chưa cập nhật do lỗi mạng bưu điện, vui lòng liên hệ ngay Hotline **0901 234 567** kèm mã giao dịch (mã tham chiếu) để được hỗ trợ kích hoạt thủ công trong 10 phút.
+- Trường hợp tài khoản ngân hàng của bạn đã bị trừ tiền nhưng trạng thái đơn hàng chưa cập nhật do lỗi mạng bưu điện, vui lòng liên hệ ngay Hotline **0326 747 206** kèm mã giao dịch (mã tham chiếu) để được hỗ trợ kích hoạt thủ công trong 10 phút.
         `,
       },
     ],

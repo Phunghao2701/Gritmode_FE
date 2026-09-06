@@ -855,11 +855,7 @@ export default function MainLayout({ children }) {
                   <span className="text-[10px] text-neutral-400 block">09:30 – 22:00 (Hàng ngày)</span>
                 </li>
                 <li className="pt-1 border-t border-neutral-100 dark:border-neutral-900 font-[550] text-black dark:text-white font-sans">
-                  Hotline:
-                  <br />
-                  0926 109 229
-                  <br />
-                  0822 600 053
+                  Hotline: 0326 747 206
                 </li>
               </ul>
             </div>

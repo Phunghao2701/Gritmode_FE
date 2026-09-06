@@ -143,7 +143,7 @@ const normalizePhone = (phone) => {
       const cleanPhone = normalizePhone(formData.phone);
       if (!formData.fullName.trim()) newErrors.fullName = 'Vui lòng nhập họ và tên';
       if (!formData.phone.trim()) newErrors.phone = 'Vui lòng nhập số điện thoại';
-      else if (!/^0\d{9}$/.test(cleanPhone)) newErrors.phone = 'Số điện thoại phải gồm 10 chữ số (VD: 0901234567 hoặc +84901234567)';
+      else if (!/^0\d{9}$/.test(cleanPhone)) newErrors.phone = 'Số điện thoại phải gồm 10 chữ số (VD: 0326747206 hoặc +84326747206)';
       if (!formData.email.trim()) newErrors.email = 'Vui lòng nhập email';
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = 'Email không hợp lệ';
       if (!formData.province.trim()) newErrors.province = 'Vui lòng nhập Tỉnh/Thành phố';
