@@ -1,0 +1,125 @@
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: ⚡
+      - text: MIỄN PHÍ VẬN CHUYỂN TOÀN QUỐC CHO MỌI ĐƠN HÀNG
+    - generic [ref=e8]: •
+    - generic [ref=e9]:
+      - generic [ref=e10]: 🔥
+      - text: BỘ SƯU TẬP SIGNATURE STREETWEAR DROP 2026
+    - generic [ref=e11]: •
+    - generic [ref=e12]:
+      - generic [ref=e13]: 🛡️
+      - text: 100% PREMIUM HEAVYWEIGHT COTTON 280GSM
+    - generic [ref=e14]: •
+    - generic [ref=e15]:
+      - generic [ref=e16]: 🔄
+      - text: ĐỔI TRẢ THOẢI MÁI TRONG VÒNG 7 NGÀY
+    - generic [ref=e17]: •
+    - generic [ref=e18]:
+      - generic [ref=e19]: ⚡
+      - text: MIỄN PHÍ VẬN CHUYỂN TOÀN QUỐC CHO MỌI ĐƠN HÀNG
+    - generic [ref=e20]: •
+    - generic [ref=e21]:
+      - generic [ref=e22]: 🔥
+      - text: BỘ SƯU TẬP SIGNATURE STREETWEAR DROP 2026
+    - generic [ref=e23]: •
+    - generic [ref=e24]:
+      - generic [ref=e25]: 🛡️
+      - text: 100% PREMIUM HEAVYWEIGHT COTTON 280GSM
+    - generic [ref=e26]: •
+    - generic [ref=e27]:
+      - generic [ref=e28]: 🔄
+      - text: ĐỔI TRẢ THOẢI MÁI TRONG VÒNG 7 NGÀY
+  - banner [ref=e29]:
+    - generic [ref=e30]:
+      - button "Open mobile menu" [ref=e32] [cursor=pointer]
+      - generic [ref=e33] [cursor=pointer]:
+        - generic [ref=e34]: GRITMODE®
+        - generic [ref=e35]: madeinvietnam
+      - generic [ref=e37]:
+        - button "Search" [ref=e38] [cursor=pointer]
+        - button "Account" [ref=e40] [cursor=pointer]
+        - button "Cart" [ref=e42] [cursor=pointer]:
+          - generic [ref=e43]: "0"
+  - main [ref=e44]:
+    - generic [ref=e45]:
+      - generic [ref=e47] [cursor=pointer]:
+        - img "New Arrivals" [ref=e48]
+        - generic [ref=e50]:
+          - generic [ref=e51]: SEASON DROP 2026
+          - heading "Gritmode Signature" [level=2] [ref=e52]
+          - paragraph [ref=e53]: Thời trang đường phố Việt Nam định hình phong cách độc bản, tự do và đậm chất bụi bặm.
+          - button "KHÁM PHÁ NGAY" [ref=e55]
+      - generic [ref=e57]:
+        - generic [ref=e58]:
+          - heading "100% Premium Cotton" [level=4] [ref=e60]
+          - paragraph [ref=e61]: Vải 280GSM - 320GSM dày dặn, thấm hút mồ hôi tối ưu và giữ form bền bỉ.
+        - generic [ref=e62]:
+          - heading "Form Dáng Boxy" [level=4] [ref=e64]
+          - paragraph [ref=e65]: Thiết kế vai rơi Oversize Drop-Shoulder chuẩn form streetwear thời thượng.
+        - generic [ref=e66]:
+          - heading "Freeship Toàn Quốc" [level=4] [ref=e68]
+          - paragraph [ref=e69]: Miễn phí giao hàng hỏa tốc 0đ cho mọi đơn hàng không giới hạn giá trị.
+        - generic [ref=e70]:
+          - heading "Đổi Trả 7 Ngày" [level=4] [ref=e72]
+          - paragraph [ref=e73]: Hỗ trợ đổi size và mẫu linh hoạt, đổi mới 100% nếu sản phẩm có lỗi từ NSX.
+      - generic [ref=e74]:
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - text: Streetwear Drop 2026
+            - heading "Sản phẩm mới nhất" [level=2] [ref=e77]
+          - button "TẤT CẢ" [ref=e79] [cursor=pointer]
+        - button "Xem tất cả bộ sưu tập" [ref=e122] [cursor=pointer]
+  - contentinfo [ref=e123]:
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - heading "GIA NHẬP CỘNG ĐỒNG GRITMODE® SQUAD" [level=3] [ref=e127]
+        - paragraph [ref=e128]: Nhận thông tin sớm nhất về các đợt Drop giới hạn và ưu đãi đặc quyền 20% đơn đầu.
+      - generic [ref=e129]:
+        - textbox "Nhập địa chỉ email của bạn..." [ref=e130]
+        - button "ĐĂNG KÝ" [ref=e131] [cursor=pointer]
+    - generic [ref=e132]:
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - generic [ref=e135]:
+            - generic [ref=e136]: GRITMODE®
+            - generic [ref=e137]: madeinvietnam
+          - paragraph [ref=e138]: Thương hiệu thời trang đường phố Việt Nam đại diện cho tinh thần bền bỉ, phong cách sống độc bản và năng lượng bứt phá.
+          - generic [ref=e139]:
+            - link:
+              - /url: "#"
+            - link:
+              - /url: "#"
+            - link:
+              - /url: "#"
+            - link:
+              - /url: "#"
+        - generic [ref=e140]:
+          - heading "HỆ THỐNG CỬA HÀNG" [level=4] [ref=e141]
+          - list [ref=e142]:
+            - listitem [ref=e143]: "• Flagship: 123 Phố Huế, Q. Hai Bà Trưng, Hà Nội"
+            - listitem [ref=e144]: "• Store 2: 456 Lê Văn Sỹ, Quận 3, TP. Hồ Chí Minh"
+            - listitem [ref=e145]: "• Store 3: 789 Nguyễn Văn Linh, Q. Hải Châu, Đà Nẵng"
+            - listitem [ref=e146]: "Hotline: 1900 8921 (9:00 - 22:00)"
+        - generic [ref=e147]:
+          - heading "CHÍNH SÁCH KHÁCH HÀNG" [level=4] [ref=e148]
+          - list [ref=e149]:
+            - listitem [ref=e150]:
+              - link "Chính sách đổi trả trong 30 ngày" [ref=e151] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e152]:
+              - link "Bảng quy đổi kích cỡ (Size Chart)" [ref=e153] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e154]:
+              - link "Chính sách vận chuyển & giao hàng" [ref=e155] [cursor=pointer]:
+                - /url: "#"
+            - listitem [ref=e156]:
+              - link "Bảo mật thông tin khách hàng" [ref=e157] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=e158]:
+          - heading "CHỨNG NHẬN & THANH TOÁN" [level=4] [ref=e159]
+          - paragraph [ref=e160]: Hỗ trợ đa dạng phương thức thanh toán an toàn qua VNPay, Thẻ Visa/Master, Chuyển khoản QR & COD.
+      - generic [ref=e161]:
+        - paragraph [ref=e162]: © 2026 GRITMODE STREETWEAR CO., LTD. ALL RIGHTS RESERVED.
+        - paragraph [ref=e163]: DESIGNED FOR VIETNAMESE STREET CULTURE
