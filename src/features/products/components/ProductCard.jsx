@@ -2,13 +2,12 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Icon from '../../../shared/components/Icon';
 import { queryClient } from '../../../shared/services/queryClient';
 import { getProductDetailApi } from '../apis/product.api';
 import {
   formatProductPriceRange,
-  getProductImageSrcSet,
-  getSizedProductImageUrl,
   slugifyProductName,
 } from '../utils/product.utils';
 
@@ -67,16 +66,15 @@ export default function ProductCard({ product }) {
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 flex items-center justify-center transition-all duration-300 shadow-sm">
         {/* Product Photo */}
         {thumbnail ? (
-          <img
-            src={getSizedProductImageUrl(thumbnail, 640)}
-            srcSet={getProductImageSrcSet(thumbnail)}
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+          <Image
+            src={thumbnail}
             alt={name}
-            className={`w-full h-full object-cover object-center transition-transform duration-700 ease-out ${
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+            className={`object-cover object-center transition-transform duration-700 ease-out ${
               isHovered ? 'scale-105' : 'scale-100'
             }`}
             loading="lazy"
-            decoding="async"
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-neutral-400 gap-1.5">
