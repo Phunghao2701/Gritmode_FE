@@ -7,7 +7,8 @@ import { getProductsApi } from '../apis/product.api';
 export { useCategories, useCategoryDetail } from '../../categories/hooks/useCategory';
 export { useCollections, useCollectionDetail } from '../../collections/hooks/useCollection';
 
-export const useProducts = (params = {}) => {
+export const useProducts = (params = {}, options = {}) => {
+  const { enabled = true, ...restOptions } = options;
   const query = useQuery({
     queryKey: ['products', params],
     queryFn: async () => {
@@ -29,7 +30,9 @@ export const useProducts = (params = {}) => {
         },
       };
     },
+    enabled,
     staleTime: 1000 * 60 * 3, // 3 minutes
+    ...restOptions,
   });
 
   const items = query.data?.items || [];
