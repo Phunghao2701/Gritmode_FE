@@ -1040,22 +1040,22 @@ export default function MainLayout({ children }) {
               </h4>
               <ul className="space-y-2.5 text-xs text-neutral-500">
                 <li>
-                  <Link href="/size-guide" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/size-guide" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Bảng quy đổi kích cỡ
                   </Link>
                 </li>
                 <li>
-                  <Link href="/how-to-order" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/how-to-order" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Hướng dẫn mua hàng & thanh toán
                   </Link>
                 </li>
                 <li>
-                  <Link href="/orders/lookup" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/orders/lookup" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Tra cứu & theo dõi đơn hàng
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/contact" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Liên hệ hỗ trợ khách hàng
                   </Link>
                 </li>
@@ -1069,32 +1069,32 @@ export default function MainLayout({ children }) {
               </h4>
               <ul className="space-y-2.5 text-xs text-neutral-500">
                 <li>
-                  <Link href="/policies/return" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/policies/return" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Chính sách đổi trả & hoàn tiền (7 ngày)
                   </Link>
                 </li>
                 <li>
-                  <Link href="/policies/shipping" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/policies/shipping" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Chính sách vận chuyển (Freeship 0đ)
                   </Link>
                 </li>
                 <li>
-                  <Link href="/policies/warranty" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/policies/warranty" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Chính sách bảo hành sản phẩm (30 ngày)
                   </Link>
                 </li>
                 <li>
-                  <Link href="/policies/payment" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/policies/payment" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Quy định & hình thức thanh toán
                   </Link>
                 </li>
                 <li>
-                  <Link href="/policies/privacy" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/policies/privacy" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Chính sách bảo mật thông tin
                   </Link>
                 </li>
                 <li>
-                  <Link href="/policies/terms" className="hover:text-black dark:hover:text-white transition-colors">
+                  <Link href="/policies/terms" prefetch={false} className="hover:text-black dark:hover:text-white transition-colors">
                     Điều khoản dịch vụ & sử dụng
                   </Link>
                 </li>
