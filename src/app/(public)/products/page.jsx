@@ -75,7 +75,7 @@ export default async function ProductsPage({ searchParams }) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <Suspense fallback={<div className="max-w-[1400px] mx-auto p-8"><LoadingSkeleton height="h-96" /></div>}>
-        <ProductListPage key={sp?.category || sp?.category_id || sp?.collection || sp?.collection_id || sp?.search || 'all'} />
+        <ProductListPage />
       </Suspense>
     </HydrationBoundary>
   );
