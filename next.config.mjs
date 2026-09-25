@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   env: {
-    VITE_API_URL: process.env.VITE_API_URL || 'http://localhost:8000/api/v1',
-    VITE_GOOGLE_CLIENT_ID: process.env.VITE_GOOGLE_CLIENT_ID || '',
+    VITE_API_URL: process.env.NEXT_PUBLIC_API_URL || process.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+    VITE_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '',
   },
   images: {
     remotePatterns: [
