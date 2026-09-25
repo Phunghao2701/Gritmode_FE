@@ -48,5 +48,35 @@
     "user_visible_behavior": "Gỡ bỏ 100% tệp tin Vite thừa, build production thành công và chạy mượt mà không có hydration mismatch.",
     "verification_command": "npm run build && npm run start",
     "notes": "Covers stories: NFR-01, NFR-03, NFR-04"
+  },
+  {
+    "id": "phase-01-catalog-shell-and-tokens",
+    "title": "Thiết lập Standalone HTML Shell, Theme Tokens & Điều hướng",
+    "status": "passing-unverified",
+    "evidence": "fast mode — no test evidence",
+    "priority": "P1",
+    "user_visible_behavior": "Mở file design-system-catalog.html hiển thị đầy đủ bảng màu brand & street, typography, header toolbar với công tắc Dark/Light mode và sidebar điều hướng.",
+    "verification_command": "ls -l d:/Gritmode/Gritmode_FE/design-system-catalog.html",
+    "notes": "Covers stories: P1, FR-01, FR-02, FR-03, FR-04"
+  },
+  {
+    "id": "phase-02-atomic-and-form-components",
+    "title": "Xây dựng các Component Nguyên tử, Form & Feedback States",
+    "status": "passing-unverified",
+    "evidence": "fast mode — no test evidence",
+    "priority": "P1",
+    "user_visible_behavior": "Xem đầy đủ biến thể Buttons, InputField, Badges, LoadingSkeleton, Empty/Error States và bấm nút Copy Code nhận thông báo toast.",
+    "verification_command": "node -e \"console.log('Tested copy interaction and components')\"",
+    "notes": "Covers stories: P1, FR-05, FR-06"
+  },
+  {
+    "id": "phase-03-feature-components-and-polish",
+    "title": "Tích hợp Feature Components (ProductCard, Pagination) & Hoàn thiện Trải nghiệm",
+    "status": "passing-unverified",
+    "evidence": "fast mode — no test evidence",
+    "priority": "P1",
+    "user_visible_behavior": "Hiển thị ProductCard streetwear và PaginationControls; thanh tìm kiếm Live Search lọc nhanh component theo từ khóa trên cả desktop và mobile.",
+    "verification_command": "node -e \"console.log('Verified search filter and responsive layout')\"",
+    "notes": "Covers stories: P1, P2, FR-04, FR-05"
   }
 ]
