@@ -83,3 +83,6 @@ specs/
 # ==========================================
 .DS_Store
 Thumbs.db
+
+tests/
+test-artifacts/
