@@ -15,8 +15,9 @@ export const useCollections = () => {
       const rawList = Array.isArray(data) ? data : [];
       return sortCollectionsByPosition(rawList);
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 30, // 30 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   return {

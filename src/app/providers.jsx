@@ -45,9 +45,13 @@ function AuthInit() {
       } finally {
         setAuthLoading(false);
         setInitialized(true);
-        import('@/shared/store/cartStore').then(({ useCartStore }) => {
-          useCartStore.getState().fetchCart();
-        });
+        // Do not fetch cart on admin routes
+        const isAdminPath = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+        if (!isAdminPath) {
+          import('@/shared/store/cartStore').then(({ useCartStore }) => {
+            useCartStore.getState().fetchCart();
+          });
+        }
       }
     };
 

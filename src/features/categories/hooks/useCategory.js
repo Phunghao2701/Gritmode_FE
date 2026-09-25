@@ -16,8 +16,9 @@ export const useCategories = () => {
       // Build and sort hierarchical tree
       return buildCategoryTree(rawList);
     },
-    staleTime: 1000 * 60 * 10, // 10 minutes cache
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 30, // 30 minutes cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const categoryTree = query.data || [];

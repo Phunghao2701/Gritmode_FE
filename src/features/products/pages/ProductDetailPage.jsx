@@ -44,7 +44,8 @@ export default function ProductDetailPage() {
 
   const primaryCategoryId = product?.categories?.find((c) => c.is_primary)?.category_id || product?.categories?.[0]?.category_id;
   const { products: allProducts = [] } = useProducts(
-    primaryCategoryId ? { category_id: primaryCategoryId, limit: 20, sort: 'newest' } : { limit: 20, sort: 'newest' }
+    primaryCategoryId ? { category_id: primaryCategoryId, limit: 8, sort: 'newest' } : { limit: 8, sort: 'newest' },
+    { enabled: !!product && !isLoadingProduct }
   );
 
   const relatedSliderRef = useRef(null);

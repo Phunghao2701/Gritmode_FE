@@ -35,7 +35,8 @@ import { toast } from '../../../shared/utils/toast';
 export const useAdminDashboardOverview = () => {
   return useQuery({
     queryKey: ['admin-dashboard-overview'],
-    staleTime: 1000 * 60, // 1 min cache
+    staleTime: 1000 * 60 * 3, // 3 min cache
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       try {
         const res = await getAdminDashboardOverviewApi();
@@ -64,7 +65,8 @@ export const useAdminDashboardOverview = () => {
 export const useAdminProductMeta = () => {
   return useQuery({
     queryKey: ['admin-products-meta'],
-    staleTime: 1000 * 60 * 5, // 5 min cache
+    staleTime: 1000 * 60 * 10, // 10 min cache
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const res = await getAdminProductMetaApi();
       return res.data?.data || res.data || { categories: [], collections: [] };
@@ -75,7 +77,8 @@ export const useAdminProductMeta = () => {
 export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin-stats'],
-    staleTime: 1000 * 60, // 1 min cache
+    staleTime: 1000 * 60 * 3, // 3 min cache
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       try {
         const res = await getAdminStatsApi();
@@ -102,7 +105,8 @@ export const useAdminOrders = (params = {}) => {
 
   const query = useQuery({
     queryKey: ['admin-orders', params],
-    staleTime: 1000 * 30, // 30s cache
+    staleTime: 1000 * 60 * 2, // 2 min cache
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const res = await getAdminOrdersApi(params);
       const raw = res.data?.data || res.data;
@@ -199,7 +203,8 @@ export const useAdminInventory = (params = {}) => {
 
   const query = useQuery({
     queryKey: ['admin-inventory', params],
-    staleTime: 1000 * 30, // 30s cache
+    staleTime: 1000 * 60 * 2, // 2 min cache
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const res = await getAdminInventoryApi(params);
       const raw = res.data?.data || res.data;
@@ -239,7 +244,8 @@ export const useAdminProducts = (params = {}) => {
 
   const query = useQuery({
     queryKey: ['admin-products', params],
-    staleTime: 1000 * 30, // 30s cache
+    staleTime: 1000 * 60 * 2, // 2 min cache
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const res = await getAdminProductsApi(params);
       const raw = res.data?.data || res.data;

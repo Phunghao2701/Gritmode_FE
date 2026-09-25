@@ -9,6 +9,7 @@ import { getProductDetailApi } from '../apis/product.api';
 import {
   formatProductPriceRange,
   slugifyProductName,
+  getSizedProductImageUrl,
 } from '../utils/product.utils';
 
 export default function ProductCard({ product }) {
@@ -67,7 +68,7 @@ export default function ProductCard({ product }) {
         {/* Product Photo */}
         {thumbnail ? (
           <Image
-            src={thumbnail}
+            src={typeof thumbnail === 'string' ? getSizedProductImageUrl(thumbnail, 600) : thumbnail}
             alt={name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
@@ -75,6 +76,7 @@ export default function ProductCard({ product }) {
               isHovered ? 'scale-105' : 'scale-100'
             }`}
             loading="lazy"
+            unoptimized={typeof thumbnail === 'string' && (thumbnail.includes('cloudinary.com') || thumbnail.includes('images.unsplash.com'))}
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-neutral-400 gap-1.5">
