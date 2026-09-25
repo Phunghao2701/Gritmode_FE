@@ -8,10 +8,8 @@ import ProductListPage from '@/features/products/pages/ProductListPage';
 import LoadingSkeleton from '@/shared/components/LoadingSkeleton';
 
 export const metadata = {
-  title: 'Bộ Sưu Tập Sản Phẩm | Gritmode® Streetwear',
   description: 'Khám phá tất cả các thiết kế thời trang đường phố cao cấp mới nhất từ Gritmode®.',
   openGraph: {
-    title: 'Bộ Sưu Tập Sản Phẩm | Gritmode® Streetwear',
     description: 'Khám phá tất cả các thiết kế thời trang đường phố cao cấp mới nhất từ Gritmode®.',
     type: 'website',
   },
@@ -75,7 +73,7 @@ export default async function ProductsPage({ searchParams }) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <Suspense fallback={<div className="max-w-[1400px] mx-auto p-8"><LoadingSkeleton height="h-96" /></div>}>
-        <ProductListPage key={sp?.category || sp?.category_id || sp?.collection || sp?.collection_id || sp?.search || 'all'} />
+        <ProductListPage />
       </Suspense>
     </HydrationBoundary>
   );

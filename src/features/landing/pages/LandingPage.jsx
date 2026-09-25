@@ -23,7 +23,7 @@ export default function LandingPage() {
   });
 
   const heroSlides = useMemo(() => {
-    const slides = products
+    return products
       .map((product) => ({
         id: product.product_id || product.id,
         image: product.thumbnail || product.images?.[0]?.url_product_image,
@@ -31,15 +31,10 @@ export default function LandingPage() {
       }))
       .filter((slide) => slide.image)
       .slice(0, 5);
-
-    return slides.length > 0 ? slides : [{
-      id: 'fallback',
-      image: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=1800',
-      alt: 'New Arrivals',
-    }];
   }, [products]);
 
   useEffect(() => {
+    if (heroSlides.length === 0) return;
     setActiveHeroIndex((current) => current % heroSlides.length);
   }, [heroSlides.length]);
 

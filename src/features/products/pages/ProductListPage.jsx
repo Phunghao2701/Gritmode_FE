@@ -60,7 +60,8 @@ export default function ProductListPage() {
     if (newFilters.category) params.set('category', newFilters.category);
     if (newFilters.collection_id) params.set('collection_id', newFilters.collection_id);
     if (newFilters.collection) params.set('collection', newFilters.collection);
-    if (newFilters.search) params.set('search', newFilters.search);
+    const searchVal = newFilters.search !== undefined ? newFilters.search : debouncedSearch;
+    if (searchVal && searchVal.trim()) params.set('search', searchVal.trim());
     if (newFilters.sort && newFilters.sort !== 'newest') params.set('sort', newFilters.sort);
     if (newFilters.page && newFilters.page > 1) params.set('page', String(newFilters.page));
     const qs = params.toString();
@@ -74,6 +75,26 @@ export default function ProductListPage() {
   const collectionUrlFilter = () => (selectedCollectionIsSlug
     ? { collection: selectedCollection }
     : { collection_id: selectedCollection });
+
+  // Sync debounced search to URL without re-rendering or losing input focus
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const trimmed = debouncedSearch.trim();
+    const currentParam = params.get('search') || '';
+
+    if (trimmed !== currentParam) {
+      if (trimmed) {
+        params.set('search', trimmed);
+      } else {
+        params.delete('search');
+      }
+      params.delete('page');
+      const qs = params.toString();
+      const newUrl = qs ? `${pathname}?${qs}` : pathname;
+      window.history.replaceState(null, '', newUrl);
+    }
+  }, [debouncedSearch, pathname]);
 
   // Sync state from URL search params whenever URL changes (e.g. MegaMenu links, browser navigation)
   useEffect(() => {
@@ -91,8 +112,11 @@ export default function ProductListPage() {
     setSelectedCollectionIsSlug(colSlug);
     setSortBy(sort);
     setPage(p);
-    setSearchQuery(q);
-    setDebouncedSearch(q);
+
+    // Only sync search if it's genuinely different from current local state
+    // (e.g. incoming from header search navigation or browser back/forward)
+    setSearchQuery((current) => (current !== q && q !== debouncedSearch ? q : current));
+    setDebouncedSearch((current) => (current !== q && q !== debouncedSearch ? q : current));
   }, [searchParams]);
 
   const handleCategoryChange = (catIdOrSlug) => {
@@ -102,7 +126,7 @@ export default function ProductListPage() {
       setPage(1);
       updateUrlParams({
         ...collectionUrlFilter(),
-        search: searchQuery,
+        search: debouncedSearch,
         sort: sortBy,
         page: 1,
       });
@@ -124,7 +148,7 @@ export default function ProductListPage() {
       category_id: isSlug ? undefined : finalVal,
       category: isSlug ? finalVal : undefined,
       ...collectionUrlFilter(),
-      search: searchQuery,
+      search: debouncedSearch,
       sort: sortBy,
       page: 1,
     });
@@ -140,7 +164,7 @@ export default function ProductListPage() {
       ...categoryUrlFilter(),
       collection_id: slug ? undefined : colId,
       collection: slug,
-      search: searchQuery,
+      search: debouncedSearch,
       sort: sortBy,
       page: 1,
     });
@@ -149,13 +173,6 @@ export default function ProductListPage() {
   const handleSearchChange = (val) => {
     setSearchQuery(val);
     setPage(1);
-    updateUrlParams({
-      ...categoryUrlFilter(),
-      ...collectionUrlFilter(),
-      search: val,
-      sort: sortBy,
-      page: 1,
-    });
   };
 
   const handleSortChange = (sortVal) => {

@@ -32,7 +32,7 @@ const normalizeCartItem = (row) => {
     quantity,
     quantity_cart_item: quantity,
     quantity_available: available,
-    image: row.image || row.url_product_image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=300',
+    image: row.image || row.url_product_image || '',
     variant: row.variant || (row.color || row.size ? `${row.color || ''} ${row.size || ''}`.trim() : ''),
     line_total: lineTotal,
     total_item: lineTotal,
