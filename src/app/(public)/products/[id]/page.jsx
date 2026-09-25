@@ -3,6 +3,8 @@ import { getQueryClient } from '@/shared/services/queryClient';
 import { getProductDetailApi } from '@/features/products/apis/product.api';
 import ProductDetailPage from '@/features/products/pages/ProductDetailPage';
 
+export const revalidate = 60;
+
 export default async function ProductPage({ params }) {
   const { id } = await params;
   const queryClient = getQueryClient();

@@ -45,7 +45,10 @@ export default function ProductDetailPage() {
   const primaryCategoryId = product?.categories?.find((c) => c.is_primary)?.category_id || product?.categories?.[0]?.category_id;
   const { products: allProducts = [] } = useProducts(
     primaryCategoryId ? { category_id: primaryCategoryId, limit: 8, sort: 'newest' } : { limit: 8, sort: 'newest' },
-    { enabled: !!product && !isLoadingProduct }
+    {
+      enabled: !!product && !isLoadingProduct,
+      staleTime: 1000 * 60 * 10,
+    }
   );
 
   const relatedSliderRef = useRef(null);
