@@ -204,10 +204,10 @@ export default function MainLayout({ children }) {
 
           {/* 2. Center Brand Logo */}
           <div
-            className="flex flex-col items-center justify-center text-center cursor-pointer select-none group shrink-0 px-2"
+            className="flex flex-col items-center justify-center text-center cursor-pointer select-none shrink-0 px-2"
             onClick={() => router.push('/')}
           >
-            <span className={`font-display font-black text-xl sm:text-2xl lg:text-3xl tracking-tight uppercase leading-none transition-[color,opacity] duration-150 ease-out group-hover:opacity-75 ${isWhiteTheme
+            <span className={`font-display font-black text-xl sm:text-2xl lg:text-3xl tracking-tight uppercase leading-none transition-colors duration-150 ease-out ${isWhiteTheme
               ? 'text-black dark:text-white'
               : isTextSolidWhite ? 'text-white' : 'text-white/70'
               }`}>

@@ -265,7 +265,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => router.push('/')}
-            className={`inline-flex min-h-11 cursor-pointer items-center justify-center transition-opacity hover:opacity-70 ${step === 'otp' ? 'mb-6' : ''}`}
+            className={`inline-flex min-h-11 cursor-pointer items-center justify-center ${step === 'otp' ? 'mb-6' : ''}`}
             aria-label="Về trang chủ Gritmode"
           >
             <Image
