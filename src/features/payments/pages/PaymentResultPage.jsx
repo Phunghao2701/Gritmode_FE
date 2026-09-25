@@ -1,5 +1,7 @@
+'use client';
 import React from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { getOrderPaymentApi } from '../apis/payment.api';
 import Icon from '../../../shared/components/Icon';
@@ -10,7 +12,7 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 
 export default function PaymentResultPage() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const orderId = searchParams.get('orderId') || searchParams.get('order_id');
   const isCancelledFlow = window.location.pathname.includes('cancel');
@@ -106,14 +108,14 @@ export default function PaymentResultPage() {
       {/* Actions */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
         <PrimaryButton
-          onClick={() => navigate('/products')}
+          onClick={() => router.push('/products')}
           className="w-full sm:w-auto px-8 py-3.5 uppercase tracking-widest text-xs font-black rounded-2xl shadow-xl"
         >
           Tiếp tục mua sắm
         </PrimaryButton>
 
         <Link
-          to="/profile"
+          href="/profile"
           className="w-full sm:w-auto px-8 py-3.5 rounded-2xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-black uppercase tracking-widest text-black dark:text-white transition-all text-center"
         >
           Xem lịch sử đơn hàng

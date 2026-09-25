@@ -1,5 +1,6 @@
+'use client';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAdminProducts } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -11,7 +12,7 @@ import { toast } from '../../../shared/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 
 export default function AdminProductsPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -75,7 +76,7 @@ export default function AdminProductsPage() {
           </h1>
         </div>
 
-        <PrimaryButton icon="solar:add-circle-linear" onClick={() => navigate('/admin/products/create')} size="sm">
+        <PrimaryButton icon="solar:add-circle-linear" onClick={() => router.push('/admin/products/create')} size="sm">
           Thêm sản phẩm mới
         </PrimaryButton>
       </div>
@@ -218,7 +219,7 @@ export default function AdminProductsPage() {
                                 )}
                                 <button
                                   type="button"
-                                  onClick={() => navigate(`/admin/products/${productId}/edit`)}
+                                  onClick={() => router.push(`/admin/products/${productId}/edit`)}
                                   className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-black dark:text-white transition-all cursor-pointer"
                                   title="Chỉnh sửa"
                                 >

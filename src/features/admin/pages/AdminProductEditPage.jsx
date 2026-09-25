@@ -1,5 +1,7 @@
+'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -82,7 +84,7 @@ const STANDARD_SIZES = ['S', 'M', 'L', 'XL', '2XL', 'Free'];
 
 export default function AdminProductEditPage() {
   const { id: productId } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const isEditMode = Boolean(productId);
@@ -436,7 +438,7 @@ export default function AdminProductEditPage() {
       }
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      navigate('/admin/products');
+      router.push('/admin/products');
     } catch (err) {
       const missing = err.response?.data?.errors?.missing;
       const missingLabels = {
@@ -472,7 +474,7 @@ export default function AdminProductEditPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-6">
         <div>
           <Link
-            to="/admin/products"
+            href="/admin/products"
             className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black dark:hover:text-white mb-2 transition-colors"
           >
             <Icon icon="solar:arrow-left-linear" />
@@ -914,7 +916,7 @@ export default function AdminProductEditPage() {
       {/* Floating Save Footer on mobile/desktop */}
       <div className="sticky bottom-4 z-40 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-xl flex items-center justify-between gap-4">
         <Link
-          to="/admin/products"
+          href="/admin/products"
           className="text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white"
         >
           Hủy bỏ

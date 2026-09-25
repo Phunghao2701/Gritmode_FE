@@ -1,12 +1,15 @@
+'use client';
+
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import ProductCard from '../../products/components/ProductCard';
 import { useProducts, useCategories } from '../../products/hooks/useProducts';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 
 export default function LandingPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [activeCategoryId, setActiveCategoryId] = useState('');
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
@@ -20,7 +23,7 @@ export default function LandingPage() {
   });
 
   const heroSlides = useMemo(() => {
-    const slides = products
+    return products
       .map((product) => ({
         id: product.product_id || product.id,
         image: product.thumbnail || product.images?.[0]?.url_product_image,
@@ -28,15 +31,10 @@ export default function LandingPage() {
       }))
       .filter((slide) => slide.image)
       .slice(0, 5);
-
-    return slides.length > 0 ? slides : [{
-      id: 'fallback',
-      image: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=1800',
-      alt: 'New Arrivals',
-    }];
   }, [products]);
 
   useEffect(() => {
+    if (heroSlides.length === 0) return;
     setActiveHeroIndex((current) => current % heroSlides.length);
   }, [heroSlides.length]);
 
@@ -65,7 +63,7 @@ export default function LandingPage() {
       {/* 1. Cinematic Streetwear Hero Banner */}
       <section className="relative min-h-[92vh] text-white bg-black overflow-hidden select-none">
         <div
-          onClick={() => navigate('/products?sort=newest')}
+          onClick={() => router.push('/products?sort=newest')}
           onMouseEnter={() => setIsHeroPaused(true)}
           onMouseLeave={() => setIsHeroPaused(false)}
           onFocusCapture={() => setIsHeroPaused(true)}
@@ -74,18 +72,23 @@ export default function LandingPage() {
         >
           {heroSlides.map((slide, index) => (
             (index === activeHeroIndex || index === (activeHeroIndex + 1) % heroSlides.length) && (
-            <img
-              key={slide.id}
-              src={slide.image}
-              alt={index === activeHeroIndex ? slide.alt : ''}
-              aria-hidden={index !== activeHeroIndex}
-              loading={index === activeHeroIndex ? 'eager' : 'lazy'}
-              fetchPriority={index === activeHeroIndex ? 'high' : 'low'}
-              decoding="async"
-              className={`absolute inset-0 w-full h-full object-cover object-center transition-[opacity,transform] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
-                index === activeHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
-              }`}
-            />
+              <div
+                key={slide.id}
+                className={`absolute inset-0 w-full h-full transition-[opacity,transform] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
+                  index === activeHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
+                }`}
+                aria-hidden={index !== activeHeroIndex}
+              >
+                <Image
+                  src={slide.image}
+                  alt={index === activeHeroIndex ? slide.alt : ''}
+                  fill
+                  priority={index === 0}
+                  quality={90}
+                  sizes="100vw"
+                  className="object-cover object-top sm:object-[center_15%]"
+                />
+              </div>
             )
           ))}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30" />
@@ -196,7 +199,7 @@ export default function LandingPage() {
         <div className="text-center pt-6">
           <button
             type="button"
-            onClick={() => navigate('/products')}
+            onClick={() => router.push('/products')}
             className="px-8 py-3.5 rounded-full border-2 border-black dark:border-white text-black dark:text-white text-xs font-[550] uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 shadow-md cursor-pointer"
           >
             Xem tất cả bộ sưu tập

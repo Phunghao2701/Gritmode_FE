@@ -1,5 +1,7 @@
+'use client';
 import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useCheckout } from '../hooks/useCheckout';
 import ShippingAddressForm from '../components/ShippingAddressForm';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
@@ -8,7 +10,7 @@ import EmptyState from '../../../shared/components/EmptyState';
 import Icon from '../../../shared/components/Icon';
 
 export default function CheckoutPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const {
     items,
     formData,
@@ -40,7 +42,7 @@ export default function CheckoutPage() {
           description="Bạn chưa chọn sản phẩm nào để thanh toán. Hãy chọn những mẫu thiết kế streetwear ưng ý!"
           icon="solar:bag-smile-linear"
           actionLabel="Khám phá sản phẩm"
-          onAction={() => navigate('/products')}
+          onAction={() => router.push('/products')}
         />
       </div>
     );
@@ -51,7 +53,7 @@ export default function CheckoutPage() {
       {/* Top Header & Breadcrumb */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 pb-5">
         <Link
-          to="/products"
+          href="/products"
           className="inline-flex items-center gap-1.5 text-xs font-normal text-neutral-400 hover:text-black dark:hover:text-white transition-colors mb-2"
         >
           <Icon icon="solar:arrow-left-linear" />

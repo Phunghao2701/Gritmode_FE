@@ -3,16 +3,16 @@
  * Handles order validation, voucher application, saved address prefill, and placing order.
  */
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useCartStore } from '../../../app/store/cartStore';
-import { useAuthStore } from '../../../app/store/authStore';
+import { useRouter } from 'next/navigation';
+import { useCartStore } from '@/shared/store/cartStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { useAddresses } from '../../profile/hooks/useProfile';
 import { createOrderApi } from '../apis/checkout.api';
 import { validateVoucherApi } from '../../vouchers/apis/voucher.api';
 import { toast } from '../../../shared/utils/toast';
 
 export const useCheckout = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { items, getSubtotal, resetCartState, fetchCart, updateQuantity, removeItem } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const { addresses, defaultAddress, isLoadingAddresses } = useAddresses();
@@ -195,7 +195,7 @@ const normalizePhone = (phone) => {
       toast.success('Đặt hàng thành công!');
 
       // Directly navigate to finalized order page with embedded VietQR / order details
-      navigate(orderData?.order_id ? `/order-success/${orderData.order_id}` : '/profile', {
+      router.push(orderData?.order_id ? `/orders/${orderData.order_id}/success` : '/profile', {
         state: { order: orderData },
       });
     } catch (err) {

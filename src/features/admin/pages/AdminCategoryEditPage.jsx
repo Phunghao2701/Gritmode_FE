@@ -1,5 +1,7 @@
+'use client';
 import { useEffect, useState, useMemo } from 'react';
-import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAdminCategories } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -8,9 +10,10 @@ import { slugify } from '../components/CategoryFormModal';
 import { toast } from '../../../shared/utils/toast';
 
 export default function AdminCategoryEditPage() {
-  const { categoryId } = useParams();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const categoryId = params?.categoryId || params?.id;
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const isEditMode = Boolean(categoryId);
   const parentIdParam = searchParams.get('parentId');
 
@@ -75,7 +78,7 @@ export default function AdminCategoryEditPage() {
         await createCategory(payload);
         toast.success(isChildCategory ? 'Tạo danh mục con thành công!' : 'Tạo danh mục gốc thành công!');
       }
-      navigate('/admin/categories');
+      router.push('/admin/categories');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Có lỗi xảy ra khi lưu danh mục');
     } finally {
@@ -104,7 +107,7 @@ export default function AdminCategoryEditPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-6">
         <div>
           <Link
-            to="/admin/categories"
+            href="/admin/categories"
             className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black dark:hover:text-white mb-2 transition-colors"
           >
             <Icon icon="solar:arrow-left-linear" />
@@ -196,7 +199,7 @@ export default function AdminCategoryEditPage() {
       {/* Sticky Bottom Bar */}
       <div className="sticky bottom-4 z-20 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-xl flex items-center justify-between gap-4">
         <Link
-          to="/admin/categories"
+          href="/admin/categories"
           className="text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white"
         >
           Hủy bỏ

@@ -1,11 +1,15 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useProducts, useCategories, useCollections } from '../hooks/useProducts';
 import ProductFilterBar from '../components/ProductFilterBar';
 import ProductGrid from '../components/ProductGrid';
 
 export default function ProductListPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const initialCategory = searchParams.get('category') || searchParams.get('category_id') || '';
   const initialCategoryIsSlug = Boolean(searchParams.get('category'));
@@ -56,10 +60,12 @@ export default function ProductListPage() {
     if (newFilters.category) params.set('category', newFilters.category);
     if (newFilters.collection_id) params.set('collection_id', newFilters.collection_id);
     if (newFilters.collection) params.set('collection', newFilters.collection);
-    if (newFilters.search) params.set('search', newFilters.search);
+    const searchVal = newFilters.search !== undefined ? newFilters.search : debouncedSearch;
+    if (searchVal && searchVal.trim()) params.set('search', searchVal.trim());
     if (newFilters.sort && newFilters.sort !== 'newest') params.set('sort', newFilters.sort);
     if (newFilters.page && newFilters.page > 1) params.set('page', String(newFilters.page));
-    setSearchParams(params);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
   };
 
   const categoryUrlFilter = () => (selectedCategoryIsSlug
@@ -70,17 +76,79 @@ export default function ProductListPage() {
     ? { collection: selectedCollection }
     : { collection_id: selectedCollection });
 
-  const handleCategoryChange = (catId) => {
-    setSelectedCategory(catId);
-    const category = categories.find((item) => String(item.category_id || item.id) === String(catId));
+  // Sync debounced search to URL without re-rendering or losing input focus
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const trimmed = debouncedSearch.trim();
+    const currentParam = params.get('search') || '';
+
+    if (trimmed !== currentParam) {
+      if (trimmed) {
+        params.set('search', trimmed);
+      } else {
+        params.delete('search');
+      }
+      params.delete('page');
+      const qs = params.toString();
+      const newUrl = qs ? `${pathname}?${qs}` : pathname;
+      window.history.replaceState(null, '', newUrl);
+    }
+  }, [debouncedSearch, pathname]);
+
+  // Sync state from URL search params whenever URL changes (e.g. MegaMenu links, browser navigation)
+  useEffect(() => {
+    const cat = searchParams.get('category') || searchParams.get('category_id') || '';
+    const catSlug = Boolean(searchParams.get('category'));
+    const col = searchParams.get('collection') || searchParams.get('collection_id') || '';
+    const colSlug = Boolean(searchParams.get('collection'));
+    const sort = searchParams.get('sort') || 'newest';
+    const p = Number(searchParams.get('page')) || 1;
+    const q = searchParams.get('search') || '';
+
+    setSelectedCategory(cat);
+    setSelectedCategoryIsSlug(catSlug);
+    setSelectedCollection(col);
+    setSelectedCollectionIsSlug(colSlug);
+    setSortBy(sort);
+    setPage(p);
+
+    // Only sync search if it's genuinely different from current local state
+    // (e.g. incoming from header search navigation or browser back/forward)
+    setSearchQuery((current) => (current !== q && q !== debouncedSearch ? q : current));
+    setDebouncedSearch((current) => (current !== q && q !== debouncedSearch ? q : current));
+  }, [searchParams]);
+
+  const handleCategoryChange = (catIdOrSlug) => {
+    if (!catIdOrSlug) {
+      setSelectedCategory('');
+      setSelectedCategoryIsSlug(false);
+      setPage(1);
+      updateUrlParams({
+        ...collectionUrlFilter(),
+        search: debouncedSearch,
+        sort: sortBy,
+        page: 1,
+      });
+      return;
+    }
+
+    const category = categories.find((item) =>
+      String(item.category_id || item.id) === String(catIdOrSlug) ||
+      String(item.slug_category || item.slug) === String(catIdOrSlug)
+    );
     const slug = category?.slug_category || category?.slug;
-    setSelectedCategoryIsSlug(Boolean(slug));
+    const isSlug = Boolean(slug) || isNaN(Number(catIdOrSlug));
+    const finalVal = slug || catIdOrSlug;
+
+    setSelectedCategory(finalVal);
+    setSelectedCategoryIsSlug(isSlug);
     setPage(1);
     updateUrlParams({
-      category_id: slug ? undefined : catId,
-      category: slug,
+      category_id: isSlug ? undefined : finalVal,
+      category: isSlug ? finalVal : undefined,
       ...collectionUrlFilter(),
-      search: searchQuery,
+      search: debouncedSearch,
       sort: sortBy,
       page: 1,
     });
@@ -96,7 +164,7 @@ export default function ProductListPage() {
       ...categoryUrlFilter(),
       collection_id: slug ? undefined : colId,
       collection: slug,
-      search: searchQuery,
+      search: debouncedSearch,
       sort: sortBy,
       page: 1,
     });
@@ -105,13 +173,6 @@ export default function ProductListPage() {
   const handleSearchChange = (val) => {
     setSearchQuery(val);
     setPage(1);
-    updateUrlParams({
-      ...categoryUrlFilter(),
-      ...collectionUrlFilter(),
-      search: val,
-      sort: sortBy,
-      page: 1,
-    });
   };
 
   const handleSortChange = (sortVal) => {
@@ -144,9 +205,10 @@ export default function ProductListPage() {
     setSelectedCollection('');
     setSelectedCollectionIsSlug(false);
     setSearchQuery('');
+    setDebouncedSearch('');
     setSortBy('newest');
     setPage(1);
-    setSearchParams(new URLSearchParams());
+    router.replace(pathname);
   };
 
   // Find active category / collection name for banner title

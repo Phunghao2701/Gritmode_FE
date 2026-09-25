@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+'use client';
+import { useRouter } from 'next/navigation';
 import { useAdminDashboardOverview } from '../hooks/useAdmin';
 import DashboardStatCard from '../components/DashboardStatCard';
 import RecentOrdersTable from '../components/RecentOrdersTable';
@@ -6,7 +7,7 @@ import LowStockAlert from '../components/LowStockAlert';
 import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export default function AdminDashboardPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { data: overview } = useAdminDashboardOverview();
   const stats = overview?.stats;
   const orders = overview?.orders || [];
@@ -66,13 +67,13 @@ export default function AdminDashboardPage() {
         <div className="lg:col-span-7">
           <RecentOrdersTable
             orders={orders.slice(0, 5)}
-            onViewAll={() => navigate('/admin/orders')}
+            onViewAll={() => router.push('/admin/orders')}
           />
         </div>
         <div className="lg:col-span-5">
           <LowStockAlert
             lowStockItems={lowStockItems.slice(0, 3)}
-            onManageInventory={() => navigate('/admin/inventory')}
+            onManageInventory={() => router.push('/admin/inventory')}
           />
         </div>
       </div>

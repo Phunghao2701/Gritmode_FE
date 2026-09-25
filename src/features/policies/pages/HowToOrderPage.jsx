@@ -1,5 +1,6 @@
+'use client';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 
@@ -38,7 +39,7 @@ export default function HowToOrderPage() {
       <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 py-12 sm:py-16">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-bold text-neutral-400">
-            <Link to="/" className="hover:text-black dark:hover:text-white transition-colors">
+            <Link href="/" className="hover:text-black dark:hover:text-white transition-colors">
               Trang chủ
             </Link>
             <span>/</span>
@@ -130,7 +131,7 @@ export default function HowToOrderPage() {
             Hàng trăm mẫu thiết kế streetwear độc bản đang chờ đón bạn.
           </p>
           <div className="pt-2">
-            <Link to="/products">
+            <Link href="/products">
               <PrimaryButton
                 variant="secondary"
                 className="px-8 py-3.5 text-xs font-black uppercase tracking-widest rounded-full"

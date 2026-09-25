@@ -1,5 +1,6 @@
+'use client';
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 
@@ -177,7 +178,7 @@ export default function AboutUsPage() {
             Mỗi sản phẩm là một câu chuyện độc bản. Hãy trải nghiệm chất lượng vải và form dáng nguyên bản của Gritmode ngay hôm nay.
           </p>
           <div className="pt-2">
-            <Link to="/products">
+            <Link href="/products">
               <PrimaryButton
                 variant="secondary"
                 className="px-8 py-3.5 uppercase tracking-widest text-xs font-black rounded-full"

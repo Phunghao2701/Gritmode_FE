@@ -3,6 +3,7 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./app/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: 'class',
   future: {
@@ -41,9 +42,9 @@ export default {
         }
       },
       fontFamily: {
-        display: ['Plus Jakarta Sans', 'sans-serif'],
-        sans: ['Plus Jakarta Sans', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
+        display: ['var(--font-sans)', 'Plus Jakarta Sans', 'sans-serif'],
+        sans: ['var(--font-sans)', 'Plus Jakarta Sans', 'sans-serif'],
+        mono: ['var(--font-mono)', 'JetBrains Mono', 'monospace'],
       },
       letterSpacing: {
         tighter: '-0.04em',

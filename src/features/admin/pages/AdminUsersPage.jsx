@@ -1,13 +1,14 @@
+'use client';
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAdminUsers } from '../hooks/useAdmin';
-import { useAuthStore } from '../../../app/store/authStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
 
 export default function AdminUsersPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { user: currentAdmin } = useAuthStore();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -233,7 +234,7 @@ export default function AdminUsersPage() {
                           <td className="py-4 text-right space-x-2">
                             <button
                               type="button"
-                              onClick={() => navigate(`/admin/users/${usr.user_id}`)}
+                              onClick={() => router.push(`/admin/users/${usr.user_id}`)}
                               className="px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-[10px] font-bold uppercase tracking-wider text-black dark:text-white transition-all cursor-pointer"
                             >
                               Chi tiết

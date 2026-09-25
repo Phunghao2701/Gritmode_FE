@@ -11,11 +11,11 @@
  *  - restoreAuth()            → Khôi phục session khi App reload
  */
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { toast } from '../../../shared/utils/toast';
-import { useAuthStore } from '../../../app/store/authStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { useOtpStore } from '../store/otpStore';
-import { useCartStore } from '../../../app/store/cartStore';
+import { useCartStore } from '@/shared/store/cartStore';
 import {
   requestOtpApi,
   verifyOtpApi,
@@ -26,7 +26,7 @@ import { tokenService } from '../services/token.service';
 import { clearPrivateQueryCache } from '../../../shared/services/queryClient';
 
 export default function useAuth() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // Auth store
   const user = useAuthStore((s) => s.user);
@@ -142,7 +142,7 @@ export default function useAuth() {
           toast.success('Đăng nhập thành công! Chào mừng bạn quay trở lại.');
         }
 
-        navigate(redirectPath, { replace: true });
+        router.replace(redirectPath);
         return { success: true, isNewUser };
       } catch (err) {
         const status = err.response?.status;
@@ -166,7 +166,7 @@ export default function useAuth() {
         setVerifying(false);
       }
     },
-    [otpState.isVerifying, setVerifying, setOtpError, resetOtp, clearGuestToken, navigate]
+    [otpState.isVerifying, setVerifying, setOtpError, resetOtp, clearGuestToken, router]
   );
 
   // -------------------------------------------------------
@@ -182,9 +182,9 @@ export default function useAuth() {
       tokenService.clearAllTokens();
       clearAuth();
       toast.info('Đã đăng xuất tài khoản.');
-      navigate('/login');
+      router.push('/login');
     }
-  }, [clearAuth, navigate]);
+  }, [clearAuth, router]);
 
   // -------------------------------------------------------
   // RESTORE AUTH (khi App reload)

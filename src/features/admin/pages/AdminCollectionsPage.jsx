@@ -1,5 +1,6 @@
+'use client';
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -11,7 +12,7 @@ import {
 } from '../../collections/apis/collection.api';
 
 export default function AdminCollectionsPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [expandedIds, setExpandedIds] = useState(new Set());
   const [deletingCollection, setDeletingCollection] = useState(null);
@@ -70,7 +71,7 @@ export default function AdminCollectionsPage() {
         </div>
         <PrimaryButton
           icon="solar:add-circle-linear"
-          onClick={() => navigate('/admin/collections/create')}
+          onClick={() => router.push('/admin/collections/create')}
           size="sm"
         >
           Thêm nhóm mới
@@ -128,7 +129,7 @@ export default function AdminCollectionsPage() {
                     <button
                       type="button"
                       title="Chỉnh sửa nhóm"
-                      onClick={() => navigate(`/admin/collections/create?edit_collection_id=${parent.collection_id}`)}
+                      onClick={() => router.push(`/admin/collections/create?edit_collection_id=${parent.collection_id}`)}
                       className="p-2 text-neutral-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                     >
                       <Icon icon="solar:pen-2-linear" className="text-base" />
@@ -147,7 +148,7 @@ export default function AdminCollectionsPage() {
                     {/* Add child button */}
                     <button
                       type="button"
-                      onClick={() => navigate(`/admin/collections/create?parent_collection_id=${parent.collection_id}`)}
+                      onClick={() => router.push(`/admin/collections/create?parent_collection_id=${parent.collection_id}`)}
                       className="rounded-full border border-black dark:border-white px-4 py-2 text-xs font-black uppercase text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors ml-1 cursor-pointer"
                     >
                       + Thêm bộ sưu tập con
@@ -190,7 +191,7 @@ export default function AdminCollectionsPage() {
                             <button
                               type="button"
                               title="Chỉnh sửa"
-                              onClick={() => navigate(`/admin/collections/create?edit_collection_id=${child.collection_id}&parent_collection_id=${parent.collection_id}`)}
+                              onClick={() => router.push(`/admin/collections/create?edit_collection_id=${child.collection_id}&parent_collection_id=${parent.collection_id}`)}
                               className="p-2 rounded-xl text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
                             >
                               <Icon icon="solar:pen-2-linear" className="text-sm" />

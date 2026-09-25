@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import Icon from '../../../shared/components/Icon';
 import EmptyState from '../../../shared/components/EmptyState';
 import { useCart } from '../hooks/useCart';
@@ -9,7 +11,7 @@ import { toast } from '../../../shared/utils/toast';
 import { useSmoothScroll } from '../../../shared/components/SmoothScrollProvider';
 
 export default function CartDrawer() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const lenis = useSmoothScroll();
   const {
     isOpen,
@@ -59,7 +61,7 @@ export default function CartDrawer() {
       return;
     }
     closeDrawer();
-    navigate('/checkout');
+    router.push('/checkout');
   };
 
   return (
@@ -111,7 +113,7 @@ export default function CartDrawer() {
                   actionLabel="Khám phá sản phẩm"
                   onAction={() => {
                     closeDrawer();
-                    navigate('/products');
+                    router.push('/products');
                   }}
                 />
               </div>

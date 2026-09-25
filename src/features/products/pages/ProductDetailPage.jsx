@@ -1,20 +1,24 @@
+'use client';
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useProductDetail } from '../hooks/useProductDetail';
 import { useProducts } from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
 import ProductVariantSelector from '../components/ProductVariantSelector';
 import Icon from '../../../shared/components/Icon';
-import { useCartStore } from '../../../app/store/cartStore';
+import { useCartStore } from '@/shared/store/cartStore';
 import { toast } from '../../../shared/utils/toast';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 import { formatPriceVND, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
 
 export default function ProductDetailPage() {
-  const { slug } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const slug = params?.slug || params?.id;
+  const router = useRouter();
   const { addItem } = useCartStore();
 
   const {
@@ -169,7 +173,7 @@ export default function ProductDetailPage() {
           description="Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã ngừng kinh doanh."
           icon="solar:box-minimalistic-linear"
           actionLabel="Khám phá bộ sưu tập"
-          onAction={() => navigate('/products')}
+          onAction={() => router.push('/products')}
         />
       </div>
     );
@@ -212,7 +216,7 @@ export default function ProductDetailPage() {
 
     if (shouldRedirect) {
       const res = await addItem(payload);
-      if (res?.success) navigate('/checkout');
+      if (res?.success) router.push('/checkout');
     } else {
       // Non-blocking: optimistic store update triggers drawer instantly (< 50ms)
       addItem(payload);
@@ -224,9 +228,9 @@ export default function ProductDetailPage() {
 
       {/* Breadcrumb Navigation */}
       <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-400 select-none">
-        <Link to="/" className="font-normal hover:text-black dark:hover:text-white transition-colors">Trang chủ</Link>
+        <Link href="/" className="font-normal hover:text-black dark:hover:text-white transition-colors">Trang chủ</Link>
         <span>/</span>
-        <Link to="/products" className="font-normal hover:text-black dark:hover:text-white transition-colors">
+        <Link href="/products" className="font-normal hover:text-black dark:hover:text-white transition-colors">
           {primaryCategory ? primaryCategory.name_category : 'Sản phẩm'}
         </Link>
         <span>/</span>

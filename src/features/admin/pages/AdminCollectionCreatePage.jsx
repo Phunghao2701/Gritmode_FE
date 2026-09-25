@@ -1,5 +1,7 @@
+'use client';
 import { useEffect, useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -8,7 +10,7 @@ import { createCollectionApi, getAdminCollectionsApi, updateCollectionApi } from
 import { uploadAdminProductImagesApi } from '../apis/admin.api';
 
 export default function AdminCollectionCreatePage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const initialParentId = searchParams.get('parent_collection_id') || '';
@@ -72,7 +74,7 @@ export default function AdminCollectionCreatePage() {
         queryClient.invalidateQueries({ queryKey: ['collections-public-list'] }),
       ]);
       toast.success(isEditMode ? 'Đã cập nhật bộ sưu tập.' : 'Đã tạo nhóm bộ sưu tập.');
-      navigate('/admin/collections');
+      router.push('/admin/collections');
     },
     onError: (error) => toast.error(error.response?.data?.message || 'Không thể tạo nhóm bộ sưu tập'),
   });
@@ -91,7 +93,7 @@ export default function AdminCollectionCreatePage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-6">
         <div>
           <Link
-            to="/admin/collections"
+            href="/admin/collections"
             className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black dark:hover:text-white mb-2 transition-colors"
           >
             <Icon icon="solar:arrow-left-linear" />
@@ -172,7 +174,7 @@ export default function AdminCollectionCreatePage() {
       </form>
 
       <div className="sticky bottom-4 z-20 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-xl flex items-center justify-between gap-4">
-        <Link to="/admin/collections" className="text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white">
+        <Link href="/admin/collections" className="text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white">
           Hủy bỏ
         </Link>
         <PrimaryButton

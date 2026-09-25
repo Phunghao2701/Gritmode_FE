@@ -12,8 +12,13 @@ import { tokenService } from '../../features/auth/services/token.service';
 import { guestTokenService } from '../../features/cart/services/guestToken.service';
 
 // --- Axios instance chính ---
+const API_BASE_URL = 
+  process.env.NEXT_PUBLIC_API_URL || 
+  process.env.VITE_API_URL || 
+  'http://localhost:8000/api/v1';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE_URL,
   withCredentials: true,
   timeout: 15000,
   headers: {
@@ -87,7 +92,7 @@ api.interceptors.response.use(
       try {
         // Gọi trực tiếp qua axios (không qua instance `api`) để tránh interceptor loop
         const res = await axios.post(
-          `${import.meta.env.VITE_API_URL}/auth/refresh`,
+          `${API_BASE_URL}/auth/refresh`,
           {},
           { withCredentials: true, _isRefreshRequest: true }
         );
@@ -99,7 +104,7 @@ api.interceptors.response.use(
           tokenService.setAccessToken(newAccessToken);
 
           if (newUser) {
-            const { useAuthStore } = await import('../../app/store/authStore');
+            const { useAuthStore } = await import('../store/authStore');
             useAuthStore.getState().setUser(newUser);
           }
 
@@ -115,7 +120,7 @@ api.interceptors.response.use(
         clearPrivateQueryCache();
         tokenService.clearAllTokens();
 
-        const { useAuthStore } = await import('../../app/store/authStore');
+        const { useAuthStore } = await import('../store/authStore');
         useAuthStore.getState().clearAuth();
 
         return Promise.reject(refreshError);
@@ -130,7 +135,7 @@ api.interceptors.response.use(
 
 // --- Public API instance (không có token, không có refresh) ---
 export const publicApi = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

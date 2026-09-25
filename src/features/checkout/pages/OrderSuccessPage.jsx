@@ -1,5 +1,7 @@
+'use client';
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { getMyOrderByIdApi } from '../../orders/apis/order.api';
 import { useOrderPayment, useCreatePayOSPayment, usePaymentCountdown } from '../../payments/hooks/usePayment';
@@ -8,14 +10,14 @@ import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import { formatPriceVND } from '../../products/utils/product.utils';
-import { useAuthStore } from '../../../app/store/authStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { toast } from '../../../shared/utils/toast';
 
 export default function OrderSuccessPage() {
-  const { orderId } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const stateOrder = location.state?.order;
+  const params = useParams();
+  const orderId = params?.orderId || params?.id;
+  const router = useRouter();
+  const stateOrder = null;
   const { isAuthenticated } = useAuthStore();
   const [copiedField, setCopiedField] = useState(null);
 
@@ -115,7 +117,7 @@ export default function OrderSuccessPage() {
         </div>
 
         <Link
-          to="/products"
+          href="/products"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-[550] uppercase tracking-wider text-black dark:text-white transition-all self-start sm:self-auto cursor-pointer"
         >
           <Icon icon="solar:arrow-left-linear" />
@@ -268,7 +270,7 @@ export default function OrderSuccessPage() {
           {/* Bottom Actions */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <PrimaryButton
-              onClick={() => navigate('/products')}
+              onClick={() => router.push('/products')}
               className="px-6 py-3 uppercase tracking-widest text-xs font-[550] rounded-2xl shadow-md"
             >
               Tiếp tục mua sắm
@@ -276,7 +278,7 @@ export default function OrderSuccessPage() {
 
             {isAuthenticated && (
               <Link
-                to="/profile"
+                href="/profile"
                 className="px-6 py-3 rounded-2xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-[550] uppercase tracking-widest text-black dark:text-white transition-all text-center"
               >
                 Xem đơn mua của tôi

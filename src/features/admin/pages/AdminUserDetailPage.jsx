@@ -1,4 +1,6 @@
-import { useParams, Link } from 'react-router-dom';
+'use client';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAdminUserDetail, useAdminUsers } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -7,7 +9,8 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 import { getOrderStatusInfo } from '../../orders/utils/order.utils';
 
 export default function AdminUserDetailPage() {
-  const { userId } = useParams();
+  const params = useParams();
+  const userId = params?.userId || params?.id;
 
   const { data: user, isLoading } = useAdminUserDetail(userId);
   const {
@@ -42,7 +45,7 @@ export default function AdminUserDetailPage() {
           Người dùng #{userId} không tồn tại hoặc đã bị xóa.
         </p>
         <Link
-          to="/admin/users"
+          href="/admin/users"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black dark:bg-white text-white dark:text-black text-xs font-black uppercase tracking-wider"
         >
           Quay lại danh sách
@@ -54,8 +57,11 @@ export default function AdminUserDetailPage() {
   const addresses = Array.isArray(user.addresses) ? user.addresses : [];
   const orders = Array.isArray(user.orders) ? user.orders : [];
 
-  const isBlocked = user.status_user === 'blocked' || user.is_blocked;
-  const isInactive = user.status_user === 'inactive';
+  const userStatus = user.status || user.status_user || 'active';
+  const userRole = user.role || user.role_user || 'customer';
+  const userName = user.full_name || user.name_user || user.name || 'Người dùng';
+  const isBlocked = userStatus === 'blocked' || user.is_blocked;
+  const isInactive = userStatus === 'inactive';
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-12">
@@ -63,27 +69,30 @@ export default function AdminUserDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-5">
         <div>
           <Link
-            to="/admin/users"
+            href="/admin/users"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-400 hover:text-black dark:hover:text-white transition-colors mb-2"
           >
             <Icon icon="solar:arrow-left-linear" /> Quay lại danh sách khách hàng
           </Link>
           <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center font-black text-sm text-black dark:text-white shrink-0">
+              {userName.trim().charAt(0).toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
             <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
-              {user.name_user || user.name || 'Người dùng'}
+              {userName}
             </h1>
             <span
               className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                user.role_user === 'admin'
+                userRole === 'admin'
                   ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-900'
                   : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900'
               }`}
             >
-              {user.role_user === 'admin' ? 'Quản trị viên' : 'Khách hàng'}
+              {userRole === 'admin' ? 'Quản trị viên' : 'Khách hàng'}
             </span>
           </div>
           <p className="text-xs text-neutral-400 mt-1">
-            Tham gia: {new Date(user.created_at).toLocaleDateString('vi-VN')}
+            Tham gia: {user.created_at ? new Date(user.created_at).toLocaleDateString('vi-VN') : '—'}
           </p>
         </div>
 
@@ -142,6 +151,24 @@ export default function AdminUserDetailPage() {
                 <span className="text-neutral-400 block text-[10px] font-bold uppercase">Số điện thoại</span>
                 <span className="font-medium text-neutral-700 dark:text-neutral-300">{user.phone || '—'}</span>
               </div>
+
+              {user.gender && (
+                <div>
+                  <span className="text-neutral-400 block text-[10px] font-bold uppercase">Giới tính</span>
+                  <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                    {user.gender === 'male' ? 'Nam' : user.gender === 'female' ? 'Nữ' : user.gender}
+                  </span>
+                </div>
+              )}
+
+              {user.date_of_birth && (
+                <div>
+                  <span className="text-neutral-400 block text-[10px] font-bold uppercase">Ngày sinh</span>
+                  <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                    {new Date(user.date_of_birth).toLocaleDateString('vi-VN')}
+                  </span>
+                </div>
+              )}
 
               <div>
                 <span className="text-neutral-400 block text-[10px] font-bold uppercase">Trạng thái</span>
@@ -210,7 +237,7 @@ export default function AdminUserDetailPage() {
                     <div key={idx} className="py-3.5 flex items-center justify-between gap-4">
                       <div>
                         <Link
-                          to={`/admin/orders/${order.order_id}`}
+                          href={`/admin/orders/${order.order_id}`}
                           className="font-bold text-sm text-black dark:text-white hover:underline"
                         >
                           #{order.code_order || order.order_id}
@@ -228,7 +255,7 @@ export default function AdminUserDetailPage() {
                           {formatPriceVND(order.total_order || 0)}
                         </span>
                         <Link
-                          to={`/admin/orders/${order.order_id}`}
+                          href={`/admin/orders/${order.order_id}`}
                           className="p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-400 hover:text-black dark:hover:text-white"
                         >
                           <Icon icon="solar:arrow-right-linear" />
