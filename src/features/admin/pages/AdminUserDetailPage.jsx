@@ -75,17 +75,9 @@ export default function AdminUserDetailPage() {
             <Icon icon="solar:arrow-left-linear" /> Quay lại danh sách khách hàng
           </Link>
           <div className="flex items-center gap-3">
-            {user.url_image ? (
-              <img
-                src={user.url_image}
-                alt={userName}
-                className="w-10 h-10 rounded-full object-cover border border-neutral-200 dark:border-neutral-800"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500 font-bold">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center font-black text-sm text-black dark:text-white shrink-0">
+              {userName.trim().charAt(0).toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}
+            </div>
             <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
               {userName}
             </h1>
