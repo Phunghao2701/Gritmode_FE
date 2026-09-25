@@ -91,12 +91,12 @@ export default function LandingPage() {
                   priority={index === 0}
                   quality={90}
                   sizes="100vw"
-                  className="object-cover object-top sm:object-[center_12%]"
+                  className="object-cover object-top sm:object-[center_15%]"
                 />
               </div>
             )
           ))}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30" />
           
           <div className="relative z-10 flex flex-col items-center text-center space-y-3 mb-6 max-w-2xl mx-auto">
             <span className="text-xs font-black uppercase tracking-[0.25em] text-white/80 border-b border-white/30 pb-1">

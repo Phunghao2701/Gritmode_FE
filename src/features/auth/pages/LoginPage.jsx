@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { useGoogleLogin } from '@react-oauth/google';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { toast } from '../../../shared/utils/toast';
@@ -267,12 +268,13 @@ export default function LoginPage() {
             className={`inline-flex min-h-11 cursor-pointer items-center justify-center transition-opacity hover:opacity-70 ${step === 'otp' ? 'mb-6' : ''}`}
             aria-label="Về trang chủ Gritmode"
           >
-            <img
+            <Image
               src={gritmodeLogo}
               alt="Gritmode"
-              width="160"
-              height="128"
-              className="h-32 w-40 object-contain"
+              width={160}
+              height={128}
+              priority
+              className="h-28 w-auto object-contain"
             />
           </button>
           {step === 'otp' && (
