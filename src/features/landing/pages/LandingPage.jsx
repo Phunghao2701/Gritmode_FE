@@ -1,12 +1,14 @@
+'use client';
+
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import ProductCard from '../../products/components/ProductCard';
 import { useProducts, useCategories } from '../../products/hooks/useProducts';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 
 export default function LandingPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [activeCategoryId, setActiveCategoryId] = useState('');
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
@@ -65,7 +67,7 @@ export default function LandingPage() {
       {/* 1. Cinematic Streetwear Hero Banner */}
       <section className="relative min-h-[92vh] text-white bg-black overflow-hidden select-none">
         <div
-          onClick={() => navigate('/products?sort=newest')}
+          onClick={() => router.push('/products?sort=newest')}
           onMouseEnter={() => setIsHeroPaused(true)}
           onMouseLeave={() => setIsHeroPaused(false)}
           onFocusCapture={() => setIsHeroPaused(true)}
@@ -196,7 +198,7 @@ export default function LandingPage() {
         <div className="text-center pt-6">
           <button
             type="button"
-            onClick={() => navigate('/products')}
+            onClick={() => router.push('/products')}
             className="px-8 py-3.5 rounded-full border-2 border-black dark:border-white text-black dark:text-white text-xs font-[550] uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 shadow-md cursor-pointer"
           >
             Xem tất cả bộ sưu tập

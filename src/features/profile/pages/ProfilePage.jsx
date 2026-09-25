@@ -6,7 +6,7 @@ import MyOrdersList from '../components/MyOrdersList';
 import ChangePasswordCard from '../components/ChangePasswordCard';
 import Icon from '../../../shared/components/Icon';
 import useAuth from '../../auth/hooks/useAuth';
-import { useAuthStore } from '../../../app/store/authStore';
+import { useAuthStore } from '@/shared/store/authStore';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');

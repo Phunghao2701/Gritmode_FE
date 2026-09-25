@@ -1,5 +1,6 @@
+'use client';
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 
@@ -52,7 +53,7 @@ export default function PolicyLayout({
           
           {/* Breadcrumb Navigation */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-bold text-neutral-400">
-            <Link to="/" className="hover:text-black dark:hover:text-white transition-colors">
+            <Link href="/" className="hover:text-black dark:hover:text-white transition-colors">
               Trang chủ
             </Link>
             <span>/</span>
@@ -129,7 +130,7 @@ export default function PolicyLayout({
                   return (
                     <Link
                       key={p.slug}
-                      to={p.path}
+                      href={p.path}
                       className={`flex items-center justify-between py-2 px-3 rounded-xl transition-all ${
                         isCurrent
                           ? 'font-black bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white'
@@ -156,7 +157,7 @@ export default function PolicyLayout({
                 Hotline hỗ trợ 09:30 – 22:00: <strong className="text-white font-sans">0326 747 206</strong>
               </p>
               <div className="pt-1">
-                <Link to="/contact">
+                <Link href="/contact">
                   <PrimaryButton
                     variant="secondary"
                     size="sm"
@@ -223,7 +224,7 @@ export default function PolicyLayout({
                   Khám phá BST Streetwear mới nhất
                 </h4>
               </div>
-              <Link to="/products">
+              <Link href="/products">
                 <PrimaryButton className="px-6 py-3 text-xs font-black uppercase tracking-widest rounded-2xl">
                   Xem sản phẩm
                 </PrimaryButton>

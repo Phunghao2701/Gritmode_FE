@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import Link from 'next/link';
 import Icon from '../../../shared/components/Icon';
 import { queryClient } from '../../../shared/services/queryClient';
 import { getProductDetailApi } from '../apis/product.api';
@@ -11,7 +13,6 @@ import {
 } from '../utils/product.utils';
 
 export default function ProductCard({ product }) {
-  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
 
   const name = product?.name_product || product?.title || product?.name || 'Sản phẩm Gritmode';
@@ -28,7 +29,6 @@ export default function ProductCard({ product }) {
         },
         staleTime: 1000 * 60 * 3,
       });
-      import('../pages/ProductDetailPage');
     }
   }, [productSlug]);
 
@@ -40,12 +40,13 @@ export default function ProductCard({ product }) {
     (Array.isArray(product.images) && (product.images[0]?.url_product_image || (typeof product.images[0] === 'string' ? product.images[0] : null))) ||
     null;
 
-  const minPrice = product.min_price !== undefined ? product.min_price : product.price;
-  const maxPrice = product.max_price !== undefined ? product.max_price : product.price;
-  const originalMinPrice = product.original_min_price ?? minPrice;
-  const originalMaxPrice = product.original_max_price ?? maxPrice;
-  const isAvailable = product.is_available !== undefined ? product.is_available : true;
-  const hasSale = originalMinPrice > minPrice || originalMaxPrice > maxPrice;
+  const minPrice = Number(product.min_price || product.price || 0);
+  const maxPrice = Number(product.max_price || product.price || 0);
+  const originalMinPrice = Number(product.original_min_price || product.original_price || minPrice);
+  const originalMaxPrice = Number(product.original_max_price || product.original_price || maxPrice);
+
+  const isAvailable = Boolean(product.is_active ?? true) && (product.total_stock !== undefined ? product.total_stock > 0 : true);
+  const hasSale = originalMinPrice > minPrice;
   const discountPercent = hasSale && originalMinPrice > 0
     ? Math.round((1 - minPrice / originalMinPrice) * 100)
     : 0;
@@ -56,15 +57,14 @@ export default function ProductCard({ product }) {
   const primaryCategory = product.categories?.find((c) => c.is_primary)?.name_category || product.category_name || '';
 
   return (
-    <div
-      onClick={() => navigate(`/products/${productSlug}`)}
+    <Link
+      href={`/products/${productSlug}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
       className="group cursor-pointer select-none flex flex-col space-y-3 relative transition-all duration-300"
     >
       {/* Product Image Lookbook Container */}
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 flex items-center justify-center transition-all duration-300 shadow-sm">
-
         {/* Product Photo */}
         {thumbnail ? (
           <img
@@ -72,8 +72,9 @@ export default function ProductCard({ product }) {
             srcSet={getProductImageSrcSet(thumbnail)}
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
             alt={name}
-            className={`w-full h-full object-cover object-center transition-transform duration-700 ease-out ${isHovered ? 'scale-105' : 'scale-100'
-              }`}
+            className={`w-full h-full object-cover object-center transition-transform duration-700 ease-out ${
+              isHovered ? 'scale-105' : 'scale-100'
+            }`}
             loading="lazy"
             decoding="async"
           />
@@ -98,8 +99,6 @@ export default function ProductCard({ product }) {
             </span>
           </div>
         )}
-
-
       </div>
 
       {/* Product Meta Details */}
@@ -125,6 +124,6 @@ export default function ProductCard({ product }) {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

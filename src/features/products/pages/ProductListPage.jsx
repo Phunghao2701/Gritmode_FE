@@ -1,11 +1,15 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useProducts, useCategories, useCollections } from '../hooks/useProducts';
 import ProductFilterBar from '../components/ProductFilterBar';
 import ProductGrid from '../components/ProductGrid';
 
 export default function ProductListPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const initialCategory = searchParams.get('category') || searchParams.get('category_id') || '';
   const initialCategoryIsSlug = Boolean(searchParams.get('category'));
@@ -59,7 +63,8 @@ export default function ProductListPage() {
     if (newFilters.search) params.set('search', newFilters.search);
     if (newFilters.sort && newFilters.sort !== 'newest') params.set('sort', newFilters.sort);
     if (newFilters.page && newFilters.page > 1) params.set('page', String(newFilters.page));
-    setSearchParams(params);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname);
   };
 
   const categoryUrlFilter = () => (selectedCategoryIsSlug

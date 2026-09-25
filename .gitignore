@@ -4,6 +4,8 @@ node_modules
 # production
 dist
 build
+.next
+next-env.d.ts
 
 # environment variables
 .env

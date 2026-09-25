@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect } from 'react';
 import { useAdminInventory } from '../hooks/useAdmin';
 import StockAdjustModal from '../components/StockAdjustModal';

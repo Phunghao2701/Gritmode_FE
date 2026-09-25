@@ -2,7 +2,7 @@
  * useCart Hook
  * Provides a unified React interface for Cart state, server actions, and drawer controls.
  */
-import { useCartStore } from '../../../app/store/cartStore';
+import { useCartStore } from '@/shared/store/cartStore';
 import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export const useCart = () => {

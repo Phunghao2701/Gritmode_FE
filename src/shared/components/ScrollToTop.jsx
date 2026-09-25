@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from 'next/navigation';
 import { useSmoothScroll } from './SmoothScrollProvider';
 
 /**
@@ -8,35 +10,22 @@ import { useSmoothScroll } from './SmoothScrollProvider';
  * Works seamlessly with Lenis Smooth Scroll and standard browser window scrolling.
  */
 export default function ScrollToTop() {
-  const { pathname, hash } = useLocation();
+  const pathname = usePathname();
   const lenis = useSmoothScroll();
 
   useEffect(() => {
-    // If navigating to a specific hash on the page, scroll to that element
-    if (hash) {
-      const targetId = hash.replace('#', '');
-      const element = document.getElementById(targetId);
-      if (element) {
-        if (lenis) {
-          lenis.scrollTo(element, { offset: -80, immediate: false });
-        } else {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-        return;
-      }
-    }
-
-    // Standard page navigation: instantly reset scroll position to top
     if (lenis) {
       lenis.scrollTo(0, { immediate: true });
     } else if (typeof window !== 'undefined' && window.__lenis) {
       window.__lenis.scrollTo(0, { immediate: true });
     }
 
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }, [pathname, hash, lenis]);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [pathname, lenis]);
 
   return null;
 }

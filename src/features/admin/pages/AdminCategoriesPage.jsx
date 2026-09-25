@@ -1,5 +1,6 @@
+'use client';
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAdminCategories } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -8,7 +9,7 @@ import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 const normalizeText = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 export default function AdminCategoriesPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [expandedIds, setExpandedIds] = useState(new Set());
   const [deletingCategory, setDeletingCategory] = useState(null);
@@ -84,7 +85,7 @@ export default function AdminCategoriesPage() {
           </div>
           <PrimaryButton
             icon="solar:add-circle-linear"
-            onClick={() => navigate('/admin/categories/create')}
+            onClick={() => router.push('/admin/categories/create')}
             size="sm"
           >
             Thêm danh mục gốc
@@ -170,7 +171,7 @@ export default function AdminCategoriesPage() {
                     <button
                       type="button"
                       title="Chỉnh sửa danh mục"
-                      onClick={() => navigate(`/admin/categories/${rootId}/edit`)}
+                      onClick={() => router.push(`/admin/categories/${rootId}/edit`)}
                       className="p-2 text-neutral-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                     >
                       <Icon icon="solar:pen-2-linear" className="text-base" />
@@ -189,7 +190,7 @@ export default function AdminCategoriesPage() {
                     {/* Add child button */}
                     <button
                       type="button"
-                      onClick={() => navigate(`/admin/categories/create?parentId=${rootId}`)}
+                      onClick={() => router.push(`/admin/categories/create?parentId=${rootId}`)}
                       className="rounded-full border border-black dark:border-white px-4 py-2 text-xs font-black uppercase text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors ml-1 cursor-pointer"
                     >
                       + Thêm danh mục con
@@ -203,7 +204,7 @@ export default function AdminCategoriesPage() {
                     {root.children.length === 0 ? (
                       <button
                         type="button"
-                        onClick={() => navigate(`/admin/categories/create?parentId=${rootId}`)}
+                        onClick={() => router.push(`/admin/categories/create?parentId=${rootId}`)}
                         className="flex min-h-20 w-full items-center justify-center gap-2 text-xs font-bold text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-black dark:hover:bg-neutral-800/50 dark:hover:text-white cursor-pointer"
                       >
                         <Icon icon="solar:add-circle-linear" /> Thêm danh mục con đầu tiên
@@ -237,7 +238,7 @@ export default function AdminCategoriesPage() {
                                 <button
                                   type="button"
                                   title="Chỉnh sửa danh mục"
-                                  onClick={() => navigate(`/admin/categories/${childId}/edit`)}
+                                  onClick={() => router.push(`/admin/categories/${childId}/edit`)}
                                   className="p-2 text-neutral-400 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                                 >
                                   <Icon icon="solar:pen-2-linear" className="text-base" />

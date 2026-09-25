@@ -1,12 +1,13 @@
+'use client';
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useGoogleLogin } from '@react-oauth/google';
-import AuthLayout from '../../../app/layouts/AuthLayout';
+import AuthLayout from '@/shared/layouts/AuthLayout';
 import { toast } from '../../../shared/utils/toast';
 import { googleLoginApi, requestOtpApi, verifyOtpApi } from '../apis/auth.api';
 import { tokenService } from '../services/token.service';
-import { useAuthStore } from '../../../app/store/authStore';
-import { useCartStore } from '../../../app/store/cartStore';
+import { useAuthStore } from '@/shared/store/authStore';
+import { useCartStore } from '@/shared/store/cartStore';
 import gritmodeLogo from '../../../assets/icons/GM den.jpg';
 
 // ----------------------------------------------------------------
@@ -98,9 +99,9 @@ function Countdown({ seconds, onExpire }) {
 // LOGIN PAGE — OTP 2-step
 // ================================================================
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const from = searchParams.get('from') || '/';
 
   // Step: 'email' | 'otp'
   const [step, setStep] = useState('email');
@@ -124,7 +125,7 @@ export default function LoginPage() {
       useAuthStore.getState().loginSuccess(data.user);
       if (currentGuestToken) useCartStore.getState().clearGuestToken();
       toast.success(data.is_new_user ? 'Chào mừng bạn đến với Gritmode!' : 'Đăng nhập thành công!');
-      navigate(from, { replace: true });
+      router.replace(from);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Không thể đăng nhập bằng Google.');
     }
@@ -239,7 +240,7 @@ export default function LoginPage() {
         toast.success('Đăng nhập thành công! Chào mừng trở lại.');
       }
 
-      navigate(from, { replace: true });
+      router.replace(from);
     } catch (err) {
       const status = err.response?.status;
       let msg;
@@ -262,7 +263,7 @@ export default function LoginPage() {
         <div className="mb-8 text-center">
           <button
             type="button"
-            onClick={() => navigate('/')}
+            onClick={() => router.push('/')}
             className={`inline-flex min-h-11 cursor-pointer items-center justify-center transition-opacity hover:opacity-70 ${step === 'otp' ? 'mb-6' : ''}`}
             aria-label="Về trang chủ Gritmode"
           >
@@ -355,7 +356,7 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => router.push('/')}
               className="min-h-11 w-full cursor-pointer text-sm text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-900"
             >
               Quay lại và tiếp tục mua hàng

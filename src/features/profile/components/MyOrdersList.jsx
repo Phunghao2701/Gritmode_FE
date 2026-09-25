@@ -1,5 +1,6 @@
+'use client';
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import EmptyState from '../../../shared/components/EmptyState';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
@@ -9,7 +10,7 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 import OrderDetailModal from '../../orders/components/OrderDetailModal';
 
 export default function MyOrdersList() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -87,7 +88,7 @@ export default function MyOrdersList() {
             description="Bạn chưa có đơn đặt hàng nào trong mục này. Khám phá các mẫu Streetwear mới nhất ngay!"
             icon="solar:bag-smile-linear"
             actionLabel="Mua sắm ngay"
-            onAction={() => navigate('/products')}
+            onAction={() => router.push('/products')}
           />
         </div>
       ) : (

@@ -13,7 +13,7 @@ import {
   setDefaultAddressApi,
   changePasswordApi,
 } from '../apis/profile.api';
-import { useAuthStore } from '../../../app/store/authStore';
+import { useAuthStore } from '@/shared/store/authStore';
 import { toast } from '../../../shared/utils/toast';
 
 /**

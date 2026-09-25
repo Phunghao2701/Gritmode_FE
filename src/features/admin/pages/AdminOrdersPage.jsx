@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { useAdminOrders } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';

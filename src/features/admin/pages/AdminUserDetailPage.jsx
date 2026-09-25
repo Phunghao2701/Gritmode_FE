@@ -1,4 +1,6 @@
-import { useParams, Link } from 'react-router-dom';
+'use client';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAdminUserDetail, useAdminUsers } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -42,7 +44,7 @@ export default function AdminUserDetailPage() {
           Người dùng #{userId} không tồn tại hoặc đã bị xóa.
         </p>
         <Link
-          to="/admin/users"
+          href="/admin/users"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black dark:bg-white text-white dark:text-black text-xs font-black uppercase tracking-wider"
         >
           Quay lại danh sách
@@ -63,7 +65,7 @@ export default function AdminUserDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-5">
         <div>
           <Link
-            to="/admin/users"
+            href="/admin/users"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-400 hover:text-black dark:hover:text-white transition-colors mb-2"
           >
             <Icon icon="solar:arrow-left-linear" /> Quay lại danh sách khách hàng
@@ -210,7 +212,7 @@ export default function AdminUserDetailPage() {
                     <div key={idx} className="py-3.5 flex items-center justify-between gap-4">
                       <div>
                         <Link
-                          to={`/admin/orders/${order.order_id}`}
+                          href={`/admin/orders/${order.order_id}`}
                           className="font-bold text-sm text-black dark:text-white hover:underline"
                         >
                           #{order.code_order || order.order_id}
@@ -228,7 +230,7 @@ export default function AdminUserDetailPage() {
                           {formatPriceVND(order.total_order || 0)}
                         </span>
                         <Link
-                          to={`/admin/orders/${order.order_id}`}
+                          href={`/admin/orders/${order.order_id}`}
                           className="p-1.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-400 hover:text-black dark:hover:text-white"
                         >
                           <Icon icon="solar:arrow-right-linear" />
