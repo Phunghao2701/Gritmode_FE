@@ -14,10 +14,10 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { toast } from '../../../shared/utils/toast';
 
 export default function OrderSuccessPage() {
-  const { orderId } = useParams();
+  const params = useParams();
+  const orderId = params?.orderId || params?.id;
   const router = useRouter();
-  const location = useLocation();
-  const stateOrder = location.state?.order;
+  const stateOrder = null;
   const { isAuthenticated } = useAuthStore();
   const [copiedField, setCopiedField] = useState(null);
 

@@ -10,8 +10,9 @@ import { slugify } from '../components/CategoryFormModal';
 import { toast } from '../../../shared/utils/toast';
 
 export default function AdminCategoryEditPage() {
-  const { categoryId } = useParams();
-  const [searchParams] = useSearchParams();
+  const params = useParams();
+  const categoryId = params?.categoryId || params?.id;
+  const searchParams = useSearchParams();
   const router = useRouter();
   const isEditMode = Boolean(categoryId);
   const parentIdParam = searchParams.get('parentId');

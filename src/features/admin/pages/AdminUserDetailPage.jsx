@@ -9,7 +9,8 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 import { getOrderStatusInfo } from '../../orders/utils/order.utils';
 
 export default function AdminUserDetailPage() {
-  const { userId } = useParams();
+  const params = useParams();
+  const userId = params?.userId || params?.id;
 
   const { data: user, isLoading } = useAdminUserDetail(userId);
   const {
