@@ -75,15 +75,54 @@ export default function ProductListPage() {
     ? { collection: selectedCollection }
     : { collection_id: selectedCollection });
 
-  const handleCategoryChange = (catId) => {
-    setSelectedCategory(catId);
-    const category = categories.find((item) => String(item.category_id || item.id) === String(catId));
+  // Sync state from URL search params whenever URL changes (e.g. MegaMenu links, browser navigation)
+  useEffect(() => {
+    const cat = searchParams.get('category') || searchParams.get('category_id') || '';
+    const catSlug = Boolean(searchParams.get('category'));
+    const col = searchParams.get('collection') || searchParams.get('collection_id') || '';
+    const colSlug = Boolean(searchParams.get('collection'));
+    const sort = searchParams.get('sort') || 'newest';
+    const p = Number(searchParams.get('page')) || 1;
+    const q = searchParams.get('search') || '';
+
+    setSelectedCategory(cat);
+    setSelectedCategoryIsSlug(catSlug);
+    setSelectedCollection(col);
+    setSelectedCollectionIsSlug(colSlug);
+    setSortBy(sort);
+    setPage(p);
+    setSearchQuery(q);
+    setDebouncedSearch(q);
+  }, [searchParams]);
+
+  const handleCategoryChange = (catIdOrSlug) => {
+    if (!catIdOrSlug) {
+      setSelectedCategory('');
+      setSelectedCategoryIsSlug(false);
+      setPage(1);
+      updateUrlParams({
+        ...collectionUrlFilter(),
+        search: searchQuery,
+        sort: sortBy,
+        page: 1,
+      });
+      return;
+    }
+
+    const category = categories.find((item) =>
+      String(item.category_id || item.id) === String(catIdOrSlug) ||
+      String(item.slug_category || item.slug) === String(catIdOrSlug)
+    );
     const slug = category?.slug_category || category?.slug;
-    setSelectedCategoryIsSlug(Boolean(slug));
+    const isSlug = Boolean(slug) || isNaN(Number(catIdOrSlug));
+    const finalVal = slug || catIdOrSlug;
+
+    setSelectedCategory(finalVal);
+    setSelectedCategoryIsSlug(isSlug);
     setPage(1);
     updateUrlParams({
-      category_id: slug ? undefined : catId,
-      category: slug,
+      category_id: isSlug ? undefined : finalVal,
+      category: isSlug ? finalVal : undefined,
       ...collectionUrlFilter(),
       search: searchQuery,
       sort: sortBy,
@@ -149,9 +188,10 @@ export default function ProductListPage() {
     setSelectedCollection('');
     setSelectedCollectionIsSlug(false);
     setSearchQuery('');
+    setDebouncedSearch('');
     setSortBy('newest');
     setPage(1);
-    setSearchParams(new URLSearchParams());
+    router.replace(pathname);
   };
 
   // Find active category / collection name for banner title

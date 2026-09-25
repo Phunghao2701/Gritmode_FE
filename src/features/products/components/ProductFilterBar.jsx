@@ -30,14 +30,15 @@ export default function ProductFilterBar({
 
         {categories.map((cat) => {
           const catId = String(cat.category_id || cat.id || cat.value);
+          const catSlug = cat.slug_category || cat.slug;
           const catName = cat.name_category || cat.name || cat.label;
-          const isActive = String(selectedCategory) === catId;
+          const isActive = String(selectedCategory) === catId || (Boolean(catSlug) && String(selectedCategory) === String(catSlug));
 
           return (
             <button
               key={catId}
               type="button"
-              onClick={() => onSelectCategory(catId)}
+              onClick={() => onSelectCategory(catSlug || catId)}
               className={`relative py-1 text-xs uppercase tracking-wider transition-colors duration-300 whitespace-nowrap cursor-pointer after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:bg-black dark:after:bg-white after:origin-center after:transition-transform after:duration-300 ${
                 isActive
                   ? 'font-normal text-black dark:text-white after:scale-x-100'
