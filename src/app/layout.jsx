@@ -17,12 +17,23 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: 'Gritmode® | Vietnamese Streetwear Culture',
+  title: {
+    default: 'Gritmode® | Vietnamese Streetwear Culture',
+    template: 'Gritmode® | Vietnamese Streetwear Culture',
+  },
   description:
     'Gritmode® — Thương hiệu thời trang thể thao & phong cách đường phố cao cấp lấy cảm hứng từ DirtyCoins và văn hóa Hip-Hop đương đại.',
   icons: {
     icon: '/favicon.jpg',
     apple: '/favicon.jpg',
+  },
+  openGraph: {
+    title: 'Gritmode® | Vietnamese Streetwear Culture',
+    description:
+      'Gritmode® — Thương hiệu thời trang thể thao & phong cách đường phố cao cấp lấy cảm hứng từ DirtyCoins và văn hóa Hip-Hop đương đại.',
+    siteName: 'Gritmode®',
+    locale: 'vi_VN',
+    type: 'website',
   },
 };
 

@@ -8,10 +8,8 @@ import ProductListPage from '@/features/products/pages/ProductListPage';
 import LoadingSkeleton from '@/shared/components/LoadingSkeleton';
 
 export const metadata = {
-  title: 'Bộ Sưu Tập Sản Phẩm | Gritmode® Streetwear',
   description: 'Khám phá tất cả các thiết kế thời trang đường phố cao cấp mới nhất từ Gritmode®.',
   openGraph: {
-    title: 'Bộ Sưu Tập Sản Phẩm | Gritmode® Streetwear',
     description: 'Khám phá tất cả các thiết kế thời trang đường phố cao cấp mới nhất từ Gritmode®.',
     type: 'website',
   },

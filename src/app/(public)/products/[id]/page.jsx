@@ -13,12 +13,8 @@ export async function generateMetadata({ params }) {
       const description = product.description_product || product.description || 'Thời trang đường phố cao cấp Gritmode®';
       const image = product.thumbnail || product.images?.[0]?.url_product_image || 'https://res.cloudinary.com/placeholder.jpg';
 
-      return {
-        title: `${title} | Gritmode®`,
-        description,
-        openGraph: {
-          title: `${title} | Gritmode®`,
-          description,
+      return {        description,
+        openGraph: {          description,
           images: [{ url: image }],
         },
       };
@@ -27,9 +23,7 @@ export async function generateMetadata({ params }) {
     // fallback
   }
 
-  return {
-    title: 'Chi tiết sản phẩm | Gritmode®',
-    description: 'Thời trang thể thao & phong cách đường phố cao cấp Gritmode®.',
+  return {    description: 'Thời trang thể thao & phong cách đường phố cao cấp Gritmode®.',
   };
 }
 

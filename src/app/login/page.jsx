@@ -1,9 +1,7 @@
 import { Suspense } from 'react';
 import LoginPage from '@/features/auth/pages/LoginPage';
 
-export const metadata = {
-  title: 'Đăng nhập | Gritmode®',
-  description: 'Đăng nhập vào tài khoản Gritmode® của bạn.',
+export const metadata = {  description: 'Đăng nhập vào tài khoản Gritmode® của bạn.',
 };
 
 export default function Page() {

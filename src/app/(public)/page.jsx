@@ -5,13 +5,9 @@ import { getProductsApi } from '@/features/products/apis/product.api';
 import { buildCategoryTree } from '@/features/categories/utils/category.utils';
 import LandingPage from '@/features/landing/pages/LandingPage';
 
-export const metadata = {
-  title: 'Gritmode® | Vietnamese Streetwear Culture',
-  description:
+export const metadata = {  description:
     'Gritmode® — Thương hiệu thời trang thể thao & phong cách đường phố cao cấp lấy cảm hứng từ DirtyCoins và văn hóa Hip-Hop đương đại.',
-  openGraph: {
-    title: 'Gritmode® | Vietnamese Streetwear Culture',
-    description: 'Thương hiệu thời trang thể thao & phong cách đường phố cao cấp.',
+  openGraph: {    description: 'Thương hiệu thời trang thể thao & phong cách đường phố cao cấp.',
     type: 'website',
   },
 };
