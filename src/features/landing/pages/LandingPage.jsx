@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import ProductCard from '../../products/components/ProductCard';
 import { useProducts, useCategories } from '../../products/hooks/useProducts';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
@@ -76,21 +77,26 @@ export default function LandingPage() {
         >
           {heroSlides.map((slide, index) => (
             (index === activeHeroIndex || index === (activeHeroIndex + 1) % heroSlides.length) && (
-            <img
-              key={slide.id}
-              src={slide.image}
-              alt={index === activeHeroIndex ? slide.alt : ''}
-              aria-hidden={index !== activeHeroIndex}
-              loading={index === activeHeroIndex ? 'eager' : 'lazy'}
-              fetchPriority={index === activeHeroIndex ? 'high' : 'low'}
-              decoding="async"
-              className={`absolute inset-0 w-full h-full object-cover object-center transition-[opacity,transform] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
-                index === activeHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
-              }`}
-            />
+              <div
+                key={slide.id}
+                className={`absolute inset-0 w-full h-full transition-[opacity,transform] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
+                  index === activeHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
+                }`}
+                aria-hidden={index !== activeHeroIndex}
+              >
+                <Image
+                  src={slide.image}
+                  alt={index === activeHeroIndex ? slide.alt : ''}
+                  fill
+                  priority={index === 0}
+                  quality={90}
+                  sizes="100vw"
+                  className="object-cover object-top sm:object-[center_12%]"
+                />
+              </div>
             )
           ))}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/30" />
           
           <div className="relative z-10 flex flex-col items-center text-center space-y-3 mb-6 max-w-2xl mx-auto">
             <span className="text-xs font-black uppercase tracking-[0.25em] text-white/80 border-b border-white/30 pb-1">
