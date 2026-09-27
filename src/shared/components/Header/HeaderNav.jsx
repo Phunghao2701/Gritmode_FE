@@ -37,6 +37,7 @@ export default function HeaderNav({ isWhiteTheme = true, isTextSolidWhite = fals
       >
         <Link
           href="/products"
+          prefetch={true}
           className={`pb-1 transition-[color,opacity,border-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded ${
             activeMegaMenu === 'shop'
               ? isWhiteTheme
@@ -60,6 +61,7 @@ export default function HeaderNav({ isWhiteTheme = true, isTextSolidWhite = fals
       >
         <Link
           href="/collections"
+          prefetch={true}
           className={`pb-1 transition-[color,opacity,border-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded ${
             activeMegaMenu === 'collections'
               ? isWhiteTheme

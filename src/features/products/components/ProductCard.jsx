@@ -60,16 +60,9 @@ export default function ProductCard({ product }) {
     <Link
       href={`/products/${productSlug}`}
       scroll={true}
+      prefetch={true}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={() => {
-        if (typeof window !== 'undefined') {
-          if (window.__lenis) window.__lenis.scrollTo(0, { immediate: true });
-          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-          document.documentElement.scrollTop = 0;
-          document.body.scrollTop = 0;
-        }
-      }}
       className="group cursor-pointer select-none flex flex-col space-y-3 relative transition-all duration-300"
     >
       {/* Product Image Lookbook Container */}

@@ -80,7 +80,7 @@ export default function HeaderBar() {
 
         {/* 2. Center Brand Logo */}
         <div className="flex flex-col items-center justify-center text-center cursor-pointer select-none shrink-0 px-2">
-          <Link href="/" className="flex flex-col items-center">
+          <Link href="/" prefetch={true} className="flex flex-col items-center">
             <span
               className={`font-display font-black text-xl sm:text-2xl lg:text-3xl tracking-tight uppercase leading-none transition-colors duration-150 ease-out ${
                 isWhiteTheme
@@ -116,6 +116,7 @@ export default function HeaderBar() {
               <Link
                 key={link.label}
                 href={link.to}
+                prefetch={true}
                 className={`transition-[color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded ${
                   isWhiteTheme
                     ? 'text-black dark:text-white hover:opacity-60'

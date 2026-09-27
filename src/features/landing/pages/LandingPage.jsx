@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import ProductCard from '../../products/components/ProductCard';
 import { useProducts, useCategories } from '../../products/hooks/useProducts';
@@ -105,12 +106,13 @@ export default function LandingPage() {
               Thời trang đường phố Việt Nam định hình phong cách độc bản, tự do và đậm chất bụi bặm.
             </p>
             <div className="pt-3">
-              <button 
-                type="button"
-                className="px-8 py-3.5 rounded-full border-2 border-white bg-white text-black text-xs font-[550] uppercase tracking-widest hover:bg-transparent hover:text-white transition-all duration-300 shadow-2xl cursor-pointer"
+              <Link 
+                href="/products"
+                prefetch={true}
+                className="inline-block px-8 py-3.5 rounded-full border-2 border-white bg-white text-black text-xs font-[550] uppercase tracking-widest hover:bg-transparent hover:text-white transition-all duration-300 shadow-2xl cursor-pointer"
               >
                 KHÁM PHÁ NGAY
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -189,7 +191,7 @@ export default function LandingPage() {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 animate-fade-in">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
             {products.map((product) => (
               <ProductCard key={product.id || product.product_id} product={product} />
             ))}
@@ -198,13 +200,13 @@ export default function LandingPage() {
 
         {/* View All Products CTA */}
         <div className="text-center pt-6">
-          <button
-            type="button"
-            onClick={() => router.push('/products')}
-            className="px-8 py-3.5 rounded-full border-2 border-black dark:border-white text-black dark:text-white text-xs font-[550] uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 shadow-md cursor-pointer"
+          <Link
+            href="/products"
+            prefetch={true}
+            className="inline-block px-8 py-3.5 rounded-full border-2 border-black dark:border-white text-black dark:text-white text-xs font-[550] uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-300 shadow-md cursor-pointer"
           >
             Xem tất cả bộ sưu tập
-          </button>
+          </Link>
         </div>
 
       </section>
