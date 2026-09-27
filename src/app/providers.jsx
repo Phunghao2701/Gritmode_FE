@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { getQueryClient } from '@/shared/services/queryClient';
 import SmoothScrollProvider from '@/shared/components/SmoothScrollProvider';
+import ScrollToTop from '@/shared/components/ScrollToTop';
 import AppToast from '@/shared/components/AppToast';
 import { tokenService } from '@/features/auth/services/token.service';
 import { refreshTokenApi } from '@/features/auth/apis/auth.api';
@@ -68,6 +69,7 @@ export default function Providers({ children }) {
     <GoogleOAuthProvider clientId={googleClientId}>
       <QueryClientProvider client={queryClient}>
         <SmoothScrollProvider>
+          <ScrollToTop />
           <AppToast />
           <AuthInit />
           {children}

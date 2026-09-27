@@ -1,6 +1,6 @@
 'use client';
-
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Icon from '../../../shared/components/Icon';
 import EmptyState from '../../../shared/components/EmptyState';
@@ -11,8 +11,13 @@ import { toast } from '../../../shared/utils/toast';
 import { useSmoothScroll } from '../../../shared/components/SmoothScrollProvider';
 
 export default function CartDrawer() {
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const lenis = useSmoothScroll();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const {
     isOpen,
     closeDrawer,
@@ -64,7 +69,9 @@ export default function CartDrawer() {
     router.push('/checkout');
   };
 
-  return (
+  if (!mounted || typeof document === 'undefined') return null;
+
+  return createPortal(
     <div
       className={`fixed inset-0 z-50 overflow-hidden transition-all duration-400 ease-in-out ${
         isOpen ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible delay-200'
@@ -82,7 +89,7 @@ export default function CartDrawer() {
       {/* Sliding Drawer Container */}
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10 pointer-events-none">
         <div
-          className={`w-screen max-w-md bg-white dark:bg-neutral-950 text-black dark:text-white shadow-2xl border-l border-neutral-200 dark:border-neutral-800 flex flex-col justify-between pointer-events-auto transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`w-screen max-w-md h-full bg-white dark:bg-neutral-950 text-black dark:text-white shadow-2xl border-l border-neutral-200 dark:border-neutral-800 flex flex-col justify-between pointer-events-auto transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
@@ -150,7 +157,8 @@ export default function CartDrawer() {
 
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

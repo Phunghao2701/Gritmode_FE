@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import Icon from '@/shared/components/Icon';
 import { useProducts } from '@/features/products/hooks/useProducts';
@@ -8,7 +9,12 @@ import { useCategories } from '@/features/categories/hooks/useCategory';
 import { formatPriceVND } from '@/features/products/utils/product.utils';
 
 export default function SearchModal({ isOpen, onClose }) {
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
@@ -57,9 +63,9 @@ export default function SearchModal({ isOpen, onClose }) {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted || typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl flex flex-col justify-start pt-16 sm:pt-20 px-4 sm:px-6 animate-fade-in overflow-y-auto">
       <div className="max-w-3xl w-full mx-auto space-y-6 pb-16">
         <div className="flex items-center justify-between">
@@ -230,6 +236,7 @@ export default function SearchModal({ isOpen, onClose }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

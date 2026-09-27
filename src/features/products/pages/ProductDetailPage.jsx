@@ -42,6 +42,16 @@ export default function ProductDetailPage() {
     decrementQuantity,
   } = useProductDetail(slug);
 
+  // Ensure viewport scrolls to top on product mount or when navigating between related products
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (window.__lenis) window.__lenis.scrollTo(0, { immediate: true });
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [slug]);
+
   const primaryCategoryId = product?.categories?.find((c) => c.is_primary)?.category_id || product?.categories?.[0]?.category_id;
   const { products: allProducts = [] } = useProducts(
     primaryCategoryId ? { category_id: primaryCategoryId, limit: 8, sort: 'newest' } : { limit: 8, sort: 'newest' },
@@ -189,7 +199,7 @@ export default function ProductDetailPage() {
     .filter((p) => String(p.product_id || p.id) !== String(currentProductId))
     .slice(0, 4);
 
-  const handleAddToCart = async (shouldRedirect = false) => {
+  const handleAddToCart = async () => {
     if (!isAllOptionsSelected) {
       toast.error('Vui lòng chọn đầy đủ các phân loại sản phẩm.');
       return;
@@ -218,13 +228,8 @@ export default function ProductDetailPage() {
       variant: variantLabel,
     };
 
-    if (shouldRedirect) {
-      const res = await addItem(payload);
-      if (res?.success) router.push('/checkout');
-    } else {
-      // Non-blocking: optimistic store update triggers drawer instantly (< 50ms)
-      addItem(payload);
-    }
+    // Optimistically update store & open cart drawer
+    addItem(payload);
   };
 
   return (
@@ -259,6 +264,8 @@ export default function ProductDetailPage() {
                 srcSet={getProductImageSrcSet(currentImage.url_product_image, [640, 960, 1280, 1600])}
                 sizes="(min-width: 1024px) 58vw, 100vw"
                 alt={product.name_product}
+                loading="eager"
+                fetchPriority="high"
                 decoding="async"
                 className="w-full h-full object-cover object-center transition-all duration-300 pointer-events-none"
               />
@@ -434,7 +441,7 @@ export default function ProductDetailPage() {
             {/* Buy Now */}
             <button
               type="button"
-              onClick={() => handleAddToCart(true)}
+              onClick={handleAddToCart}
               disabled={!isAvailable}
               className="w-full py-4 px-6 rounded-2xl bg-black text-white dark:bg-white dark:text-black hover:opacity-85 text-xs font-[550] uppercase tracking-widest shadow-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
             >

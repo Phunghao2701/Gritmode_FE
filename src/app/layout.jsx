@@ -44,8 +44,11 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="vi" className={`${plusJakartaSans.variable} ${jetBrainsMono.variable}`}>
-      <body className="font-sans antialiased min-h-screen bg-white text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
+    <html lang="vi" suppressHydrationWarning className={`${plusJakartaSans.variable} ${jetBrainsMono.variable}`}>
+      <body
+        suppressHydrationWarning
+        className="font-sans antialiased min-h-screen bg-white text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50"
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
