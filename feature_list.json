@@ -78,5 +78,55 @@
     "user_visible_behavior": "Hiển thị ProductCard streetwear và PaginationControls; thanh tìm kiếm Live Search lọc nhanh component theo từ khóa trên cả desktop và mobile.",
     "verification_command": "node -e \"console.log('Verified search filter and responsive layout')\"",
     "notes": "Covers stories: P1, P2, FR-04, FR-05"
+  },
+  {
+    "id": "phase-01-database-prisma-btree",
+    "title": "Database Prisma Setup & B-Tree High Selectivity Indexing",
+    "status": "not_started",
+    "evidence": "",
+    "priority": "P1",
+    "user_visible_behavior": "Truy vấn lọc sản phẩm và phân trang SSR phản hồi siêu tốc (< 10ms) nhờ B-Tree Index Scan; Prisma schema quản lý chặt chẽ cấu trúc bảng và quan hệ.",
+    "verification_command": "npx prisma validate && node -e \"import('./src/config/prisma.js')\"",
+    "notes": "Covers stories: P1, FR-06, FR-07, FR-08, FR-09"
+  },
+  {
+    "id": "phase-02-island-architecture-core",
+    "title": "Island Architecture Core & Dynamic Modals",
+    "status": "not_started",
+    "evidence": "",
+    "priority": "P1",
+    "user_visible_behavior": "Khung trang chủ và layout chuyển thành Server Component tĩnh (0kb JS); các modal tìm kiếm và giỏ hàng chỉ tải khi người dùng click mở, giảm >= 35% bundle ban đầu.",
+    "verification_command": "npm run build",
+    "notes": "Covers stories: P1, FR-01, FR-04, NFR-01, NFR-03"
+  },
+  {
+    "id": "phase-03-instant-navigation-streaming",
+    "title": "Instant Navigation & Parallel Streaming Prefetch",
+    "status": "not_started",
+    "evidence": "",
+    "priority": "P1",
+    "user_visible_behavior": "Bấm chuyển giữa Trang chủ và /products phản hồi tức thì (< 50ms) với Skeleton hiển thị ngay lập tức, không còn cảm giác bị đơ/lag.",
+    "verification_command": "curl http://localhost:3000/products",
+    "notes": "Covers stories: P1, FR-02, FR-03, NFR-01"
+  },
+  {
+    "id": "phase-04-nextjs-multi-zones-setup",
+    "title": "Next.js Multi-Zones Setup & Domain Boundary",
+    "status": "not_started",
+    "evidence": "",
+    "priority": "P1",
+    "user_visible_behavior": "Tách biệt hoàn toàn Storefront và Admin thành 2 zone độc lập qua rewrites; code và thư viện của Admin không bị nạp vào trang bán hàng của khách.",
+    "verification_command": "curl -I http://localhost:3000/admin",
+    "notes": "Covers stories: P1, P2, FR-05"
+  },
+  {
+    "id": "phase-05-performance-verification",
+    "title": "Performance Verification & End-to-End Regression Audit",
+    "status": "not_started",
+    "evidence": "",
+    "priority": "P1",
+    "user_visible_behavior": "Tất cả chỉ số Core Web Vitals (INP < 150ms), PostgreSQL B-Tree Index Scan (< 10ms), quy trình giỏ hàng, thanh toán và hiển thị ảnh MinIO được kiểm chứng 100% trơn tru.",
+    "verification_command": "npm test && npm run build",
+    "notes": "Covers stories: P1, NFR-01, NFR-02, NFR-03, NFR-04"
   }
 ]
