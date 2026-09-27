@@ -15,12 +15,19 @@ const DynamicCartDrawer = dynamic(() => import('@/features/cart/components/CartD
 export default function HeaderActions({ isWhiteTheme = true, isTextSolidWhite = false }) {
   const [mounted, setMounted] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [hasOpenedCart, setHasOpenedCart] = useState(false);
   const { user, isAuthenticated } = useAuthStore();
-  const { getTotalItems, openDrawer, isOpen: isDrawerOpen } = useCartStore();
+  const { getTotalItems, openDrawer, isDrawerOpen } = useCartStore();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      setHasOpenedCart(true);
+    }
+  }, [isDrawerOpen]);
 
   const cartItemCount = mounted ? getTotalItems() : 0;
   const authed = mounted && isAuthenticated;
@@ -116,7 +123,7 @@ export default function HeaderActions({ isWhiteTheme = true, isTextSolidWhite = 
       )}
 
       {/* Lazy Dynamic Cart Drawer */}
-      {isDrawerOpen && <DynamicCartDrawer />}
+      {hasOpenedCart && <DynamicCartDrawer />}
     </>
   );
 }

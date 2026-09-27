@@ -65,7 +65,11 @@ export default function ProductListPage() {
     if (newFilters.sort && newFilters.sort !== 'newest') params.set('sort', newFilters.sort);
     if (newFilters.page && newFilters.page > 1) params.set('page', String(newFilters.page));
     const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname);
+    const targetUrl = qs ? `${pathname}?${qs}` : pathname;
+    const currentUrl = typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : '';
+    if (targetUrl !== currentUrl) {
+      router.replace(targetUrl, { scroll: false });
+    }
   };
 
   const categoryUrlFilter = () => (selectedCategoryIsSlug

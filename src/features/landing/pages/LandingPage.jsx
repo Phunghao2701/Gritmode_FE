@@ -63,7 +63,7 @@ export default function LandingPage() {
       {/* 1. Cinematic Streetwear Hero Banner */}
       <section className="relative min-h-[92vh] text-white bg-black overflow-hidden select-none">
         <div
-          onClick={() => router.push('/products?sort=newest')}
+          onClick={() => router.push('/products')}
           onMouseEnter={() => setIsHeroPaused(true)}
           onMouseLeave={() => setIsHeroPaused(false)}
           onFocusCapture={() => setIsHeroPaused(true)}
