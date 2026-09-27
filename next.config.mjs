@@ -41,6 +41,32 @@ const nextConfig = {
       },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: '/admin/:path*',
+        headers: [
+          {
+            key: 'X-Zone',
+            value: 'admin',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/((?!admin).*)',
+        headers: [
+          {
+            key: 'X-Zone',
+            value: 'storefront',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
