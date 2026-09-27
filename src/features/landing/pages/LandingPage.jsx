@@ -87,6 +87,7 @@ export default function LandingPage() {
                   quality={90}
                   sizes="100vw"
                   className="object-cover object-top sm:object-[center_15%]"
+                  unoptimized
                 />
               </div>
             )

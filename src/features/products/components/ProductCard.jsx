@@ -76,7 +76,7 @@ export default function ProductCard({ product }) {
               isHovered ? 'scale-105' : 'scale-100'
             }`}
             loading="lazy"
-            unoptimized={typeof thumbnail === 'string' && (thumbnail.includes('cloudinary.com') || thumbnail.includes('images.unsplash.com'))}
+            unoptimized
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-neutral-400 gap-1.5">

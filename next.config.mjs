@@ -6,6 +6,7 @@ const nextConfig = {
     VITE_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '',
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
