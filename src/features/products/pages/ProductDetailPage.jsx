@@ -251,7 +251,7 @@ export default function ProductDetailPage() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onClick={() => currentImage?.url_product_image && setIsLightboxOpen(true)}
-            className="group relative aspect-square w-full rounded-3xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm flex items-center justify-center select-none cursor-pointer"
+            className="group relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm flex items-center justify-center select-none cursor-pointer"
           >
             {currentImage?.url_product_image ? (
               <img
@@ -260,7 +260,7 @@ export default function ProductDetailPage() {
                 sizes="(min-width: 1024px) 58vw, 100vw"
                 alt={product.name_product}
                 decoding="async"
-                className="w-full h-full object-cover object-center transition-all duration-300 pointer-events-none"
+                className="w-full h-full object-cover object-top transition-all duration-300 pointer-events-none"
               />
             ) : (
               <div className="flex flex-col items-center justify-center text-neutral-400 gap-2">
@@ -356,20 +356,15 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Availability Indicator */}
-            <div className="flex items-center gap-2 mt-2 text-xs">
-              {isAvailable ? (
-                <span className="text-emerald-600 dark:text-emerald-400 font-normal uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Còn {availableStock} sản phẩm trong kho</span>
-                </span>
-              ) : (
+            {/* Availability Indicator - Only show warning when out of stock */}
+            {!isAvailable && (
+              <div className="flex items-center gap-2 mt-2 text-xs">
                 <span className="text-rose-500 font-normal uppercase tracking-wider flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
                   <span>Phân loại này hiện đang tạm hết hàng</span>
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Dynamic Variant Options (Color, Size, etc.) */}

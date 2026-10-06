@@ -13,6 +13,7 @@ import { useCategories } from '../../features/categories/hooks/useCategory';
 import { useCollections } from '../../features/collections/hooks/useCollection';
 import { useProducts } from '../../features/products/hooks/useProducts';
 import { formatPriceVND } from '../../features/products/utils/product.utils';
+import { useBanners } from '../../features/landing/hooks/useBanners';
 
 export default function MainLayout({ children }) {
   const router = useRouter();
@@ -22,6 +23,32 @@ export default function MainLayout({ children }) {
   const { getTotalItems, openDrawer } = useCartStore();
   const { categoryTree } = useCategories();
   const { collections } = useCollections();
+  const { data: heroData } = useBanners();
+
+  const marqueeItems = useMemo(() => {
+    const raw = heroData?.settings?.marquee_text?.trim();
+    let baseList = [];
+    if (raw) {
+      baseList = raw
+        .split(/[•|]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    if (baseList.length === 0) {
+      baseList = [
+        '⚡ MIỄN PHÍ VẬN CHUYỂN TOÀN QUỐC CHO MỌI ĐƠN HÀNG',
+        '🔥 BỘ SƯU TẬP SIGNATURE STREETWEAR DROP 2026',
+        '🛡️ 100% PREMIUM HEAVYWEIGHT COTTON 280GSM',
+        '🔄 ĐỔI TRẢ THOẢI MÁI TRONG VÒNG 7 NGÀY',
+      ];
+    }
+    // Lặp để đảm bảo mỗi nửa track có ít nhất 4 mục, phủ kín màn hình rộng
+    let expanded = [...baseList];
+    while (expanded.length < 4) {
+      expanded = [...expanded, ...baseList];
+    }
+    return expanded;
+  }, [heroData?.settings?.marquee_text]);
 
 
   const [activeMegaMenu, setActiveMegaMenu] = useState(null); // 'shop' | 'collections' | null
@@ -175,22 +202,21 @@ export default function MainLayout({ children }) {
 
       {/* Top Announcement Marquee Ticker */}
       <div className="bg-black text-white dark:bg-neutral-950 border-b border-neutral-800 text-[10px] sm:text-[11px] font-black uppercase tracking-widest py-2 overflow-hidden select-none z-50">
-        <div className="marquee-track flex items-center gap-12 animate-marquee">
-          <span className="flex items-center gap-1.5"><span className="text-emerald-400">⚡</span> MIỄN PHÍ VẬN CHUYỂN TOÀN QUỐC CHO MỌI ĐƠN HÀNG</span>
-          <span className="text-neutral-500">•</span>
-          <span className="flex items-center gap-1.5"><span className="text-amber-400">🔥</span> BỘ SƯU TẬP SIGNATURE STREETWEAR DROP 2026</span>
-          <span className="text-neutral-500">•</span>
-          <span className="flex items-center gap-1.5"><span>🛡️</span> 100% PREMIUM HEAVYWEIGHT COTTON 280GSM</span>
-          <span className="text-neutral-500">•</span>
-          <span className="flex items-center gap-1.5"><span className="text-blue-400">🔄</span> ĐỔI TRẢ THOẢI MÁI TRONG VÒNG 7 NGÀY</span>
-          <span className="text-neutral-500">•</span>
-          <span className="flex items-center gap-1.5"><span className="text-emerald-400">⚡</span> MIỄN PHÍ VẬN CHUYỂN TOÀN QUỐC CHO MỌI ĐƠN HÀNG</span>
-          <span className="text-neutral-500">•</span>
-          <span className="flex items-center gap-1.5"><span className="text-amber-400">🔥</span> BỘ SƯU TẬP SIGNATURE STREETWEAR DROP 2026</span>
-          <span className="text-neutral-500">•</span>
-          <span className="flex items-center gap-1.5"><span>🛡️</span> 100% PREMIUM HEAVYWEIGHT COTTON 280GSM</span>
-          <span className="text-neutral-500">•</span>
-          <span className="flex items-center gap-1.5"><span className="text-blue-400">🔄</span> ĐỔI TRẢ THOẢI MÁI TRONG VÒNG 7 NGÀY</span>
+        <div className="marquee-track flex items-center animate-marquee">
+          {[0, 1].map((copyIndex) => (
+            <div
+              key={copyIndex}
+              className="flex items-center gap-8 sm:gap-12 shrink-0 pr-8 sm:pr-12"
+              aria-hidden={copyIndex === 1}
+            >
+              {marqueeItems.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-8 sm:gap-12 shrink-0">
+                  <span className="whitespace-nowrap">{item}</span>
+                  <span className="text-neutral-500">•</span>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
 
