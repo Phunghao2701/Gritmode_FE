@@ -356,20 +356,15 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Availability Indicator */}
-            <div className="flex items-center gap-2 mt-2 text-xs">
-              {isAvailable ? (
-                <span className="text-emerald-600 dark:text-emerald-400 font-normal uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Còn {availableStock} sản phẩm trong kho</span>
-                </span>
-              ) : (
+            {/* Availability Indicator - Only show warning when out of stock */}
+            {!isAvailable && (
+              <div className="flex items-center gap-2 mt-2 text-xs">
                 <span className="text-rose-500 font-normal uppercase tracking-wider flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-rose-500" />
                   <span>Phân loại này hiện đang tạm hết hàng</span>
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Dynamic Variant Options (Color, Size, etc.) */}

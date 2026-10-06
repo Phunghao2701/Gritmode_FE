@@ -5,16 +5,20 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ProductCard from '../../products/components/ProductCard';
 import { useProducts, useCategories } from '../../products/hooks/useProducts';
+import { useBanners } from '../hooks/useBanners';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
+import Icon from '../../../shared/components/Icon';
 
 export default function LandingPage() {
   const router = useRouter();
   const [activeCategoryId, setActiveCategoryId] = useState('');
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
-  const [isHeroPaused, setIsHeroPaused] = useState(false);
 
   const { data: dbCategories = [] } = useCategories();
+  const { data: heroData } = useBanners();
+
+  const heroSettings = heroData?.settings || {};
 
   const { products, isLoadingProducts: isLoading } = useProducts({ 
     category_id: activeCategoryId || undefined,
@@ -23,15 +27,16 @@ export default function LandingPage() {
   });
 
   const heroSlides = useMemo(() => {
-    return products
-      .map((product) => ({
-        id: product.product_id || product.id,
-        image: product.thumbnail || product.images?.[0]?.url_product_image,
-        alt: product.name_product || product.name || 'Sản phẩm mới Gritmode',
-      }))
-      .filter((slide) => slide.image)
-      .slice(0, 5);
-  }, [products]);
+    const uploadedSlides = (heroData?.slides || []).filter((b) => b.is_active !== false);
+    return uploadedSlides.map((b) => ({
+      id: b.banner_id,
+      image: b.image_url,
+    }));
+  }, [heroData?.slides]);
+
+  const handleHeroClick = () => {
+    router.push('/products?sort=newest');
+  };
 
   useEffect(() => {
     if (heroSlides.length === 0) return;
@@ -39,15 +44,14 @@ export default function LandingPage() {
   }, [heroSlides.length]);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (heroSlides.length < 2 || isHeroPaused || prefersReducedMotion) return undefined;
+    if (heroSlides.length < 2) return undefined;
 
     const timer = window.setInterval(() => {
       setActiveHeroIndex((current) => (current + 1) % heroSlides.length);
-    }, 5000);
+    }, 4000);
 
     return () => window.clearInterval(timer);
-  }, [heroSlides.length, isHeroPaused]);
+  }, [heroSlides.length]);
 
   const filterTabs = [
     { id: '', label: 'TẤT CẢ' },
@@ -61,52 +65,64 @@ export default function LandingPage() {
     <div className="space-y-16 sm:space-y-24 pb-24 -mt-20">
       
       {/* 1. Cinematic Streetwear Hero Banner */}
-      <section className="relative min-h-[92vh] text-white bg-black overflow-hidden select-none">
+      <section className="relative min-h-[75vh] sm:min-h-[92vh] text-white bg-black overflow-hidden select-none">
         <div
-          onClick={() => router.push('/products?sort=newest')}
-          onMouseEnter={() => setIsHeroPaused(true)}
-          onMouseLeave={() => setIsHeroPaused(false)}
-          onFocusCapture={() => setIsHeroPaused(true)}
-          onBlurCapture={() => setIsHeroPaused(false)}
-          className="relative min-h-[92vh] flex flex-col justify-end p-8 sm:p-14 cursor-pointer group overflow-hidden"
+          onClick={handleHeroClick}
+          className="relative min-h-[75vh] sm:min-h-[92vh] flex flex-col justify-end p-6 sm:p-14 cursor-pointer group overflow-hidden"
         >
-          {heroSlides.map((slide, index) => (
-            (index === activeHeroIndex || index === (activeHeroIndex + 1) % heroSlides.length) && (
-              <div
-                key={slide.id}
-                className={`absolute inset-0 w-full h-full transition-[opacity,transform] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
-                  index === activeHeroIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.03]'
-                }`}
-                aria-hidden={index !== activeHeroIndex}
-              >
-                <Image
-                  src={slide.image}
-                  alt={index === activeHeroIndex ? slide.alt : ''}
-                  fill
-                  priority={index === 0}
-                  quality={90}
-                  sizes="100vw"
-                  className="object-cover object-top sm:object-[center_15%]"
-                />
-              </div>
-            )
-          ))}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30" />
+          {heroSlides.length > 0 ? (
+            heroSlides.map((slide, index) => {
+              const isActive = index === activeHeroIndex;
+              return (
+                <div
+                  key={slide.id || index}
+                  className={`absolute inset-0 w-full h-full transition-[opacity,transform] duration-1000 ease-in-out motion-reduce:transition-none ${
+                    isActive ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-[1.02] z-0 pointer-events-none'
+                  }`}
+                  aria-hidden={!isActive}
+                >
+                  <Image
+                    src={slide.image}
+                    alt={heroSettings?.title || 'Gritmode Hero'}
+                    fill
+                    priority={index === 0}
+                    quality={90}
+                    sizes="100vw"
+                    className="object-cover object-center sm:object-[center_15%]"
+                  />
+                </div>
+              );
+            })
+          ) : (
+            <div className="absolute inset-0 bg-neutral-950">
+              {/* Subtle streetwear ambient gradient & grid background */}
+              <div className="absolute inset-0 bg-gradient-to-b from-neutral-900/60 via-neutral-950 to-black" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-10%,rgba(120,119,198,0.12),rgba(255,255,255,0))]" />
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#262626_1px,transparent_1px),linear-gradient(to_bottom,#262626_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/30 pointer-events-none z-10" />
+
+
           
-          <div className="relative z-10 flex flex-col items-center text-center space-y-3 mb-6 max-w-2xl mx-auto">
-            <span className="text-xs font-black uppercase tracking-[0.25em] text-white/80 border-b border-white/30 pb-1">
-              SEASON DROP 2026
+          <div className="relative z-20 flex flex-col items-center text-center space-y-3 mb-6 max-w-2xl mx-auto px-2">
+            <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] text-white/80 border-b border-white/30 pb-1">
+              {heroSettings?.subtitle || 'SEASON DROP 2026'}
             </span>
-            <h2 className="font-sans font-black text-4xl sm:text-6xl uppercase tracking-widest drop-shadow-2xl">
-              Gritmode Signature
+            <h2 className="font-sans font-black text-3xl sm:text-6xl uppercase tracking-widest drop-shadow-2xl">
+              {heroSettings?.title || 'GRITMODE SIGNATURE'}
             </h2>
-            <p className="text-xs text-neutral-300 max-w-lg font-[550] uppercase tracking-widest leading-relaxed">
-              Thời trang đường phố Việt Nam định hình phong cách độc bản, tự do và đậm chất bụi bặm.
+            <p className="text-xs sm:text-sm text-neutral-300 max-w-lg font-[550] uppercase tracking-widest leading-relaxed">
+              {heroSettings?.description || 'Thời trang đường phố Việt Nam định hình phong cách độc bản, tự do và đậm chất bụi bặm.'}
             </p>
             <div className="pt-3">
               <button 
                 type="button"
-                className="px-8 py-3.5 rounded-full border-2 border-white bg-white text-black text-xs font-[550] uppercase tracking-widest hover:bg-transparent hover:text-white transition-all duration-300 shadow-2xl cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleHeroClick();
+                }}
+                className="px-7 sm:px-8 py-3 sm:py-3.5 rounded-full border-2 border-white bg-white text-black text-xs font-[550] uppercase tracking-widest hover:bg-transparent hover:text-white transition-all duration-300 shadow-2xl cursor-pointer"
               >
                 KHÁM PHÁ NGAY
               </button>
@@ -114,12 +130,12 @@ export default function LandingPage() {
           </div>
 
           {heroSlides.length > 1 && (
-            <div className="relative z-10 flex justify-center gap-2 mt-4" aria-label="Chọn ảnh giới thiệu">
+            <div className="relative z-20 flex justify-center gap-2 mt-4" aria-label="Chọn ảnh giới thiệu">
               {heroSlides.map((slide, index) => (
                 <button
-                  key={slide.id}
+                  key={slide.id || index}
                   type="button"
-                  aria-label={`Xem ảnh ${index + 1}: ${slide.alt}`}
+                  aria-label={`Xem ảnh ${index + 1}`}
                   aria-current={index === activeHeroIndex}
                   onClick={(event) => {
                     event.stopPropagation();
