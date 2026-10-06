@@ -8,10 +8,12 @@ import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { data: overview } = useAdminDashboardOverview();
+  const { data: overview, isLoading, isError, refetch } = useAdminDashboardOverview();
   const stats = overview?.stats;
   const orders = overview?.orders || [];
   const inventory = overview?.inventory || [];
+
+  const isInitialLoading = (isLoading || !overview) && !isError;
 
   const lowStockItems = inventory.filter(
     (item) => Number(item.quantity_available ?? (item.quantity_stock - item.quantity_reserved)) <= 5
@@ -20,7 +22,7 @@ export default function AdminDashboardPage() {
   const statCards = [
     {
       title: 'Doanh thu',
-      value: formatPriceVND(stats?.revenueThisMonth || 0),
+      value: formatPriceVND(stats?.totalRevenue ?? stats?.revenueThisMonth ?? 0),
       icon: 'solar:dollar-minimalistic-linear',
       bg: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
     },
@@ -55,10 +57,25 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      {isError && (
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-center justify-between gap-4">
+          <p className="text-xs font-bold text-rose-600 dark:text-rose-400">
+            Không thể tải dữ liệu bảng điều khiển từ máy chủ. Vui lòng bấm thử lại.
+          </p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-black uppercase tracking-wider hover:bg-rose-700 transition-colors shrink-0 cursor-pointer"
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
+
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, idx) => (
-          <DashboardStatCard key={idx} {...card} />
+          <DashboardStatCard key={idx} {...card} isLoading={isInitialLoading} />
         ))}
       </div>
 
@@ -68,12 +85,14 @@ export default function AdminDashboardPage() {
           <RecentOrdersTable
             orders={orders.slice(0, 5)}
             onViewAll={() => router.push('/admin/orders')}
+            isLoading={isInitialLoading}
           />
         </div>
         <div className="lg:col-span-5">
           <LowStockAlert
             lowStockItems={lowStockItems.slice(0, 3)}
             onManageInventory={() => router.push('/admin/inventory')}
+            isLoading={isInitialLoading}
           />
         </div>
       </div>

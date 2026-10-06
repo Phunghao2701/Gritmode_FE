@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAdminOrders } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
@@ -12,6 +13,8 @@ import {
 import { formatPriceVND } from '../../products/utils/product.utils';
 
 export default function AdminOrdersPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -19,6 +22,19 @@ export default function AdminOrdersPage() {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const notificationOrderId = searchParams.get('orderId');
+
+  useEffect(() => {
+    if (notificationOrderId) {
+      setSelectedOrder({ order_id: notificationOrderId });
+    }
+  }, [notificationOrderId]);
+
+  const closeOrderDetail = () => {
+    setSelectedOrder(null);
+    if (notificationOrderId) router.replace('/admin/orders', { scroll: false });
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -249,12 +265,12 @@ export default function AdminOrdersPage() {
       {selectedOrder && (
         <OrderDetailModal
           order={selectedOrder}
-          onClose={() => setSelectedOrder(null)}
-          onConfirm={(id) => confirmOrder(id, { onSuccess: () => setSelectedOrder(null) })}
-          onProcess={(id) => processOrder(id, { onSuccess: () => setSelectedOrder(null) })}
-          onShip={(id) => shipOrder(id, { onSuccess: () => setSelectedOrder(null) })}
-          onComplete={(id) => completeOrder(id, { onSuccess: () => setSelectedOrder(null) })}
-          onCancel={({ orderId, reason }) => cancelOrder({ orderId, reason }, { onSuccess: () => setSelectedOrder(null) })}
+          onClose={closeOrderDetail}
+          onConfirm={(id) => confirmOrder(id, { onSuccess: closeOrderDetail })}
+          onProcess={(id) => processOrder(id, { onSuccess: closeOrderDetail })}
+          onShip={(id) => shipOrder(id, { onSuccess: closeOrderDetail })}
+          onComplete={(id) => completeOrder(id, { onSuccess: closeOrderDetail })}
+          onCancel={({ orderId, reason }) => cancelOrder({ orderId, reason }, { onSuccess: closeOrderDetail })}
           isActionPending={isActionPending}
         />
       )}

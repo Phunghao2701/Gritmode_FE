@@ -1,6 +1,6 @@
 import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
-export default function RecentOrdersTable({ orders = [], onViewAll }) {
+export default function RecentOrdersTable({ orders = [], onViewAll, isLoading = false }) {
 
 
   const getStatusBadge = (status) => {
@@ -61,7 +61,28 @@ export default function RecentOrdersTable({ orders = [], onViewAll }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
-            {orders.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={`skel-row-${i}`} className="animate-pulse">
+                  <td className="py-4">
+                    <div className="h-4 w-28 bg-neutral-200/80 dark:bg-neutral-800 rounded" />
+                  </td>
+                  <td className="py-4 space-y-1.5">
+                    <div className="h-3.5 w-32 bg-neutral-200/80 dark:bg-neutral-800 rounded" />
+                    <div className="h-2.5 w-40 bg-neutral-100 dark:bg-neutral-800/60 rounded" />
+                  </td>
+                  <td className="py-4">
+                    <div className="h-4 w-20 bg-neutral-200/80 dark:bg-neutral-800 rounded" />
+                  </td>
+                  <td className="py-4">
+                    <div className="h-3.5 w-16 bg-neutral-200/80 dark:bg-neutral-800 rounded" />
+                  </td>
+                  <td className="py-4 text-right">
+                    <div className="inline-block h-5 w-20 bg-neutral-200/80 dark:bg-neutral-800 rounded-full" />
+                  </td>
+                </tr>
+              ))
+            ) : orders.length === 0 ? (
               <tr>
                 <td colSpan={5} className="py-8 text-center text-neutral-400 text-xs">
                   Chưa có đơn hàng nào phát sinh.

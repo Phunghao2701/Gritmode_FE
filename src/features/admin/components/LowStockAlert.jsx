@@ -1,6 +1,6 @@
 import Icon from '../../../shared/components/Icon';
 
-export default function LowStockAlert({ lowStockItems = [], onManageInventory }) {
+export default function LowStockAlert({ lowStockItems = [], onManageInventory, isLoading = false }) {
   return (
     <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 flex flex-col justify-between">
       <div className="space-y-4">
@@ -18,7 +18,20 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory })
         </p>
 
         <div className="space-y-3 pt-2">
-          {lowStockItems.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div 
+                key={`stock-skel-${i}`}
+                className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-between animate-pulse"
+              >
+                <div className="space-y-1.5 flex-1 mr-4">
+                  <div className="h-3.5 w-36 bg-neutral-200/80 dark:bg-neutral-700/60 rounded" />
+                  <div className="h-2.5 w-20 bg-neutral-100 dark:bg-neutral-800 rounded" />
+                </div>
+                <div className="h-4 w-16 bg-neutral-200/80 dark:bg-neutral-700/60 rounded" />
+              </div>
+            ))
+          ) : lowStockItems.length === 0 ? (
             <p className="text-xs text-neutral-400 text-center py-4">Tất cả SKU đều đủ tồn kho an toàn.</p>
           ) : (
             lowStockItems.map((item) => (

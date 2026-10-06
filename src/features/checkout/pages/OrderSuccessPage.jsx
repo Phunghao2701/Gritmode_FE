@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { useParams, useRouter, usePathname } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { getMyOrderByIdApi } from '../../orders/apis/order.api';
@@ -17,28 +17,22 @@ export default function OrderSuccessPage() {
   const params = useParams();
   const orderId = params?.orderId || params?.id;
   const router = useRouter();
-  const stateOrder = null;
   const { isAuthenticated } = useAuthStore();
   const [copiedField, setCopiedField] = useState(null);
 
   // 1. Fetch Order Details (Both Guest & Authenticated)
-  const { data: fetchedOrder, isLoading: isOrderLoading, refetch: refetchOrder } = useQuery({
+  const { data: fetchedOrder, isPending: isOrderPending, isFetching: isOrderFetching, refetch: refetchOrder } = useQuery({
     queryKey: ['order-detail', orderId],
     queryFn: async () => {
       if (!orderId) return null;
-      try {
-        const res = await getMyOrderByIdApi(orderId);
-        return res.data?.data || res.data;
-      } catch (err) {
-        console.warn('Could not fetch order detail:', err);
-        return null;
-      }
+      const res = await getMyOrderByIdApi(orderId);
+      return res.data?.data || res.data;
     },
-    initialData: stateOrder,
     enabled: !!orderId,
   });
 
-  const order = fetchedOrder || stateOrder;
+  const order = fetchedOrder;
+  const isOrderLoading = isOrderPending || isOrderFetching;
 
   // 2. Polling Payment Status (every 3s for payOS until paid)
   const {
@@ -103,7 +97,7 @@ export default function OrderSuccessPage() {
                 Mã đơn hàng:
               </span>
               <span className="font-mono font-[550] text-sm uppercase text-black dark:text-white">
-                {order?.order_code || `#ORD-${orderId}`}
+                {order?.order_code}
               </span>
             </div>
             <h1 className="font-sans font-[550] text-xl sm:text-2xl text-black dark:text-white uppercase tracking-tight">
@@ -153,18 +147,15 @@ export default function OrderSuccessPage() {
                   <span className="text-[10px] font-normal uppercase tracking-wider text-neutral-400">Người nhận</span>
                   <p className="font-normal text-black dark:text-white">
                     {order?.address?.receiver_name_order_address ||
-                      order?.receiver_name_order_address ||
-                      order?.email_order ||
-                      'Khách hàng Gritmode'}
+                      order?.receiver_name_order_address}
                   </p>
                   <p className="text-neutral-500 font-mono font-normal">
                     {order?.address?.phone_order_address ||
                       order?.phone_order_address ||
-                      order?.phone_order ||
-                      ''}
+                      order?.phone_order}
                   </p>
                   <p className="text-neutral-500 font-normal">
-                    {order?.email_order || ''}
+                    {order?.email_order}
                   </p>
                 </div>
 
@@ -178,7 +169,7 @@ export default function OrderSuccessPage() {
                       order?.address?.province_order_address || order?.province_order_address,
                     ]
                       .filter(Boolean)
-                      .join(', ') || 'Đã ghi nhận theo địa chỉ đặt hàng'}
+                      .join(', ')}
                   </p>
                   {order?.note_order && (
                     <p className="text-[11px] text-amber-600 dark:text-amber-400 font-normal pt-1">
@@ -209,7 +200,7 @@ export default function OrderSuccessPage() {
                       {item.image_product ? (
                         <img
                           src={item.image_product}
-                          alt={item.name_product_order_item || 'Product'}
+                          alt={item.name_product_order_item || item.name_product}
                           className="w-12 h-16 object-contain rounded-xl border border-neutral-200 dark:border-neutral-800 shrink-0 bg-neutral-100 dark:bg-neutral-950 p-0.5"
                         />
                       ) : (
@@ -219,7 +210,7 @@ export default function OrderSuccessPage() {
                       )}
                       <div className="min-w-0">
                         <h4 className="font-normal text-black dark:text-white uppercase truncate text-xs">
-                          {item.name_product_order_item || item.name_product || 'Sản phẩm Gritmode'}
+                          {item.name_product_order_item || item.name_product}
                         </h4>
                         <p className="text-[11px] text-neutral-400 mt-0.5 font-normal">
                           {item.variant_order_item ? `${item.variant_order_item} · ` : ''}SL: <span className="font-[550] text-black dark:text-white">x{item.quantity_order_item || item.quantity}</span>
@@ -256,7 +247,9 @@ export default function OrderSuccessPage() {
               </div>
               {order?.discount_order > 0 && (
                 <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-normal uppercase tracking-wider">
-                  <span>Mã giảm giá ({order.code_voucher_order || 'Voucher'}):</span>
+                  <span>
+                    Mã giảm giá{order.code_voucher_order ? ` (${order.code_voucher_order})` : ''}:
+                  </span>
                   <span className="font-[550] tracking-normal">-{formatPriceVND(order.discount_order)}</span>
                 </div>
               )}
@@ -382,7 +375,7 @@ export default function OrderSuccessPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-neutral-500 dark:text-neutral-400 text-[11px] font-medium">Ngân hàng:</span>
                     <span className="font-bold text-black dark:text-white">
-                      {qrDetails?.bank?.shortName || qrDetails?.bank?.name || 'VietQR / NAPAS247'}
+                      {qrDetails?.bank?.shortName || qrDetails?.bank?.name}
                     </span>
                   </div>
 

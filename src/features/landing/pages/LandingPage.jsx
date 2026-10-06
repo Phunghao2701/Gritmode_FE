@@ -86,6 +86,7 @@ export default function LandingPage() {
                     alt={heroSettings?.title || 'Gritmode Hero'}
                     fill
                     priority={index === 0}
+                    loading={index === 0 ? 'eager' : 'lazy'}
                     quality={90}
                     sizes="100vw"
                     className="object-cover object-center sm:object-[center_15%]"

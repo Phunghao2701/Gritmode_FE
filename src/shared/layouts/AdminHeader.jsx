@@ -2,10 +2,10 @@
 
 import Icon from '../../shared/components/Icon';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import AdminNotificationBell from '../../features/admin/components/AdminNotificationBell';
 
 export default function AdminHeader({ onMenuOpen }) {
-  const router = useRouter();
   const pathname = usePathname();
 
   const getPageInfo = () => {
@@ -44,20 +44,7 @@ export default function AdminHeader({ onMenuOpen }) {
       </div>
 
       <div className="flex items-center gap-3">
-        {/* Live System Indicator */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Hệ thống trực tuyến</span>
-        </div>
-
-        {/* Back to store */}
-        <button
-          onClick={() => router.push('/')}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 text-xs font-bold uppercase tracking-wider text-black dark:text-white transition-all cursor-pointer"
-        >
-          <Icon icon="solar:shop-2-linear" className="text-sm" />
-          <span className="hidden sm:inline">Xem Store</span>
-        </button>
+        <AdminNotificationBell />
       </div>
     </header>
   );
