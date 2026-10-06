@@ -260,6 +260,7 @@ export default function ProductDetailPage() {
                 sizes="(min-width: 1024px) 58vw, 100vw"
                 alt={product.name_product}
                 decoding="async"
+                fetchPriority="high"
                 className="w-full h-full object-cover object-top transition-all duration-300 pointer-events-none"
               />
             ) : (
