@@ -42,6 +42,19 @@ export const cancelAdminOrderApi = (orderId, reason) => {
   return api.patch(`/admin/orders/${orderId}/cancel`, reason ? { reason } : {});
 };
 
+// 2.5 Admin Notifications
+export const getAdminNotificationsApi = (params = {}) => {
+  return api.get('/admin/notifications', { params });
+};
+
+export const markAdminNotificationReadApi = (notificationId) => {
+  return api.patch(`/admin/notifications/${notificationId}/read`);
+};
+
+export const markAllAdminNotificationsReadApi = () => {
+  return api.patch('/admin/notifications/read-all');
+};
+
 // 3. Products
 export const getAdminProductsApi = (params = {}) => {
   return api.get('/admin/products', { params });
