@@ -59,6 +59,7 @@ export default function ProductCard({ product }) {
   return (
     <Link
       href={`/products/${productSlug}`}
+      prefetch={false}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
       className="group cursor-pointer select-none flex flex-col space-y-3 relative transition-all duration-300"
