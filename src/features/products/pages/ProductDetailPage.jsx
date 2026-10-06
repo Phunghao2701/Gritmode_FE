@@ -614,24 +614,35 @@ export default function ProductDetailPage() {
               </button>
             </div>
 
+            {/* Top Right: Close Button (Nút X Tắt) */}
+            <div className="justify-self-end flex items-center bg-neutral-900/90 backdrop-blur-md border border-neutral-800 rounded-xl p-1 shadow-lg">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLightboxOpen(false);
+                }}
+                className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
+                title="Đóng (ESC)"
+                aria-label="Đóng xem ảnh"
+              >
+                <Icon icon="solar:close-circle-bold" className="text-xl sm:text-2xl text-red-400 sm:text-white" />
+                <span className="text-xs font-bold uppercase hidden sm:inline pr-1">Đóng</span>
+              </button>
+            </div>
+
           </div>
 
           {/* 2. Center Image Canvas */}
-          <div className="flex-1 w-full flex items-center justify-center py-2 overflow-hidden cursor-pointer">
+          <div
+            className="flex-1 w-full flex items-center justify-center py-2 overflow-hidden cursor-pointer"
+            onClick={() => setIsLightboxOpen(false)}
+          >
             <div
               onPointerDown={handleImagePanStart}
               onPointerMove={handleImagePanMove}
               onPointerUp={handleImagePanEnd}
               onPointerCancel={handleImagePanEnd}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (imagePanMovedRef.current) {
-                  imagePanMovedRef.current = false;
-                  return;
-                }
-                setImagePan({ x: 0, y: 0 });
-                setIsZoomed((prev) => !prev);
-              }}
               onWheel={(e) => {
                 setImagePan({ x: 0, y: 0 });
                 setIsZoomed(e.deltaY < 0);
@@ -644,6 +655,15 @@ export default function ProductDetailPage() {
                 alt={product.name_product}
                 draggable="false"
                 decoding="async"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (imagePanMovedRef.current) {
+                    imagePanMovedRef.current = false;
+                    return;
+                  }
+                  setImagePan({ x: 0, y: 0 });
+                  setIsZoomed((prev) => !prev);
+                }}
                 style={{ transform: `translate3d(${imagePan.x}px, ${imagePan.y}px, 0) scale(${isZoomed ? 1.5 : 1})` }}
                 className={`w-auto max-w-full h-full object-contain ${isPanningImage ? '' : 'transition-transform duration-300'} ${isZoomed ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-in'}`}
               />

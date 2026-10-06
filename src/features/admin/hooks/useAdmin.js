@@ -37,27 +37,11 @@ export const useAdminDashboardOverview = () => {
     queryKey: ['admin-dashboard-overview'],
     staleTime: 1000 * 60 * 3, // 3 min cache
     refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
+    retry: 2,
     queryFn: async () => {
-      try {
-        const res = await getAdminDashboardOverviewApi();
-        return res.data?.data || res.data;
-      } catch {
-        return {
-          stats: {
-            revenueThisMonth: 0,
-            revenueChange: '0%',
-            totalOrders: 0,
-            ordersChange: '0%',
-            totalProducts: 0,
-            productsChange: '0',
-            totalUsers: 0,
-            usersChange: '0%',
-            lowStockCount: 0,
-          },
-          orders: [],
-          inventory: [],
-        };
-      }
+      const res = await getAdminDashboardOverviewApi();
+      return res.data?.data || res.data;
     },
   });
 };
@@ -79,23 +63,10 @@ export const useAdminStats = () => {
     queryKey: ['admin-stats'],
     staleTime: 1000 * 60 * 3, // 3 min cache
     refetchOnWindowFocus: false,
+    retry: 2,
     queryFn: async () => {
-      try {
-        const res = await getAdminStatsApi();
-        return res.data?.data || res.data;
-      } catch {
-        return {
-          revenueThisMonth: 0,
-          revenueChange: '0%',
-          totalOrders: 0,
-          ordersChange: '0%',
-          totalProducts: 0,
-          productsChange: '0',
-          totalUsers: 0,
-          usersChange: '0%',
-          lowStockCount: 0,
-        };
-      }
+      const res = await getAdminStatsApi();
+      return res.data?.data || res.data;
     },
   });
 };

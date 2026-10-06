@@ -100,6 +100,47 @@ html.lenis body {
   scrollbar-width: none;
 }
 
+/* Admin notification motion: fast, tactile, and safe for reduced-motion users. */
+@keyframes notification-popover-in {
+  from {
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes notification-item-in {
+  from {
+    transform: translateY(-4px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-notification-popover {
+  animation: notification-popover-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top right;
+}
+
+.animate-notification-item {
+  animation: notification-item-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-motion,
+  .animate-notification-popover,
+  .animate-notification-item {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .notification-motion::after {
+    transition: none !important;
+  }
+}
+
 /* Eliminate all sticky hover and tap highlights on touch/mobile devices */
 @media (hover: none) and (pointer: coarse), (max-width: 1024px) {
   * {

@@ -3,6 +3,7 @@ import { getQueryClient } from '@/shared/services/queryClient';
 import { getCategoriesApi } from '@/features/categories/apis/category.api';
 import { getProductsApi } from '@/features/products/apis/product.api';
 import { buildCategoryTree } from '@/features/categories/utils/category.utils';
+import { STOREFRONT_BANNERS_KEY, getActiveBannersApi } from '@/features/landing/hooks/useBanners';
 import LandingPage from '@/features/landing/pages/LandingPage';
 
 export const metadata = {  description:
@@ -14,6 +15,12 @@ export const metadata = {  description:
 
 export default async function HomePage() {
   const queryClient = getQueryClient();
+
+  // Prefetch Banners & Hero settings for instant zero-delay presentation
+  await queryClient.prefetchQuery({
+    queryKey: STOREFRONT_BANNERS_KEY,
+    queryFn: getActiveBannersApi,
+  });
 
   // Prefetch Categories for MegaMenu and filter tabs
   await queryClient.prefetchQuery({
