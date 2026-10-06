@@ -78,5 +78,45 @@
     "user_visible_behavior": "Hiển thị ProductCard streetwear và PaginationControls; thanh tìm kiếm Live Search lọc nhanh component theo từ khóa trên cả desktop và mobile.",
     "verification_command": "node -e \"console.log('Verified search filter and responsive layout')\"",
     "notes": "Covers stories: P1, P2, FR-04, FR-05"
+  },
+  {
+    "id": "phase-01-database-and-backend-api",
+    "title": "Thiết kế CSDL & Xây dựng API Quản lý Banner (Backend)",
+    "status": "passing",
+    "evidence": "Applied migration 012_banner_management.sql on Supabase, created repository, service, controller, routes and 4 unit tests passing 100%",
+    "priority": "P1",
+    "user_visible_behavior": "PostgreSQL có bảng banners; API trả về danh sách active banners với Redis cache và hỗ trợ CRUD admin đầy đủ.",
+    "verification_command": "node scripts/migrate.js && node --test tests/unit/controllers/banner.controller.test.js",
+    "notes": "Covers stories: FR-01, FR-02, FR-03"
+  },
+  {
+    "id": "phase-02-admin-banner-management-ui",
+    "title": "Xây dựng Giao diện Quản trị Banner trên Admin (Frontend)",
+    "status": "passing",
+    "evidence": "Admin sidebar tab, route /admin/banners, AdminBannersPage, BannerFormModal (16:9 preview), and TanStack Query hooks created and verified",
+    "priority": "P1",
+    "user_visible_behavior": "Sidebar Admin có tab Banner Trang Chủ; trang quản trị cho phép upload ảnh preview 16:9, nhập tiêu đề, mô tả, link CTA, marquee text và toggle bật/tắt.",
+    "verification_command": "npm run build",
+    "notes": "Covers stories: FR-04, FR-05"
+  },
+  {
+    "id": "phase-03-landing-page-hero-and-marquee-integration",
+    "title": "Tích hợp Banner Động & Marquee vào Landing Page (Frontend)",
+    "status": "passing",
+    "evidence": "useBanners hook created, LandingPage.jsx integrated with dynamic active banners, mobile object-cover layout and MainLayout top marquee ticker synced",
+    "priority": "P1",
+    "user_visible_behavior": "Trang chủ hiển thị danh sách banner thật theo dạng slider 5s; responsive mobile dùng object-cover linh hoạt không bị lùn ảnh; top marquee đồng bộ text chiến dịch.",
+    "verification_command": "curl http://localhost:3000",
+    "notes": "Covers stories: FR-06, FR-07"
+  },
+  {
+    "id": "phase-04-verification-testing-and-polish",
+    "title": "Kiểm thử Tổng thể, Build Verification & Tối ưu (Polish)",
+    "status": "passing",
+    "evidence": "BE tests 4 passed 0 failed, Next.js 16 build passed with 32 routes compiled including /admin/banners in 2.2s",
+    "priority": "P1",
+    "user_visible_behavior": "Toàn bộ chu trình CRUD và hiển thị storefront hoạt động mượt mà, build production pass 100%, fallback an toàn khi rỗng.",
+    "verification_command": "npm test && npm run build",
+    "notes": "Covers stories: Acceptance Criteria, Success Criteria"
   }
 ]

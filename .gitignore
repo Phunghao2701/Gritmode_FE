@@ -86,3 +86,9 @@ Thumbs.db
 
 tests/
 test-artifacts/
+
+.agents/
+.hs.json
+.mcp.json
+
+.env copy

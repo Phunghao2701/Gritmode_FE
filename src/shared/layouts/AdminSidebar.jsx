@@ -37,6 +37,12 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
       ]
     },
     {
+      group: 'Giao diện & Marketing',
+      items: [
+        { label: 'Banner Trang Chủ', path: ROUTES.ADMIN_BANNERS, icon: 'solar:gallery-edit-bold-duotone' },
+      ]
+    },
+    {
       group: 'Hệ thống & Khách hàng',
       items: [
         { label: 'Khách hàng', path: ROUTES.ADMIN_USERS, icon: 'solar:users-group-rounded-bold-duotone' },
