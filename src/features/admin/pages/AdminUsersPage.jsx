@@ -6,6 +6,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
+import AdminPageHeader from '../components/AdminPageHeader';
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -66,20 +67,11 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner */}
-      <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
-            Accounts & Access Control
-          </span>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
-            Quản lý người dùng ({total})
-          </h1>
-          <p className="text-xs text-neutral-500 mt-1">
-            Danh sách tài khoản khách hàng, quản trị viên, kiểm soát trạng thái hoạt động và khóa tài khoản vi phạm.
-          </p>
-        </div>
-      </div>
+      <AdminPageHeader
+        eyebrow="Khách hàng & Hệ thống"
+        title={`Quản lý người dùng (${total})`}
+        description="Danh sách tài khoản khách hàng, quản trị viên và trạng thái truy cập."
+      />
 
       {/* Filter and Search Bar */}
       <div className="space-y-3">

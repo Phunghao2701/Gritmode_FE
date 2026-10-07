@@ -9,13 +9,17 @@ import {
 } from '../../features/cart/apis/cart.api';
 import { guestTokenService } from '../../features/cart/services/guestToken.service';
 import { toast } from '../../shared/utils/toast';
+import { requireApiObject } from '../services/responseContract';
 
 const normalizeCartItem = (row) => {
   const cartItemId = Number(row.cart_item_id || row.id || 0);
   const variantId = Number(row.product_variant_id || row.variantId || 0);
   const price = Number(row.price || 0);
   const quantity = Number(row.quantity || row.quantity_cart_item || 1);
-  const available = Number(row.quantity_available ?? 999);
+  const available = Number(row.quantity_available);
+  if (!Number.isFinite(available) || available < 0) {
+    throw new Error('Dữ liệu tồn kho của giỏ hàng không hợp lệ');
+  }
   const lineTotal = Number(row.total_item || row.line_total || price * quantity);
 
   return {
@@ -77,14 +81,8 @@ export const useCartStore = create(
 
       // Core State Setter from Backend
       setCartFromResponse: (data) => {
-        if (!data) {
-          set({
-            cart_id: null,
-            status_cart: 'active',
-            items: [],
-            summary: { total_items: 0, subtotal: 0 },
-          });
-          return;
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+          throw new Error('Dữ liệu giỏ hàng không hợp lệ');
         }
 
         const rawItems = Array.isArray(data.items) ? data.items : [];
@@ -112,12 +110,12 @@ export const useCartStore = create(
         set({ isLoadingCart: true });
         try {
           const res = await getCartApi();
-          const data = res.data?.data || res.data;
+          const data = requireApiObject(res, 'Giỏ hàng');
           get().setCartFromResponse(data);
           return { success: true, data };
-        } catch {
-          // If guest doesn't have cart yet or 404, set clean state
-          return { success: false };
+        } catch (error) {
+          toast.error(error.response?.data?.message || error.message || 'Không thể tải giỏ hàng. Vui lòng thử lại.');
+          return { success: false, error };
         } finally {
           set({ isLoadingCart: false });
         }
@@ -194,7 +192,7 @@ export const useCartStore = create(
             quantity: qty,
           });
 
-          const data = res.data?.data || res.data;
+          const data = requireApiObject(res, 'Giỏ hàng');
           get().setCartFromResponse(data);
           toast.success(`Đã thêm ${qty} sản phẩm vào giỏ hàng!`);
           return { success: true, data };
@@ -243,7 +241,7 @@ export const useCartStore = create(
 
         try {
           const res = await updateCartItemApi(cartItemId, targetQuantity);
-          const data = res.data?.data || res.data;
+          const data = requireApiObject(res, 'Giỏ hàng');
           get().setCartFromResponse(data);
         } catch (err) {
           if (err.response?.status === 409) {
@@ -276,14 +274,14 @@ export const useCartStore = create(
 
         try {
           const res = await removeCartItemApi(cartItemId);
-          const data = res.data?.data || res.data;
+          const data = requireApiObject(res, 'Giỏ hàng');
           get().setCartFromResponse(data);
           toast.success('Đã xóa sản phẩm khỏi giỏ hàng.');
         } catch (err) {
           if (err.response?.status === 404) {
             get().fetchCart();
           } else {
-            toast.error(err.response?.data?.message || 'Không thể xóa sản phẩm.');
+            toast.error(err.response?.data?.message || err.message || 'Không thể xóa sản phẩm.');
           }
         } finally {
           set((state) => ({
@@ -302,12 +300,8 @@ export const useCartStore = create(
             summary: { total_items: 0, subtotal: 0 },
           });
           toast.info('Đã dọn sạch giỏ hàng.');
-        } catch {
-          // If clear fails on BE, reset locally
-          set({
-            items: [],
-            summary: { total_items: 0, subtotal: 0 },
-          });
+        } catch (error) {
+          toast.error(error.response?.data?.message || error.message || 'Không thể dọn giỏ hàng.');
         } finally {
           set({ isMutating: false });
         }

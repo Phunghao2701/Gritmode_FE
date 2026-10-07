@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Icon from '../Icon';
 import {
   loadVietnamAddressTree,
-  getInitialProvincesList,
   findProvinceObject,
   findDistrictObject,
 } from '../../utils/vietnamAddress';
@@ -18,16 +17,23 @@ export default function AddressSelectGroup({
   className = '',
 }) {
   const [addressTree, setAddressTree] = useState([]);
+  const [addressError, setAddressError] = useState(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
-    loadVietnamAddressTree().then((tree) => {
-      if (isMounted) setAddressTree(tree);
-    });
+    setAddressError(null);
+    loadVietnamAddressTree()
+      .then((tree) => {
+        if (isMounted) setAddressTree(tree);
+      })
+      .catch((error) => {
+        if (isMounted) setAddressError(error);
+      });
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [loadAttempt]);
 
   // Compute matched province object
   const currentProvinceObj = useMemo(() => {
@@ -44,7 +50,7 @@ export default function AddressSelectGroup({
     if (addressTree.length > 0) {
       return addressTree.map((p) => p.name);
     }
-    return getInitialProvincesList();
+    return [];
   }, [addressTree]);
 
   const districtOptions = useMemo(() => {
@@ -60,6 +66,17 @@ export default function AddressSelectGroup({
     }
     return [];
   }, [currentDistrictObj]);
+
+  if (addressError) {
+    return (
+      <div className={`rounded-2xl border border-rose-200 bg-rose-50/60 p-4 text-sm text-rose-700 ${className}`}>
+        <p>Không thể tải danh sách địa chỉ.</p>
+        <button type="button" onClick={() => setLoadAttempt((attempt) => attempt + 1)} className="mt-2 underline">
+          Thử lại
+        </button>
+      </div>
+    );
+  }
 
   const handleProvinceChange = (e) => {
     const newProvince = e.target.value;

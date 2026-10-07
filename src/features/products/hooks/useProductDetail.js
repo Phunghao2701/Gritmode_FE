@@ -9,8 +9,11 @@ import { getProductDetailApi } from '../apis/product.api';
 import {
   findVariantByOptionValues,
   isVariantAvailable,
+  getOptionValueAvailability,
+  optionValueAvailabilityKey,
   getProductImagesByOptionValue,
 } from '../utils/product.utils';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export const useProductDetail = (productId) => {
   const [selectedOptionValues, setSelectedOptionValues] = useState({});
@@ -22,10 +25,13 @@ export const useProductDetail = (productId) => {
     queryFn: async () => {
       if (!productId) return null;
       const res = await getProductDetailApi(productId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Chi tiết sản phẩm');
     },
     enabled: !!productId,
-    staleTime: 1000 * 60 * 3, // 3 minutes
+    // Inventory is volatile; never let a product page keep a stale stock state for minutes.
+    staleTime: 1000 * 30,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
   });
 
   const product = query.data;
@@ -34,10 +40,27 @@ export const useProductDetail = (productId) => {
   useEffect(() => {
     if (product && Array.isArray(product.options) && product.options.length > 0) {
       const initialSelection = {};
+      const hiddenValueIds = new Set(product.options.flatMap((option) => (option.values || [])
+        .filter((value) => value.is_hidden)
+        .map((value) => Number(value.product_option_value_id))));
+      const firstAvailableVariant = (product.variants || []).find((variant) => {
+        if (!isVariantAvailable(variant)) return false;
+        return !(variant.option_values || []).some((value) => (
+          value.is_hidden || hiddenValueIds.has(Number(value.product_option_value_id))
+        ));
+      });
       product.options.forEach((opt) => {
         if (Array.isArray(opt.values) && opt.values.length > 0) {
-          // Pre-select first available value
-          initialSelection[opt.product_option_id] = opt.values[0].product_option_value_id;
+          const visibleValues = opt.values.filter((value) => !value.is_hidden);
+          const variantValueId = firstAvailableVariant?.option_values?.find((variantValue) =>
+            visibleValues.some((value) => Number(value.product_option_value_id) === Number(variantValue.product_option_value_id))
+          )?.product_option_value_id;
+          // Do not select an unavailable value as a fallback. When every
+          // variant is sold out, leave the option unselected so the UI cannot
+          // imply that an unavailable size/color is active.
+          if (variantValueId !== undefined) {
+            initialSelection[opt.product_option_id] = Number(variantValueId);
+          }
         }
       });
       setSelectedOptionValues(initialSelection);
@@ -48,6 +71,18 @@ export const useProductDetail = (productId) => {
       setSelectedQuantity(1);
     }
   }, [product]);
+
+  const availableOptionValues = useMemo(() => getOptionValueAvailability(
+    product?.options || [],
+    product?.variants || [],
+    selectedOptionValues,
+  ), [product, selectedOptionValues]);
+
+  const hasAvailableVariant = useMemo(() => (
+    (product?.variants || []).some((variant) => (
+      isVariantAvailable(variant) && !(variant.option_values || []).some((value) => value.is_hidden)
+    ))
+  ), [product]);
 
   // Resolve matching variant
   const selectedVariant = useMemo(() => {
@@ -118,13 +153,18 @@ export const useProductDetail = (productId) => {
 
   // Action: Select option value
   const selectOptionValue = useCallback((optionId, optionValueId) => {
+    const option = product?.options?.find((item) => String(item.product_option_id) === String(optionId));
+    const value = option?.values?.find((item) => Number(item.product_option_value_id) === Number(optionValueId));
+    const availabilityKey = optionValueAvailabilityKey(optionId, optionValueId);
+    if (!value || value.is_hidden || availableOptionValues[availabilityKey] === false) return;
+
     setSelectedOptionValues((prev) => ({
       ...prev,
       [optionId]: Number(optionValueId),
     }));
     // Reset image index when switching color
     setSelectedImageIndex(0);
-  }, []);
+  }, [availableOptionValues, product]);
 
   // Action: Change quantity (bounded between 1 and availableStock)
   const setQuantity = useCallback((qty) => {
@@ -152,6 +192,8 @@ export const useProductDetail = (productId) => {
     product,
     isLoadingProduct: query.isLoading,
     selectedOptionValues,
+    availableOptionValues,
+    hasAvailableVariant,
     selectedVariant,
     isAllOptionsSelected,
     isAvailable,

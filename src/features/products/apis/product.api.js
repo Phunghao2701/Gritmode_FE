@@ -3,6 +3,7 @@
  * Communicates with /api/v1/products, /api/v1/categories, /api/v1/collections, and /api/v1/admin/products
  */
 import { publicApi } from '../../../shared/services/api';
+import { withPublicCacheBuster } from '../../../shared/services/cachePolicy';
 
 /**
  * Lấy danh sách sản phẩm (public)
@@ -35,7 +36,7 @@ export const getProductsApi = (params = {}) => {
     delete query.maxPrice;
   }
 
-  return publicApi.get('/products', { params: query });
+  return publicApi.get('/products', { params: withPublicCacheBuster(query) });
 };
 
 /**
@@ -43,6 +44,6 @@ export const getProductsApi = (params = {}) => {
  * @param {number|string} productId
  */
 export const getProductDetailApi = (productId) => {
-  return publicApi.get(`/products/${productId}`);
+  return publicApi.get(`/products/${productId}`, { params: withPublicCacheBuster() });
 };
 

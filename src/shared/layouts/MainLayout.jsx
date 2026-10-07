@@ -61,6 +61,11 @@ export default function MainLayout({ children }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [isClientMounted, setIsClientMounted] = useState(false);
+
+  useEffect(() => {
+    setIsClientMounted(true);
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -114,7 +119,7 @@ export default function MainLayout({ children }) {
     return list.slice(0, 8);
   }, [categoryTree]);
 
-  const cartItemCount = getTotalItems();
+  const cartItemCount = isClientMounted ? getTotalItems() : 0;
   const isHomePage = pathname === '/';
 
   // Listen to scroll for:
@@ -166,6 +171,7 @@ export default function MainLayout({ children }) {
   const collectionsMegaMenu = collectionRoots.map((parent) => ({
     id: parent.collection_id,
     title: parent.name_collection,
+    path: `/products?collection=${parent.slug_collection || parent.slug}`,
     items: collections
       .filter((collection) => Number(collection.parent_collection_id) === Number(parent.collection_id))
       .map((collection) => ({
@@ -173,7 +179,7 @@ export default function MainLayout({ children }) {
         label: collection.name_collection,
         path: `/products?collection=${collection.slug_collection || collection.slug}`,
       })),
-  })).filter((group) => group.items.length > 0);
+  }));
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -196,6 +202,31 @@ export default function MainLayout({ children }) {
 
   // 4. Non-homepage Sticky on Scroll Up: hide when scrolling down unless hovered/menu open
   const isHeaderHidden = !isHomePage && !isHeaderVisible && !isHeaderHovered && activeMegaMenu === null;
+
+  const renderCategoryLinks = (nodes = [], level = 0) => nodes.map((node) => {
+    const nodeId = node.category_id || node.id;
+    const nodeName = node.name_category || node.name;
+    const nodeSlug = node.slug_category || node.slug;
+    const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+
+    return (
+      <li key={nodeId}>
+        <Link
+          href={`/products?category=${nodeSlug}`}
+          onClick={() => setActiveMegaMenu(null)}
+          style={{ paddingLeft: `${level * 12}px` }}
+          className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
+        >
+          {nodeName}
+        </Link>
+        {hasChildren && (
+          <ul className="mt-2.5 space-y-2.5">
+            {renderCategoryLinks(node.children, level + 1)}
+          </ul>
+        )}
+      </li>
+    );
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
@@ -387,7 +418,10 @@ export default function MainLayout({ children }) {
           >
             <div className="max-w-7xl mx-auto px-8 py-10">
               {categoryTree && categoryTree.length > 0 ? (
-                <div className={`grid grid-cols-${Math.min(categoryTree.length, 5)} gap-8`}>
+                <div
+                  className="grid gap-8"
+                  style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(categoryTree.length, 1), 5)}, minmax(0, 1fr))` }}
+                >
                   {categoryTree.map((cat) => (
                     <div key={cat.category_id} className="space-y-4">
                       <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
@@ -402,16 +436,7 @@ export default function MainLayout({ children }) {
                       {cat.children && cat.children.length > 0 && (
                         <ul className={`space-y-2.5 text-xs font-medium ${isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
                           }`}>
-                          {cat.children.map((sub) => (
-                            <li key={sub.category_id}>
-                              <Link href={`/products?category=${sub.slug_category || sub.slug}`}
-                                onClick={() => setActiveMegaMenu(null)}
-                                className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
-                              >
-                                {sub.name_category}
-                              </Link>
-                            </li>
-                          ))}
+                          {renderCategoryLinks(cat.children)}
                         </ul>
                       )}
                     </div>
@@ -437,31 +462,44 @@ export default function MainLayout({ children }) {
             onMouseLeave={() => setActiveMegaMenu(null)}
           >
             <div className="max-w-7xl mx-auto px-8 py-10">
-              <div className="grid grid-cols-4 gap-8">
+              <div
+                className="grid gap-8"
+                style={{ gridTemplateColumns: `repeat(${Math.min(Math.max(collectionsMegaMenu.length, 1), 5)}, minmax(0, 1fr))` }}
+              >
 
                 {collectionsMegaMenu.map((group) => (
                   <div key={group.id} className="space-y-4">
-                    <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
+                    <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${isWhiteTheme
+                      ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800'
+                      : 'text-white border-white/10'
                       }`}>
-                      {group.title}
+                      <Link
+                        href={group.path}
+                        onClick={() => setActiveMegaMenu(null)}
+                        className="hover:opacity-75 transition-opacity"
+                      >
+                        {group.title}
+                      </Link>
                     </h3>
-                    <ul className={`space-y-2.5 text-xs font-medium ${isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
-                      }`}>
-                      {group.items.map((item) => (
-                        <li key={item.id}>
-                          <Link href={item.path}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+                    {group.items.length > 0 && (
+                      <ul className={`space-y-2.5 text-xs font-medium ${isWhiteTheme ? 'text-neutral-600 dark:text-neutral-300' : 'text-white/75'
+                        }`}>
+                        {group.items.map((item) => (
+                          <li key={item.id}>
+                            <Link href={item.path}
+                              onClick={() => setActiveMegaMenu(null)}
+                              className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
+                            >
+                              {item.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 ))}
                 {collectionsMegaMenu.length === 0 && (
-                  <p className="col-span-4 text-xs text-neutral-400">Chưa có nhóm và bộ sưu tập con đang hiển thị.</p>
+                  <p className="col-span-full text-xs text-neutral-400">Chưa có bộ sưu tập nào.</p>
                 )}
 
               </div>
@@ -937,7 +975,7 @@ export default function MainLayout({ children }) {
       </main>
 
       {/* Slide-out Cart Drawer */}
-      <CartDrawer />
+      {isClientMounted && <CartDrawer />}
 
       {/* DirtyCoins Style Streetwear Footer */}
       <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-600 dark:text-neutral-400">

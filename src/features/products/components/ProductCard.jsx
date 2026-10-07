@@ -6,6 +6,8 @@ import Image from 'next/image';
 import Icon from '../../../shared/components/Icon';
 import { queryClient } from '../../../shared/services/queryClient';
 import { getProductDetailApi } from '../apis/product.api';
+import OutOfStockOverlay from './OutOfStockOverlay';
+import { requireApiObject } from '../../../shared/services/responseContract';
 import {
   formatProductPriceRange,
   slugifyProductName,
@@ -25,7 +27,7 @@ export default function ProductCard({ product }) {
         queryKey: ['product-detail', productSlug],
         queryFn: async () => {
           const res = await getProductDetailApi(productSlug);
-          return res.data?.data || res.data;
+          return requireApiObject(res, 'Chi tiết sản phẩm');
         },
         staleTime: 1000 * 60 * 3,
       });
@@ -45,7 +47,17 @@ export default function ProductCard({ product }) {
   const originalMinPrice = Number(product.original_min_price || product.original_price || minPrice);
   const originalMaxPrice = Number(product.original_max_price || product.original_price || maxPrice);
 
-  const isAvailable = Boolean(product.is_active ?? true) && (product.total_stock !== undefined ? product.total_stock > 0 : true);
+  // The public catalog already contains active products, while the list
+  // response does not expose `is_active`. Do not turn a missing field into a
+  // false out-of-stock state.
+  const isActive = product.is_active === undefined || product.is_active === true;
+  const isAvailable = isActive && (
+    product.is_available !== undefined
+      ? product.is_available === true
+      : product.total_stock !== undefined
+        ? Number(product.total_stock) > 0
+        : true
+  );
   const hasSale = originalMinPrice > minPrice;
   const discountPercent = hasSale && originalMinPrice > 0
     ? Math.round((1 - minPrice / originalMinPrice) * 100)
@@ -92,13 +104,8 @@ export default function ProductCard({ product }) {
           </span>
         )}
 
-        {/* Availability Badge / Out of Stock Overlay */}
         {!isAvailable && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-20">
-            <span className="text-[10px] font-normal uppercase tracking-widest bg-white text-black px-3.5 py-1 rounded-full shadow-xl">
-              Tạm hết hàng
-            </span>
-          </div>
+          <OutOfStockOverlay />
         )}
       </div>
 

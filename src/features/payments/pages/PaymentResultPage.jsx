@@ -9,6 +9,8 @@ import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import { getPaymentStatusInfo } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
+import ErrorState from '../../../shared/components/ErrorState';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export default function PaymentResultPage() {
   const [searchParams] = useSearchParams();
@@ -17,12 +19,12 @@ export default function PaymentResultPage() {
   const orderId = searchParams.get('orderId') || searchParams.get('order_id');
   const isCancelledFlow = window.location.pathname.includes('cancel');
 
-  const { data: payment, isLoading } = useQuery({
+  const { data: payment, isLoading, isError, refetch } = useQuery({
     queryKey: ['order-payment-result', orderId],
     queryFn: async () => {
-      if (!orderId) return null;
+      if (!orderId) throw new Error('Thiếu mã đơn hàng');
       const res = await getOrderPaymentApi(orderId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Trạng thái thanh toán');
     },
     enabled: !!orderId,
     refetchInterval: (queryData) => {
@@ -36,6 +38,8 @@ export default function PaymentResultPage() {
 
   const isPaid = payment?.status_payment === 'paid';
   const paymentStatus = payment ? getPaymentStatusInfo(payment.status_payment) : null;
+
+  if (!orderId || isError) return <ErrorState onRetry={refetch} title="Không thể tải trạng thái thanh toán" />;
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16 text-center space-y-8">

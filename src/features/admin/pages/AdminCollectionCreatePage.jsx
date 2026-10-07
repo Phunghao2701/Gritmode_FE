@@ -8,11 +8,13 @@ import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import { toast } from '../../../shared/utils/toast';
 import { createCollectionApi, getAdminCollectionsApi, updateCollectionApi } from '../../collections/apis/collection.api';
 import { uploadAdminProductImagesApi } from '../apis/admin.api';
+import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
+import { requireApiArray } from '../../../shared/services/responseContract';
 
 export default function AdminCollectionCreatePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const initialParentId = searchParams.get('parent_collection_id') || '';
   const editId = searchParams.get('edit_collection_id') || '';
   const isEditMode = Boolean(editId);
@@ -20,15 +22,19 @@ export default function AdminCollectionCreatePage() {
   const [parentId, setParentId] = useState(initialParentId);
   const [image, setImage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [parentDropdownOpen, setParentDropdownOpen] = useState(false);
 
   const { data: collections = [] } = useQuery({
     queryKey: ['admin-collections'],
     queryFn: async () => {
       const response = await getAdminCollectionsApi();
-      const data = response.data?.data || response.data || [];
-      return Array.isArray(data) ? data : data.items || [];
+      return requireApiArray(response, 'Danh sách bộ sưu tập');
     },
   });
+
+  const parentCollections = collections.filter(
+    (collection) => !collection.parent_collection_id && String(collection.collection_id) !== String(editId),
+  );
 
   useEffect(() => {
     if (!editId || !collections.length) return;
@@ -46,7 +52,7 @@ export default function AdminCollectionCreatePage() {
     try {
       setIsUploading(true);
       const response = await uploadAdminProductImagesApi([file]);
-      const uploaded = response.data?.data || response.data || [];
+      const uploaded = requireApiArray(response, 'Ảnh bộ sưu tập');
       const uploadedImage = uploaded[0]?.url;
       if (!uploadedImage) throw new Error('Không nhận được URL ảnh');
       setImage(uploadedImage);
@@ -72,6 +78,11 @@ export default function AdminCollectionCreatePage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['admin-collections'] }),
         queryClient.invalidateQueries({ queryKey: ['collections-public-list'] }),
+      ]);
+      broadcastQueryInvalidation([
+        ['admin-collections'],
+        ['collections-public-list'],
+        ['collection-detail'],
       ]);
       toast.success(isEditMode ? 'Đã cập nhật bộ sưu tập.' : 'Đã tạo nhóm bộ sưu tập.');
       router.push('/admin/collections');
@@ -142,20 +153,61 @@ export default function AdminCollectionCreatePage() {
             />
           </div>
 
-          {/* If creating child collection, show fixed parent information */}
-          {parentId && (
-            <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">Thuộc nhóm cha</span>
-                <span className="font-black text-sm text-black dark:text-white mt-0.5 block">
-                  {collections.find((c) => String(c.collection_id) === String(parentId))?.name_collection || `Nhóm #${parentId}`}
+          <div className="space-y-2">
+            <label htmlFor="collection-parent" className="text-xs font-black uppercase tracking-wider text-neutral-500">
+              Nhóm cha <span className="font-normal normal-case tracking-normal text-neutral-400">(không bắt buộc)</span>
+            </label>
+            <div className="relative">
+              <button
+                id="collection-parent"
+                type="button"
+                onClick={() => setParentDropdownOpen((value) => !value)}
+                aria-expanded={parentDropdownOpen}
+                aria-haspopup="listbox"
+                className="flex w-full items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-left text-xs font-bold text-black outline-none transition-colors hover:border-neutral-400 focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:hover:border-neutral-600 dark:focus-visible:ring-white"
+              >
+                <span className={parentId ? 'text-black dark:text-white' : 'text-neutral-400'}>
+                  {parentId
+                    ? collections.find((collection) => String(collection.collection_id) === String(parentId))?.name_collection || `Nhóm #${parentId}`
+                    : '-- Tạo nhóm cha mới --'}
                 </span>
-              </div>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
-                Bộ sưu tập con
-              </span>
+                <Icon icon={parentDropdownOpen ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'} className="text-neutral-400" />
+              </button>
+
+              {parentDropdownOpen && (
+                <div role="listbox" className="absolute left-0 right-0 top-full z-20 mt-1 max-h-52 overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setParentId('');
+                      setParentDropdownOpen(false);
+                    }}
+                    className={`flex w-full rounded-xl px-3 py-2.5 text-left text-xs font-bold transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 ${!parentId ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-neutral-600 dark:text-neutral-300'}`}
+                  >
+                    Tạo nhóm cha mới
+                  </button>
+                  {parentCollections.map((parent) => {
+                    const parentValue = String(parent.collection_id || parent.id);
+                    const isSelected = parentValue === String(parentId);
+                    return (
+                      <button
+                        key={parentValue}
+                        type="button"
+                        onClick={() => {
+                          setParentId(parentValue);
+                          setParentDropdownOpen(false);
+                        }}
+                        className={`flex w-full rounded-xl px-3 py-2.5 text-left text-xs font-bold transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 ${isSelected ? 'bg-black text-white dark:bg-white dark:text-black' : 'text-neutral-600 dark:text-neutral-300'}`}
+                      >
+                        {parent.name_collection || parent.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
         </section>
 
         {parentId && (

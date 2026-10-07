@@ -15,6 +15,7 @@ import {
 } from '../apis/profile.api';
 import { useAuthStore } from '@/shared/store/authStore';
 import { toast } from '../../../shared/utils/toast';
+import { requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 
 /**
  * Hook quản lý thông tin tài khoản cá nhân
@@ -27,7 +28,7 @@ export const useProfile = () => {
     queryKey: ['user-profile'],
     queryFn: async () => {
       const res = await getProfileApi();
-      const userData = res.data?.data || res.data;
+      const userData = requireApiObject(res, 'Thông tin tài khoản');
       if (userData) {
         // Đồng bộ với global auth state
         setUser(userData);
@@ -41,7 +42,7 @@ export const useProfile = () => {
   const updateProfileMutation = useMutation({
     mutationFn: updateProfileApi,
     onSuccess: (res) => {
-      const updatedUser = res.data?.data || res.data;
+      const updatedUser = requireApiObject(res, 'Thông tin tài khoản');
       if (updatedUser) {
         setUser(updatedUser);
       }
@@ -81,8 +82,7 @@ export const useAddresses = () => {
     queryFn: async () => {
       if (!isAuthenticated) return [];
       const res = await getAddressesApi();
-      const data = res.data?.data || res.data || [];
-      return Array.isArray(data) ? data : [];
+      return requireApiArray(res, 'Danh sách địa chỉ');
     },
     enabled: isAuthenticated,
   });

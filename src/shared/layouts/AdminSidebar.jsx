@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import Icon from '../../shared/components/Icon';
 import { useAuthStore } from '../store/authStore';
 import useAuth from '../../features/auth/hooks/useAuth';
@@ -22,39 +23,50 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
       ]
     },
     {
-      group: 'Danh mục & Kho hàng',
-      items: [
-        { label: 'Sản phẩm', path: ROUTES.ADMIN_PRODUCTS, icon: 'solar:t-shirt-bold-duotone' },
-        { label: 'Quản lý kho', path: ROUTES.ADMIN_INVENTORY, icon: 'solar:box-minimalistic-bold-duotone' },
-        { label: 'Danh mục', path: ROUTES.ADMIN_CATEGORIES, icon: 'solar:folder-with-files-bold-duotone' },
-        { label: 'Bộ sưu tập', path: ROUTES.ADMIN_COLLECTIONS, icon: 'solar:gallery-wide-bold-duotone' },
-      ]
-    },
-    {
-      group: 'Bán hàng & Đơn hàng',
+      group: 'Vận hành bán hàng',
       items: [
         { label: 'Đơn hàng', path: ROUTES.ADMIN_ORDERS, icon: 'solar:bag-check-bold-duotone' },
       ]
     },
     {
-      group: 'Giao diện & Marketing',
+      group: 'Sản phẩm & Kho',
+      items: [
+        {
+          label: 'Sản phẩm',
+          path: ROUTES.ADMIN_PRODUCTS,
+          activePaths: [
+            ROUTES.ADMIN_PRODUCTS,
+            ROUTES.ADMIN_INVENTORY,
+            ROUTES.ADMIN_CATEGORIES,
+            ROUTES.ADMIN_COLLECTIONS,
+          ],
+          icon: 'solar:box-minimalistic-bold-duotone',
+        },
+      ]
+    },
+    {
+      group: 'Marketing',
       items: [
         { label: 'Banner Trang Chủ', path: ROUTES.ADMIN_BANNERS, icon: 'solar:gallery-edit-bold-duotone' },
       ]
     },
     {
-      group: 'Hệ thống & Khách hàng',
+      group: 'Khách hàng & Hệ thống',
       items: [
         { label: 'Khách hàng', path: ROUTES.ADMIN_USERS, icon: 'solar:users-group-rounded-bold-duotone' },
       ]
     }
   ];
 
-  const isActive = (itemPath) => {
-    if (itemPath === ROUTES.ADMIN_DASHBOARD) {
-      return pathname === ROUTES.ADMIN_DASHBOARD || pathname === '/admin' || pathname === '/admin/';
-    }
-    return pathname.startsWith(itemPath);
+  const isActive = (item) => {
+    const paths = item.activePaths || [item.path];
+
+    return paths.some((itemPath) => {
+      if (itemPath === ROUTES.ADMIN_DASHBOARD) {
+        return pathname === ROUTES.ADMIN_DASHBOARD || pathname === '/admin' || pathname === '/admin/';
+      }
+      return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
+    });
   };
 
   const goTo = (path) => {
@@ -70,9 +82,10 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
       <div className="flex-1 overflow-y-auto overscroll-contain flex flex-col min-h-0">
         {/* Brand Header */}
         <div className="p-6 border-b border-neutral-800/80 shrink-0">
-          <div 
-            onClick={() => goTo(ROUTES.ADMIN_DASHBOARD)}
-            className="cursor-pointer group flex flex-col items-start"
+          <Link
+            href={ROUTES.ADMIN_DASHBOARD}
+            onClick={onClose}
+            className="group flex cursor-pointer flex-col items-start"
           >
             <div className="flex items-center gap-1.5">
               <span className="font-display font-black text-xl tracking-tight uppercase leading-none text-white">
@@ -85,18 +98,20 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Grouped Navigation Links */}
         <nav className="p-4 space-y-6 flex-1">
           {navigationSections.map((section, idx) => (
             <div key={idx} className="space-y-1.5">
-              <p className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500">
-                {section.group}
-              </p>
+              {section.group && (
+                <p className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500">
+                  {section.group}
+                </p>
+              )}
               {section.items.map((item) => {
-                const active = isActive(item.path);
+                const active = isActive(item);
                 return (
                   <button
                     key={item.path}

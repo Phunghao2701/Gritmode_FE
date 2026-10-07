@@ -44,6 +44,8 @@ export default function ProductListPage() {
     totalPages,
     isLoadingProducts,
     isFetching,
+    isError,
+    refetch,
   } = useProducts({
     ...(selectedCategory ? (selectedCategoryIsSlug ? { categorySlug: selectedCategory } : { category_id: selectedCategory }) : {}),
     ...(selectedCollection ? (selectedCollectionIsSlug ? { collectionSlug: selectedCollection } : { collection_id: selectedCollection }) : {}),
@@ -271,6 +273,8 @@ export default function ProductListPage() {
         products={products}
         isLoading={isLoadingProducts}
         isFetching={isFetching}
+        isError={isError}
+        onRetry={refetch}
         onResetFilter={handleResetFilters}
         page={page}
         totalPages={totalPages}

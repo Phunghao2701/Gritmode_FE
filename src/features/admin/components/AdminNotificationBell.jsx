@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Icon from '../../../shared/components/Icon';
+import ErrorState from '../../../shared/components/ErrorState';
 import { useAdminNotifications } from '../hooks/useAdminNotifications';
 
 const formatTime = (value) => {
@@ -32,6 +33,8 @@ export default function AdminNotificationBell() {
     notifications,
     unreadCount,
     isFetching: isNotificationsFetching,
+    isError: isNotificationsError,
+    refetch: refetchNotifications,
     markRead,
     markAllRead,
     isMarkingAllRead,
@@ -144,7 +147,9 @@ export default function AdminNotificationBell() {
             data-lenis-prevent
             className="min-h-0 min-w-0 max-h-[calc(100dvh-12rem)] flex-1 overflow-y-auto overscroll-contain bg-white dark:bg-neutral-950"
           >
-            {visibleNotifications.length === 0 ? (
+            {isNotificationsError ? (
+              <ErrorState onRetry={refetchNotifications} className="min-h-[220px] rounded-none border-0 bg-transparent" />
+            ) : visibleNotifications.length === 0 ? (
               <div className="flex flex-col items-center px-4 py-12 text-center">
                 <span className="grid size-10 place-items-center rounded-full bg-neutral-100 text-neutral-400 dark:bg-neutral-900 dark:text-neutral-500">
                   <Icon icon="solar:check-read-linear" className="text-xl" />

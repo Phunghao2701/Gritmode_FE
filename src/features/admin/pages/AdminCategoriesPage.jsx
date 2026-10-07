@@ -5,6 +5,7 @@ import { useAdminCategories } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
+import AdminPageHeader from '../components/AdminPageHeader';
 
 const normalizeText = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
@@ -73,16 +74,11 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
-      {/* Top Banner */}
-      <section className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <span className="text-xs font-black uppercase tracking-widest text-neutral-400">Store Taxonomy</span>
-            <h1 className="font-display text-2xl sm:text-3xl font-black uppercase tracking-tight text-black dark:text-white mt-1">
-              Quản lý danh mục
-            </h1>
-            <p className="text-xs text-neutral-500 mt-1">Danh mục chính là phân loại lớn; danh mục con chứa chi tiết sản phẩm.</p>
-          </div>
+      <AdminPageHeader
+        eyebrow="Sản phẩm & Kho"
+        title="Quản lý danh mục"
+        description="Danh mục chính là phân loại lớn; danh mục con chứa chi tiết sản phẩm."
+        actions={(
           <PrimaryButton
             icon="solar:add-circle-linear"
             onClick={() => router.push('/admin/categories/create')}
@@ -90,21 +86,21 @@ export default function AdminCategoriesPage() {
           >
             Thêm danh mục gốc
           </PrimaryButton>
-        </div>
+        )}
+      />
 
-        <div className="mt-6 grid grid-cols-3 gap-3 border-t border-neutral-100 pt-5 dark:border-neutral-800">
-          {[
-            ['Nhóm chính', categoryTree.length],
-            ['Danh mục con', childCount],
-            ['Lượt gắn sản phẩm', totalProducts],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-2xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800/60">
-              <div className="tabular-nums text-xl font-black text-black dark:text-white">{value}</div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <div className="grid grid-cols-3 gap-3 border-b border-neutral-200 pb-5 dark:border-neutral-800">
+        {[
+          ['Nhóm chính', categoryTree.length],
+          ['Danh mục con', childCount],
+          ['Lượt gắn sản phẩm', totalProducts],
+        ].map(([label, value]) => (
+          <div key={label} className="rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800/60">
+            <div className="tabular-nums text-xl font-black text-black dark:text-white">{value}</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">{label}</div>
+          </div>
+        ))}
+      </div>
 
       {/* Search Input */}
       <div className="relative max-w-md">
