@@ -25,6 +25,9 @@ export const useCheckout = () => {
     province: '',
     district: '',
     ward: '',
+    provinceCode: '',
+    communeCode: '',
+    administrativeDatasetId: null,
     street: '',
     note: '',
     selectedAddressId: null,
@@ -49,6 +52,9 @@ export const useCheckout = () => {
           province: defaultAddress.province_user_address || prev.province,
           district: defaultAddress.district_user_address || prev.district,
           ward: defaultAddress.ward_user_address || prev.ward,
+          provinceCode: defaultAddress.province_code || prev.provinceCode,
+          communeCode: defaultAddress.commune_code || prev.communeCode,
+          administrativeDatasetId: defaultAddress.administrative_dataset_id || prev.administrativeDatasetId,
           street: defaultAddress.address_line_user_address || prev.street,
           selectedAddressId: defaultAddress.user_address_id,
         }));
@@ -96,6 +102,9 @@ export const useCheckout = () => {
         province: '',
         district: '',
         ward: '',
+        provinceCode: '',
+        communeCode: '',
+        administrativeDatasetId: null,
         street: '',
       }));
       return;
@@ -108,6 +117,9 @@ export const useCheckout = () => {
       province: addr.province_user_address || '',
       district: addr.district_user_address || '',
       ward: addr.ward_user_address || '',
+      provinceCode: addr.province_code || '',
+      communeCode: addr.commune_code || '',
+      administrativeDatasetId: addr.administrative_dataset_id || null,
       street: addr.address_line_user_address || '',
       selectedAddressId: addr.user_address_id,
     }));
@@ -148,7 +160,6 @@ const normalizePhone = (phone) => {
       if (!formData.email.trim()) newErrors.email = 'Vui lòng nhập email';
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = 'Email không hợp lệ';
       if (!formData.province.trim()) newErrors.province = 'Vui lòng nhập Tỉnh/Thành phố';
-      if (!formData.district.trim()) newErrors.district = 'Vui lòng nhập Quận/Huyện';
       if (!formData.ward.trim()) newErrors.ward = 'Vui lòng nhập Phường/Xã';
       if (!formData.street.trim()) newErrors.street = 'Vui lòng nhập địa chỉ cụ thể';
     }
@@ -186,6 +197,9 @@ const normalizePhone = (phone) => {
         orderPayload.ward_order_address = formData.ward?.trim();
         orderPayload.district_order_address = formData.district?.trim();
         orderPayload.province_order_address = formData.province?.trim();
+        orderPayload.province_code = formData.provinceCode || null;
+        orderPayload.commune_code = formData.communeCode || null;
+        orderPayload.administrative_dataset_id = formData.administrativeDatasetId || null;
       }
 
       const res = await createOrderApi(orderPayload);

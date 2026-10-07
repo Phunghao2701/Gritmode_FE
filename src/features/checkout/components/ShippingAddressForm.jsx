@@ -103,7 +103,7 @@ export default function ShippingAddressForm({
             label="Họ và tên"
             name="fullName"
             autoComplete="name"
-            placeholder=""
+            placeholder="Nhập họ và tên"
             value={formData.fullName}
             onChange={onChange}
             error={errors.fullName}
@@ -116,7 +116,7 @@ export default function ShippingAddressForm({
             name="phone"
             type="tel"
             autoComplete="tel"
-            placeholder=""
+            placeholder="Nhập số điện thoại"
             value={formData.phone}
             onChange={onChange}
             error={errors.phone}
@@ -132,7 +132,7 @@ export default function ShippingAddressForm({
           name="email"
           type="email"
           autoComplete="email"
-          placeholder=""
+          placeholder="Nhập địa chỉ email"
           value={formData.email}
           onChange={onChange}
           error={errors.email}
@@ -156,7 +156,7 @@ export default function ShippingAddressForm({
           label="Địa chỉ cụ thể (Số nhà, tên đường)"
           name="street"
           autoComplete="street-address"
-          placeholder=""
+          placeholder="Nhập số nhà, tên đường"
           value={formData.street}
           onChange={onChange}
           error={errors.street}
@@ -174,7 +174,7 @@ export default function ShippingAddressForm({
             id="checkout-note"
             name="note"
             rows={2}
-            placeholder=""
+            placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..."
             value={formData.note || ''}
             onChange={onChange}
             className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white focus:ring-1 focus:ring-black/10 dark:focus:ring-white/10 transition-all"

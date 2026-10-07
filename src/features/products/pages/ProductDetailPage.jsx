@@ -225,6 +225,7 @@ export default function ProductDetailPage() {
       product_variant_id: selectedVariant.product_variant_id,
       title: product.name_product,
       price: selectedVariant.price,
+      quantity_available: availableStock,
       image: currentImage?.url_product_image || '',
       quantity: selectedQuantity,
       variant: variantLabel,

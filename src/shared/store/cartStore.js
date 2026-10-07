@@ -122,7 +122,7 @@ export const useCartStore = create(
       },
 
       // Add Item to Cart (Optimistic UI)
-      addItem: async ({ variantId, product_variant_id, productId, quantity = 1, title, price, image, variant }) => {
+      addItem: async ({ variantId, product_variant_id, productId, quantity = 1, quantity_available, title, price, image, variant }) => {
         const targetVariantId = Number(product_variant_id || variantId);
         if (!targetVariantId) {
           toast.error('Vui lòng chọn phân loại sản phẩm hợp lệ.');
@@ -167,6 +167,7 @@ export const useCartStore = create(
             price: itemPrice,
             quantity: qty,
             quantity_cart_item: qty,
+            quantity_available,
             image: image || '',
             variant: variant || '',
             line_total: itemPrice * qty,

@@ -13,6 +13,9 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
     province_user_address: '',
     district_user_address: '',
     ward_user_address: '',
+    province_code: '',
+    commune_code: '',
+    administrative_dataset_id: null,
     address_line_user_address: '',
     is_default: false,
   });
@@ -25,6 +28,9 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
       province_user_address: loc.province,
       district_user_address: loc.district,
       ward_user_address: loc.ward,
+      province_code: loc.provinceCode || '',
+      commune_code: loc.communeCode || '',
+      administrative_dataset_id: loc.administrativeDatasetId || null,
     }));
     setErrors((prev) => ({
       ...prev,
@@ -42,6 +48,9 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
         province_user_address: editingAddress.province_user_address || '',
         district_user_address: editingAddress.district_user_address || '',
         ward_user_address: editingAddress.ward_user_address || '',
+        province_code: editingAddress.province_code || '',
+        commune_code: editingAddress.commune_code || '',
+        administrative_dataset_id: editingAddress.administrative_dataset_id || null,
         address_line_user_address: editingAddress.address_line_user_address || '',
         is_default: Boolean(editingAddress.is_default),
       });
@@ -52,6 +61,9 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
         province_user_address: '',
         district_user_address: '',
         ward_user_address: '',
+        province_code: '',
+        commune_code: '',
+        administrative_dataset_id: null,
         address_line_user_address: '',
         is_default: false,
       });
@@ -96,6 +108,9 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
       province_user_address: formData.province_user_address.trim() || null,
       district_user_address: formData.district_user_address.trim() || null,
       ward_user_address: formData.ward_user_address.trim() || null,
+      province_code: formData.province_code || null,
+      commune_code: formData.commune_code || null,
+      administrative_dataset_id: formData.administrative_dataset_id || null,
     };
 
     if (!isEditing) {
