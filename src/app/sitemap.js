@@ -1,9 +1,9 @@
 import { getProductsApi } from '@/features/products/apis/product.api';
 import { requireApiObject } from '@/shared/services/responseContract';
+import { getSiteUrl } from '@/shared/utils/siteUrl';
 
 export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!baseUrl) throw new Error('NEXT_PUBLIC_SITE_URL is required to generate sitemap');
+  const baseUrl = getSiteUrl();
 
   const staticRoutes = [
     { url: `${baseUrl}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },

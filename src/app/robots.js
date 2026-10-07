@@ -1,6 +1,7 @@
+import { getSiteUrl } from '@/shared/utils/siteUrl';
+
 export default function robots() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!baseUrl) throw new Error('NEXT_PUBLIC_SITE_URL is required to generate robots.txt');
+  const baseUrl = getSiteUrl();
 
   return {
     rules: [
