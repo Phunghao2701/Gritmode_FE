@@ -6,6 +6,7 @@ import { getProductsApi } from '@/features/products/apis/product.api';
 import { buildCategoryTree } from '@/features/categories/utils/category.utils';
 import ProductListPage from '@/features/products/pages/ProductListPage';
 import LoadingSkeleton from '@/shared/components/LoadingSkeleton';
+import { requireApiArray, requireApiObject } from '@/shared/services/responseContract';
 
 export const metadata = {
   description: 'Khám phá tất cả các thiết kế thời trang đường phố cao cấp mới nhất từ Gritmode®.',
@@ -23,13 +24,8 @@ export default async function ProductsPage({ searchParams }) {
   await queryClient.prefetchQuery({
     queryKey: ['categories-public-tree'],
     queryFn: async () => {
-      try {
-        const res = await getCategoriesApi();
-        const data = res.data?.data || res.data || [];
-        return buildCategoryTree(Array.isArray(data) ? data : []);
-      } catch {
-        return [];
-      }
+      const res = await getCategoriesApi();
+      return buildCategoryTree(requireApiArray(res, 'Danh mục sản phẩm'));
     },
   });
 
@@ -46,27 +42,10 @@ export default async function ProductsPage({ searchParams }) {
   await queryClient.prefetchQuery({
     queryKey: ['products', params],
     queryFn: async () => {
-      try {
-        const res = await getProductsApi(params);
-        const raw = res.data?.data || res.data;
-        if (Array.isArray(raw)) {
-          return {
-            items: raw,
-            pagination: { page: 1, limit: raw.length, total: raw.length, total_pages: 1 },
-          };
-        }
-        return {
-          items: raw?.items || [],
-          pagination: raw?.pagination || {
-            page: params.page,
-            limit: 20,
-            total: raw?.items?.length || 0,
-            total_pages: 1,
-          },
-        };
-      } catch {
-        return { items: [], pagination: { page: 1, limit: 20, total: 0, total_pages: 1 } };
-      }
+      const res = await getProductsApi(params);
+      const raw = requireApiObject(res, 'Danh sách sản phẩm');
+      if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Danh sách sản phẩm không hợp lệ');
+      return raw;
     },
   });
 

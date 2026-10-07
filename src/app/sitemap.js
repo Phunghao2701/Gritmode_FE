@@ -1,7 +1,9 @@
 import { getProductsApi } from '@/features/products/apis/product.api';
+import { requireApiObject } from '@/shared/services/responseContract';
+import { getSiteUrl } from '@/shared/utils/siteUrl';
 
 export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gritmode.vn';
+  const baseUrl = getSiteUrl();
 
   const staticRoutes = [
     { url: `${baseUrl}`, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
@@ -20,22 +22,15 @@ export default async function sitemap() {
     { url: `${baseUrl}/policies/terms`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ];
 
-  let productRoutes = [];
-  try {
-    const res = await getProductsApi({ limit: 100 });
-    const payload = res.data?.data || res.data;
-    const products = Array.isArray(payload) ? payload : (payload?.items || payload?.products || []);
-
-    productRoutes = products.map((product) => ({
-      url: `${baseUrl}/products/${product.slug_product || product.slug || product.product_id || product.id}`,
-      lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    }));
-  } catch (error) {
-    // If backend is unreachable during build, fallback gracefully to static routes
-    console.warn('Sitemap: Unable to prefetch dynamic products for sitemap:', error?.message || error);
-  }
+  const res = await getProductsApi({ limit: 100 });
+  const payload = requireApiObject(res, 'Sitemap products');
+  if (!Array.isArray(payload.items)) throw new Error('Sitemap products payload is invalid');
+  const productRoutes = payload.items.map((product) => ({
+    url: `${baseUrl}/products/${product.slug_product}`,
+    lastModified: new Date(product.updated_at),
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
 
   return [...staticRoutes, ...productRoutes];
 }

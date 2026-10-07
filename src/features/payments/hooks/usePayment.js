@@ -11,6 +11,8 @@ import {
 } from '../apis/payment.api';
 import { calculateRemainingSeconds } from '../utils/payment.utils';
 import { toast } from '../../../shared/utils/toast';
+import { CACHE_STALE_TIME, invalidateOrderQueries } from '../../../shared/services/cachePolicy';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export const useOrderPayment = (orderId, options = {}) => {
   const query = useQuery({
@@ -18,9 +20,13 @@ export const useOrderPayment = (orderId, options = {}) => {
     queryFn: async () => {
       if (!orderId) return null;
       const res = await getOrderPaymentApi(orderId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Trạng thái thanh toán');
     },
     enabled: !!orderId && (options.enabled ?? true),
+    staleTime: CACHE_STALE_TIME.payment,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     refetchInterval: (queryData) => {
       const payment = queryData?.state?.data;
       if (!payment) return 3000;
@@ -63,13 +69,10 @@ export const useCreatePayOSPayment = () => {
     mutationFn: (orderId) => createPayOSPaymentApi(orderId),
     onSuccess: (res, orderId) => {
       toast.success('Đã tạo liên kết thanh toán payOS mới.');
-      const newPayment = res.data?.data || res.data;
-      if (newPayment) {
-        queryClient.setQueryData(['order-payment', String(orderId)], newPayment);
-        queryClient.setQueryData(['order-payment', Number(orderId)], newPayment);
-      }
-      queryClient.invalidateQueries({ queryKey: ['order-payment', orderId] });
-      queryClient.invalidateQueries({ queryKey: ['order-detail', orderId] });
+      const newPayment = requireApiObject(res, 'Payment payOS');
+      queryClient.setQueryData(['order-payment', String(orderId)], newPayment);
+      queryClient.setQueryData(['order-payment', Number(orderId)], newPayment);
+      invalidateOrderQueries(queryClient, orderId);
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Không thể tạo link thanh toán payOS.');
@@ -84,7 +87,7 @@ export const useCancelPayOSPayment = () => {
     mutationFn: (orderId) => cancelPayOSPaymentApi(orderId),
     onSuccess: (res, orderId) => {
       toast.success('Đã hủy link thanh toán payOS.');
-      queryClient.invalidateQueries({ queryKey: ['order-payment', orderId] });
+      invalidateOrderQueries(queryClient, orderId);
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Không thể hủy link thanh toán.');

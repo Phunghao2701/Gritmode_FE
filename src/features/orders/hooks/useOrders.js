@@ -10,30 +10,21 @@ import {
   cancelGuestOrderApi,
 } from '../apis/order.api';
 import { toast } from '../../../shared/utils/toast';
+import { CACHE_STALE_TIME, invalidateOrderQueries } from '../../../shared/services/cachePolicy';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export const useMyOrders = (params = {}) => {
   const query = useQuery({
     queryKey: ['my-orders', params],
     queryFn: async () => {
       const res = await getMyOrdersApi(params);
-      const raw = res.data?.data || res.data;
-      if (Array.isArray(raw)) {
-        return {
-          items: raw,
-          pagination: { page: 1, limit: raw.length, total: raw.length, total_pages: 1 },
-        };
-      }
-      return {
-        items: raw?.items || [],
-        pagination: raw?.pagination || {
-          page: Number(params.page) || 1,
-          limit: Number(params.limit) || 10,
-          total: raw?.items?.length || 0,
-          total_pages: 1,
-        },
-      };
+      const raw = requireApiObject(res, 'Danh sách đơn hàng');
+      if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Danh sách đơn hàng không hợp lệ');
+      return raw;
     },
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: CACHE_STALE_TIME.orderList,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
   });
 
   const items = query.data?.items || [];
@@ -62,10 +53,13 @@ export const useOrderDetail = (orderId) => {
     queryFn: async () => {
       if (!orderId) return null;
       const res = await getMyOrderByIdApi(orderId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Chi tiết đơn hàng');
     },
     enabled: !!orderId,
-    staleTime: 1000 * 60 * 2,
+    staleTime: CACHE_STALE_TIME.orderDetail,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 };
 
@@ -76,8 +70,7 @@ export const useCancelOrder = () => {
     mutationFn: (orderId) => cancelMyOrderApi(orderId),
     onSuccess: (res, orderId) => {
       toast.success('Hủy đơn hàng thành công.');
-      queryClient.invalidateQueries({ queryKey: ['my-orders'] });
-      queryClient.invalidateQueries({ queryKey: ['order-detail', orderId] });
+      invalidateOrderQueries(queryClient, orderId);
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Không thể hủy đơn hàng này.');

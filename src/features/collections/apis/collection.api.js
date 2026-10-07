@@ -3,12 +3,13 @@
  * Communicates with /api/v1/collections and /api/v1/admin/collections
  */
 import api, { publicApi } from '../../../shared/services/api';
+import { withPublicCacheBuster } from '../../../shared/services/cachePolicy';
 
 /**
  * Lấy danh sách bộ sưu tập đang hiển thị (Public)
  */
 export const getCollectionsApi = () => {
-  return publicApi.get('/collections');
+  return publicApi.get('/collections', { params: withPublicCacheBuster() });
 };
 
 /**
@@ -16,7 +17,7 @@ export const getCollectionsApi = () => {
  * @param {number|string} collectionId
  */
 export const getCollectionByIdApi = (collectionId) => {
-  return publicApi.get(`/collections/${collectionId}`);
+  return publicApi.get(`/collections/${collectionId}`, { params: withPublicCacheBuster() });
 };
 
 /**
@@ -25,7 +26,7 @@ export const getCollectionByIdApi = (collectionId) => {
  * @param {object} params
  */
 export const getCollectionProductsApi = (collectionId, params = {}) => {
-  return publicApi.get(`/collections/${collectionId}/products`, { params });
+  return publicApi.get(`/collections/${collectionId}/products`, { params: withPublicCacheBuster(params) });
 };
 
 /**

@@ -1,5 +1,7 @@
+import { getSiteUrl } from '@/shared/utils/siteUrl';
+
 export default function robots() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gritmode.vn';
+  const baseUrl = getSiteUrl();
 
   return {
     rules: [

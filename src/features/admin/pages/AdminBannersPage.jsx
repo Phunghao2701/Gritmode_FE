@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Icon from '../../../shared/components/Icon';
-import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import {
   useAdminHero,
@@ -14,6 +13,7 @@ import {
 } from '../hooks/useAdminBanners';
 import { uploadBannerImageApi } from '../apis/adminBannerApi';
 import { toast } from '../../../shared/utils/toast';
+import AdminPageHeader from '../components/AdminPageHeader';
 
 export default function AdminBannersPage() {
   const { data, isLoading, isError, refetch } = useAdminHero();
@@ -107,26 +107,22 @@ export default function AdminBannersPage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* 1. Header & Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-5">
-        <div>
-          <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-black text-white dark:bg-white dark:text-black">
-            STOREFRONT HERO
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-black dark:text-white mt-1">
-            Quản Lý Banner Trang Chủ
-          </h1>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => refetch()}
-          className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors cursor-pointer self-start sm:self-auto"
-          title="Làm mới dữ liệu"
-        >
-          <Icon icon="solar:refresh-bold" className="w-4 h-4" />
-        </button>
-      </div>
+      <AdminPageHeader
+        eyebrow="Marketing"
+        title="Quản lý banner trang chủ"
+        description="Cập nhật nội dung hero, marquee và hình ảnh hiển thị trên storefront."
+        actions={(
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="grid size-10 place-items-center rounded-xl border border-neutral-200 text-neutral-600 transition-colors hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-900"
+            title="Làm mới dữ liệu"
+            aria-label="Làm mới dữ liệu banner"
+          >
+            <Icon icon="solar:refresh-bold" className="w-4 h-4" />
+          </button>
+        )}
+      />
 
       {isLoading ? (
         <div className="space-y-6">

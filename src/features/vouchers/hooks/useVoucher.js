@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { validateVoucherApi, getAdminVouchersApi } from '../apis/voucher.api';
 import { normalizeVoucherCode } from '../utils/voucher.utils';
 import { toast } from '../../../shared/utils/toast';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export const useVoucherValidation = ({ onAppliedSuccess, onRemoved } = {}) => {
   const [appliedVoucher, setAppliedVoucher] = useState(null);
@@ -25,7 +26,7 @@ export const useVoucherValidation = ({ onAppliedSuccess, onRemoved } = {}) => {
 
       try {
         const res = await validateVoucherApi(normalized);
-        const data = res.data?.data || res.data;
+        const data = requireApiObject(res, 'Voucher');
         setAppliedVoucher(data);
         toast.success(`Đã áp dụng mã "${data.code_voucher}" thành công!`);
         if (onAppliedSuccess) onAppliedSuccess(data);
@@ -48,7 +49,7 @@ export const useVoucherValidation = ({ onAppliedSuccess, onRemoved } = {}) => {
       if (!code) return;
       try {
         const res = await validateVoucherApi(code);
-        const data = res.data?.data || res.data;
+        const data = requireApiObject(res, 'Voucher');
         setAppliedVoucher(data);
         if (onAppliedSuccess) onAppliedSuccess(data);
       } catch {
@@ -84,7 +85,9 @@ export const useAdminVouchers = (params = {}) => {
     queryKey: ['admin-vouchers', params],
     queryFn: async () => {
       const res = await getAdminVouchersApi(params);
-      return res.data?.data || res.data || [];
+      const data = requireApiObject(res, 'Danh sách voucher');
+      if (!Array.isArray(data.items)) throw new Error('Danh sách voucher không hợp lệ');
+      return data;
     },
     staleTime: 1000 * 60 * 3,
   });

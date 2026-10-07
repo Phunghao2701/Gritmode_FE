@@ -5,19 +5,23 @@
 import { useQuery } from '@tanstack/react-query';
 import { getCollectionsApi, getCollectionByIdApi } from '../apis/collection.api';
 import { sortCollectionsByPosition } from '../utils/collection.utils';
+import { CACHE_STALE_TIME } from '../../../shared/services/cachePolicy';
+import { requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 
 export const useCollections = () => {
   const query = useQuery({
     queryKey: ['collections-public-list'],
     queryFn: async () => {
       const res = await getCollectionsApi();
-      const data = res.data?.data || res.data || [];
-      const rawList = Array.isArray(data) ? data : [];
+      const rawList = requireApiArray(res, 'Bộ sưu tập');
       return sortCollectionsByPosition(rawList);
     },
-    staleTime: 1000 * 60 * 30, // 30 minutes cache
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: CACHE_STALE_TIME.collections,
+    // Navigation must reflect newly created/activated collections when the
+    // storefront tab regains focus or the layout mounts again.
+    refetchOnWindowFocus: 'always',
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
   });
 
   return {
@@ -33,9 +37,12 @@ export const useCollectionDetail = (collectionId) => {
     queryFn: async () => {
       if (!collectionId) return null;
       const res = await getCollectionByIdApi(collectionId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Chi tiết bộ sưu tập');
     },
     enabled: !!collectionId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: CACHE_STALE_TIME.collections,
+    refetchOnWindowFocus: 'always',
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
   });
 };

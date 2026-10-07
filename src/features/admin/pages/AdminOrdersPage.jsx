@@ -11,6 +11,7 @@ import {
   getPaymentStatusInfo,
 } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
+import AdminPageHeader from '../components/AdminPageHeader';
 
 export default function AdminOrdersPage() {
   const router = useRouter();
@@ -80,15 +81,11 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
-      {/* Top Banner */}
-      <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">Order Management</span>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
-            Quản lý đơn hàng ({total})
-          </h1>
-        </div>
-      </div>
+      <AdminPageHeader
+        eyebrow="Vận hành bán hàng"
+        title={`Quản lý đơn hàng (${total})`}
+        description="Xử lý trạng thái đơn, thanh toán và các yêu cầu giao hàng."
+      />
 
       {/* Filter and Search Bar */}
       <div className="space-y-3">

@@ -4,6 +4,7 @@ import { useAdminDashboardOverview } from '../hooks/useAdmin';
 import DashboardStatCard from '../components/DashboardStatCard';
 import RecentOrdersTable from '../components/RecentOrdersTable';
 import LowStockAlert from '../components/LowStockAlert';
+import AdminPageHeader from '../components/AdminPageHeader';
 import { formatPriceVND } from '../../../shared/utils/formatNumber';
 
 export default function AdminDashboardPage() {
@@ -48,14 +49,11 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Top Banner */}
-      <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
-            Tổng quan
-          </h1>
-        </div>
-      </div>
+      <AdminPageHeader
+        eyebrow="Tổng quan"
+        title="Tổng quan"
+        description="Theo dõi các chỉ số và việc cần xử lý trong cửa hàng."
+      />
 
       {isError && (
         <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-center justify-between gap-4">

@@ -1,5 +1,6 @@
 import ProductCard from './ProductCard';
 import EmptyState from '../../../shared/components/EmptyState';
+import ErrorState from '../../../shared/components/ErrorState';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import PaginationControls from '../../../shared/components/PaginationControls';
 
@@ -7,6 +8,8 @@ export default function ProductGrid({
   products = [],
   isLoading = false,
   isFetching = false,
+  isError = false,
+  onRetry,
   onResetFilter,
   page = 1,
   totalPages = 1,
@@ -24,6 +27,10 @@ export default function ProductGrid({
         ))}
       </div>
     );
+  }
+
+  if (isError) {
+    return <ErrorState onRetry={onRetry} />;
   }
 
   if (products.length === 0) {

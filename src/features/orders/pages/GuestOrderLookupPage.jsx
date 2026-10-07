@@ -5,6 +5,7 @@ import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import { useGuestOrderLookup, useGuestCancelOrder } from '../hooks/useOrders';
 import { getOrderStatusInfo, getPaymentStatusInfo, isOrderCancellable } from '../utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export default function GuestOrderLookupPage() {
   const [formData, setFormData] = useState({
@@ -37,7 +38,7 @@ export default function GuestOrderLookupPage() {
       },
       {
         onSuccess: (res) => {
-          setSearchedOrder(res.data?.data || res.data);
+          setSearchedOrder(requireApiObject(res, 'Đơn hàng'));
         },
       }
     );

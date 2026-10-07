@@ -3,6 +3,7 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 import { validateVoucherApi } from '../../vouchers/apis/voucher.api';
 import { toast } from '../../../shared/utils/toast';
 import Icon from '../../../shared/components/Icon';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export default function OrderSummaryCard({
   items = [],
@@ -29,7 +30,7 @@ export default function OrderSummaryCard({
     setIsApplyingVoucher(true);
     try {
       const res = await validateVoucherApi(cleanCode);
-      const voucherData = res.data?.data || res.data;
+      const voucherData = requireApiObject(res, 'Voucher');
       onApplyVoucher(voucherData);
       toast.success(`Áp dụng mã giảm giá "${voucherData.code_voucher || cleanCode}" thành công!`);
       setVoucherCode('');

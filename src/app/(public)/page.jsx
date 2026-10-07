@@ -5,6 +5,7 @@ import { getProductsApi } from '@/features/products/apis/product.api';
 import { buildCategoryTree } from '@/features/categories/utils/category.utils';
 import { STOREFRONT_BANNERS_KEY, getActiveBannersApi } from '@/features/landing/hooks/useBanners';
 import LandingPage from '@/features/landing/pages/LandingPage';
+import { requireApiArray, requireApiObject } from '@/shared/services/responseContract';
 
 export const metadata = {  description:
     'Gritmode® — Thương hiệu thời trang thể thao & phong cách đường phố cao cấp lấy cảm hứng từ DirtyCoins và văn hóa Hip-Hop đương đại.',
@@ -26,13 +27,8 @@ export default async function HomePage() {
   await queryClient.prefetchQuery({
     queryKey: ['categories-public-tree'],
     queryFn: async () => {
-      try {
-        const res = await getCategoriesApi();
-        const data = res.data?.data || res.data || [];
-        return buildCategoryTree(Array.isArray(data) ? data : []);
-      } catch {
-        return [];
-      }
+      const res = await getCategoriesApi();
+      return buildCategoryTree(requireApiArray(res, 'Danh mục trang chủ'));
     },
   });
 
@@ -40,27 +36,10 @@ export default async function HomePage() {
   await queryClient.prefetchQuery({
     queryKey: ['products', { category_id: undefined, sort: 'newest', limit: 15 }],
     queryFn: async () => {
-      try {
-        const res = await getProductsApi({ category_id: undefined, sort: 'newest', limit: 15 });
-        const raw = res.data?.data || res.data;
-        if (Array.isArray(raw)) {
-          return {
-            items: raw,
-            pagination: { page: 1, limit: raw.length, total: raw.length, total_pages: 1 },
-          };
-        }
-        return {
-          items: raw?.items || [],
-          pagination: raw?.pagination || {
-            page: 1,
-            limit: 15,
-            total: raw?.items?.length || 0,
-            total_pages: 1,
-          },
-        };
-      } catch {
-        return { items: [], pagination: { page: 1, limit: 15, total: 0, total_pages: 1 } };
-      }
+      const res = await getProductsApi({ category_id: undefined, sort: 'newest', limit: 15 });
+      const raw = requireApiObject(res, 'Sản phẩm trang chủ');
+      if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Sản phẩm trang chủ không hợp lệ');
+      return raw;
     },
   });
 

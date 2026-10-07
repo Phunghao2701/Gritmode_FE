@@ -31,17 +31,23 @@ import {
   setAdminUserInactiveApi,
 } from '../apis/admin.api';
 import { toast } from '../../../shared/utils/toast';
+import {
+  CACHE_STALE_TIME,
+  invalidateAdminOperationalQueries,
+} from '../../../shared/services/cachePolicy';
+import { requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
+import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 
 export const useAdminDashboardOverview = () => {
   return useQuery({
     queryKey: ['admin-dashboard-overview'],
-    staleTime: 1000 * 60 * 3, // 3 min cache
+    staleTime: CACHE_STALE_TIME.adminDashboard,
     refetchOnWindowFocus: false,
-    placeholderData: (previousData) => previousData,
+    refetchOnReconnect: true,
     retry: 2,
     queryFn: async () => {
       const res = await getAdminDashboardOverviewApi();
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Tổng quan dashboard');
     },
   });
 };
@@ -53,7 +59,9 @@ export const useAdminProductMeta = () => {
     refetchOnWindowFocus: false,
     queryFn: async () => {
       const res = await getAdminProductMetaApi();
-      return res.data?.data || res.data || { categories: [], collections: [] };
+      const raw = requireApiObject(res, 'Metadata sản phẩm');
+      if (!Array.isArray(raw.categories) || !Array.isArray(raw.collections)) throw new Error('Metadata sản phẩm không hợp lệ');
+      return raw;
     },
   });
 };
@@ -61,12 +69,13 @@ export const useAdminProductMeta = () => {
 export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin-stats'],
-    staleTime: 1000 * 60 * 3, // 3 min cache
+    staleTime: CACHE_STALE_TIME.adminDashboard,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: true,
     retry: 2,
     queryFn: async () => {
       const res = await getAdminStatsApi();
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Thống kê quản trị');
     },
   });
 };
@@ -76,17 +85,15 @@ export const useAdminOrders = (params = {}) => {
 
   const query = useQuery({
     queryKey: ['admin-orders', params],
-    staleTime: 1000 * 60 * 2, // 2 min cache
+    staleTime: CACHE_STALE_TIME.adminOrders,
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
     queryFn: async () => {
       const res = await getAdminOrdersApi(params);
-      const raw = res.data?.data || res.data;
-      if (Array.isArray(raw)) return { items: raw, total: raw.length, pagination: { page: 1, limit: raw.length, total: raw.length, total_pages: 1 } };
-      return {
-        items: raw?.items || raw?.orders || [],
-        pagination: raw?.pagination || { page: 1, limit: 20, total: raw?.items?.length || 0, total_pages: 1 },
-        total: raw?.pagination?.total || raw?.items?.length || 0,
-      };
+      const raw = requireApiObject(res, 'Đơn hàng quản trị');
+      if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Đơn hàng quản trị không hợp lệ');
+      return { ...raw, total: raw.pagination.total };
     },
   });
 
@@ -94,7 +101,7 @@ export const useAdminOrders = (params = {}) => {
     mutationFn: (orderId) => confirmAdminOrderApi(orderId),
     onSuccess: () => {
       toast.success('Đã xác nhận đơn hàng thành công!');
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      invalidateAdminOperationalQueries(queryClient);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Không thể xác nhận đơn hàng'),
   });
@@ -103,7 +110,7 @@ export const useAdminOrders = (params = {}) => {
     mutationFn: (orderId) => processAdminOrderApi(orderId),
     onSuccess: () => {
       toast.success('Đã chuyển đơn hàng sang trạng thái đang xử lý / chuẩn bị hàng!');
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      invalidateAdminOperationalQueries(queryClient);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Không thể chuyển trạng thái'),
   });
@@ -112,7 +119,7 @@ export const useAdminOrders = (params = {}) => {
     mutationFn: (orderId) => shipAdminOrderApi(orderId),
     onSuccess: () => {
       toast.success('Đã bàn giao đơn hàng cho đơn vị vận chuyển!');
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      invalidateAdminOperationalQueries(queryClient);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Không thể chuyển trạng thái'),
   });
@@ -121,7 +128,7 @@ export const useAdminOrders = (params = {}) => {
     mutationFn: (orderId) => completeAdminOrderApi(orderId),
     onSuccess: () => {
       toast.success('Đã hoàn tất đơn hàng thành công!');
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      invalidateAdminOperationalQueries(queryClient);
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Không thể hoàn tất đơn hàng'),
@@ -131,7 +138,7 @@ export const useAdminOrders = (params = {}) => {
     mutationFn: ({ orderId, reason }) => cancelAdminOrderApi(orderId, reason),
     onSuccess: () => {
       toast.success('Đã hủy đơn hàng thành công!');
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      invalidateAdminOperationalQueries(queryClient);
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Không thể hủy đơn hàng'),
@@ -159,11 +166,13 @@ export const useAdminOrders = (params = {}) => {
 export const useAdminOrderDetail = (orderId) => {
   return useQuery({
     queryKey: ['admin-order-detail', orderId],
-    staleTime: 1000 * 60, // 1 min cache
+    staleTime: CACHE_STALE_TIME.orderDetail,
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
     queryFn: async () => {
       if (!orderId) return null;
       const res = await getAdminOrderByIdApi(orderId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Chi tiết đơn hàng quản trị');
     },
     enabled: !!orderId,
   });
@@ -175,16 +184,33 @@ export const useAdminInventory = (params = {}) => {
   const query = useQuery({
     queryKey: ['admin-inventory', params],
     staleTime: 1000 * 60 * 2, // 2 min cache
-    refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+    refetchOnReconnect: true,
     queryFn: async () => {
       const res = await getAdminInventoryApi(params);
-      const raw = res.data?.data || res.data;
-      if (Array.isArray(raw)) return { items: raw, total: raw.length };
-      return {
-        items: raw?.items || [],
-        pagination: raw?.pagination || { total: raw?.items?.length || 0 },
-        total: raw?.pagination?.total || raw?.items?.length || 0,
-      };
+      const raw = requireApiObject(res, 'Tồn kho quản trị');
+      if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Tồn kho quản trị không hợp lệ');
+      return { ...raw, total: raw.pagination.total };
+    },
+  });
+
+  const outOfStockCountQuery = useQuery({
+    queryKey: ['admin-inventory-out-of-stock-count', params.search || ''],
+    staleTime: 1000 * 30,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+    refetchOnReconnect: true,
+    queryFn: async () => {
+      const res = await getAdminInventoryApi({
+        search: params.search,
+        out_of_stock: true,
+        page: 1,
+        limit: 1,
+      });
+      const raw = requireApiObject(res, 'Số lượng tồn kho hết hàng');
+      if (!raw.pagination || !Number.isFinite(Number(raw.pagination.total))) throw new Error('Số lượng tồn kho hết hàng không hợp lệ');
+      return Number(raw.pagination.total);
     },
   });
 
@@ -194,7 +220,15 @@ export const useAdminInventory = (params = {}) => {
     onSuccess: () => {
       toast.success('Cập nhật số lượng tồn kho thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-inventory-out-of-stock-count'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product-detail'] });
+      broadcastQueryInvalidation([
+        ['admin-inventory'],
+        ['admin-inventory-out-of-stock-count'],
+        ['products'],
+        ['product-detail'],
+      ]);
     },
     onError: (err) =>
       toast.error(err.response?.data?.message || 'Không thể cập nhật tồn kho'),
@@ -205,6 +239,9 @@ export const useAdminInventory = (params = {}) => {
     inventory: query.data?.items || [],
     pagination: query.data?.pagination || {},
     total: query.data?.total || 0,
+    outOfStockTotal: outOfStockCountQuery.data,
+    isOutOfStockCountLoading: outOfStockCountQuery.isLoading,
+    isOutOfStockCountError: outOfStockCountQuery.isError,
     updateStock: updateStockMutation.mutate,
     isUpdatingStock: updateStockMutation.isPending,
   };
@@ -216,16 +253,14 @@ export const useAdminProducts = (params = {}) => {
   const query = useQuery({
     queryKey: ['admin-products', params],
     staleTime: 1000 * 60 * 2, // 2 min cache
-    refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+    refetchOnReconnect: true,
     queryFn: async () => {
       const res = await getAdminProductsApi(params);
-      const raw = res.data?.data || res.data;
-      if (Array.isArray(raw)) return { items: raw, total: raw.length };
-      return {
-        items: raw?.items || [],
-        pagination: raw?.pagination || { total: raw?.items?.length || 0 },
-        total: raw?.pagination?.total || raw?.items?.length || 0,
-      };
+      const raw = requireApiObject(res, 'Sản phẩm quản trị');
+      if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Sản phẩm quản trị không hợp lệ');
+      return { ...raw, total: raw.pagination.total };
     },
   });
 
@@ -235,6 +270,12 @@ export const useAdminProducts = (params = {}) => {
       toast.success('Tạo sản phẩm mới thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      broadcastQueryInvalidation([
+        ['admin-products'],
+        ['products'],
+        ['product-detail'],
+        ['admin-inventory'],
+      ]);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi tạo sản phẩm'),
   });
@@ -245,6 +286,12 @@ export const useAdminProducts = (params = {}) => {
       toast.success('Cập nhật sản phẩm thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      broadcastQueryInvalidation([
+        ['admin-products'],
+        ['products'],
+        ['product-detail'],
+        ['admin-inventory'],
+      ]);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi cập nhật sản phẩm'),
   });
@@ -255,6 +302,12 @@ export const useAdminProducts = (params = {}) => {
       toast.success('Đã ngừng hiển thị sản phẩm');
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      broadcastQueryInvalidation([
+        ['admin-products'],
+        ['products'],
+        ['product-detail'],
+        ['admin-inventory'],
+      ]);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi xóa sản phẩm'),
   });
@@ -266,6 +319,12 @@ export const useAdminProducts = (params = {}) => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product-detail'] });
+      broadcastQueryInvalidation([
+        ['admin-products'],
+        ['products'],
+        ['product-detail'],
+        ['admin-inventory'],
+      ]);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Không thể archive sản phẩm'),
   });
@@ -290,9 +349,12 @@ export const useAdminCategories = () => {
   const query = useQuery({
     queryKey: ['admin-categories'],
     staleTime: 1000 * 60 * 5, // 5 min cache
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+    refetchOnReconnect: true,
     queryFn: async () => {
       const res = await getAdminCategoriesApi();
-      return res.data?.data || res.data || [];
+      return requireApiArray(res, 'Danh mục quản trị');
     },
   });
 
@@ -302,6 +364,10 @@ export const useAdminCategories = () => {
       toast.success('Tạo danh mục mới thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
       queryClient.invalidateQueries({ queryKey: ['categories-public-tree'] });
+      broadcastQueryInvalidation([
+        ['admin-categories'],
+        ['categories-public-tree'],
+      ]);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi tạo danh mục'),
   });
@@ -312,6 +378,10 @@ export const useAdminCategories = () => {
       toast.success('Cập nhật danh mục thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
       queryClient.invalidateQueries({ queryKey: ['categories-public-tree'] });
+      broadcastQueryInvalidation([
+        ['admin-categories'],
+        ['categories-public-tree'],
+      ]);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi cập nhật danh mục'),
   });
@@ -322,6 +392,10 @@ export const useAdminCategories = () => {
       toast.success('Xóa danh mục thành công!');
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
       queryClient.invalidateQueries({ queryKey: ['categories-public-tree'] });
+      broadcastQueryInvalidation([
+        ['admin-categories'],
+        ['categories-public-tree'],
+      ]);
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Lỗi khi xóa danh mục'),
   });
@@ -343,13 +417,9 @@ export const useAdminUsers = (params = {}) => {
     staleTime: 1000 * 30, // 30s cache
     queryFn: async () => {
       const res = await getAdminUsersApi(params);
-      const raw = res.data?.data || res.data;
-      if (Array.isArray(raw)) return { items: raw, total: raw.length, pagination: { page: 1, limit: raw.length, total: raw.length, total_pages: 1 } };
-      return {
-        items: raw?.items || raw?.users || [],
-        pagination: raw?.pagination || { page: 1, limit: 20, total: raw?.items?.length || 0, total_pages: 1 },
-        total: raw?.pagination?.total || raw?.items?.length || 0,
-      };
+      const raw = requireApiObject(res, 'Người dùng quản trị');
+      if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Người dùng quản trị không hợp lệ');
+      return { ...raw, total: raw.pagination.total };
     },
   });
 
@@ -400,7 +470,7 @@ export const useAdminUserDetail = (userId) => {
     queryFn: async () => {
       if (!userId) return null;
       const res = await getAdminUserByIdApi(userId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Chi tiết người dùng quản trị');
     },
     enabled: !!userId,
   });

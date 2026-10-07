@@ -10,6 +10,7 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 import { publishAdminProductApi } from '../apis/admin.api';
 import { toast } from '../../../shared/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
+import AdminPageHeader from '../components/AdminPageHeader';
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -68,18 +69,16 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner */}
-      <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
-            Quản lý sản phẩm ({total})
-          </h1>
-        </div>
-
-        <PrimaryButton icon="solar:add-circle-linear" onClick={() => router.push('/admin/products/create')} size="sm">
-          Thêm sản phẩm mới
-        </PrimaryButton>
-      </div>
+      <AdminPageHeader
+        eyebrow="Sản phẩm"
+        title={`Quản lý sản phẩm (${total})`}
+        description="Quản lý nội dung, giá bán, trạng thái và cấu hình sản phẩm."
+        actions={(
+          <PrimaryButton icon="solar:add-circle-linear" onClick={() => router.push('/admin/products/create')} size="sm">
+            Thêm sản phẩm mới
+          </PrimaryButton>
+        )}
+      />
 
         {/* Filter and Search Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -98,9 +97,9 @@ export default function AdminProductsPage() {
           </div>
           <div className="flex items-center gap-6 text-xs uppercase tracking-wider select-none">
             {[
-              { value: '', label: 'All' },
-              { value: 'active', label: 'Active' },
-              { value: 'draft', label: 'Draft' },
+              { value: '', label: 'Tất cả' },
+              { value: 'active', label: 'Đang bán' },
+              { value: 'draft', label: 'Bản nháp' },
             ].map((tab) => (
               <button
                 key={tab.value || 'all'}
@@ -157,7 +156,9 @@ export default function AdminProductsPage() {
                         const discountPercent = hasSale && originalMinPrice > 0
                           ? Math.round((1 - minPrice / originalMinPrice) * 100)
                           : 0;
-                        const isDraft = (p.status_product || 'draft') === 'draft';
+                        const status = p.status_product || 'draft';
+                        const isDraft = status === 'draft';
+                        const statusLabel = status === 'active' ? 'Đang bán' : 'Bản nháp';
 
                         return (
                           <tr key={productId} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
@@ -187,7 +188,7 @@ export default function AdminProductsPage() {
                                       ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'
                                       : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
                                   }`}>
-                                    {p.status_product || 'draft'}
+                                    {statusLabel}
                                   </span>
                                 </div>
                               </div>
@@ -219,6 +220,15 @@ export default function AdminProductsPage() {
                                 )}
                                 <button
                                   type="button"
+                                  onClick={() => router.push(`/admin/inventory?search=${encodeURIComponent(name)}`)}
+                                  className="rounded-xl border border-neutral-200 p-2 text-black transition-all hover:border-neutral-400 dark:border-neutral-700 dark:text-white dark:hover:border-neutral-500"
+                                  title="Quản lý tồn kho"
+                                  aria-label={`Quản lý tồn kho ${name}`}
+                                >
+                                  <Icon icon="solar:box-minimalistic-linear" />
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => router.push(`/admin/products/${productId}/edit`)}
                                   className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-black dark:text-white transition-all cursor-pointer"
                                   title="Chỉnh sửa"
@@ -229,7 +239,7 @@ export default function AdminProductsPage() {
                                   type="button"
                                   onClick={() => handleDelete(productId, name, p.status_product)}
                                   className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer"
-                                  title={p.status_product === 'active' ? 'Archive' : 'Xóa Draft'}
+                                  title={status === 'active' ? 'Lưu trữ sản phẩm' : 'Xóa bản nháp'}
                                 >
                                   <Icon icon="solar:trash-bin-minimalistic-linear" />
                                 </button>

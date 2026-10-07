@@ -1,4 +1,5 @@
 import React from 'react';
+import { optionValueAvailabilityKey } from '../utils/product.utils';
 
 /**
  * Dynamic Product Variant Options Selector
@@ -7,6 +8,7 @@ import React from 'react';
 export default function ProductVariantSelector({
   options = [],
   selectedOptionValues = {},
+  availableOptionValues = {},
   onSelectOptionValue,
 }) {
   if (!Array.isArray(options) || options.length === 0) {
@@ -18,7 +20,8 @@ export default function ProductVariantSelector({
       {options.map((option) => {
         const optionId = option.product_option_id;
         const optionName = option.name_option;
-        const values = option.values || [];
+        const values = (option.values || []).filter((value) => !value.is_hidden);
+        if (values.length === 0) return null;
         const selectedValueId = selectedOptionValues[optionId];
         const selectedValueObj = values.find((v) => v.product_option_value_id === selectedValueId);
 
@@ -43,6 +46,8 @@ export default function ProductVariantSelector({
               {values.map((val) => {
                 const valId = val.product_option_value_id;
                 const isSelected = selectedValueId === valId;
+                const isAvailable = availableOptionValues[optionValueAvailabilityKey(optionId, valId)] === true;
+                const unavailableLabel = `${val.value_option} - Hết hàng`;
 
                 // For Size options, render as square box; for other options, render as pill
                 if (isSizeOption) {
@@ -50,14 +55,20 @@ export default function ProductVariantSelector({
                     <button
                       key={valId}
                       type="button"
+                      disabled={!isAvailable}
+                      aria-label={isAvailable ? val.value_option : unavailableLabel}
                       onClick={() => onSelectOptionValue(optionId, valId)}
-                      className={`min-w-[48px] h-11 px-3.5 rounded-xl text-xs font-[550] uppercase flex items-center justify-center border transition-all cursor-pointer ${
-                        isSelected
+                      className={`min-w-[56px] h-12 px-2 rounded-xl text-xs font-[550] uppercase flex flex-col items-center justify-center gap-0.5 border transition-all ${
+                        !isAvailable
+                          ? 'border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 text-neutral-500 dark:text-neutral-400 cursor-not-allowed'
+                          : isSelected
                           ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black shadow-sm'
-                          : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600'
+                          : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600 cursor-pointer'
                       }`}
+                      title={isAvailable ? val.value_option : unavailableLabel}
                     >
-                      {val.value_option}
+                      <span className={!isAvailable ? 'line-through decoration-neutral-400' : ''}>{val.value_option}</span>
+                      {!isAvailable && <span className="text-[10px] font-semibold normal-case tracking-normal leading-none text-rose-600 dark:text-rose-400">Hết hàng</span>}
                     </button>
                   );
                 }
@@ -66,14 +77,20 @@ export default function ProductVariantSelector({
                   <button
                     key={valId}
                     type="button"
+                    disabled={!isAvailable}
+                    aria-label={isAvailable ? val.value_option : unavailableLabel}
                     onClick={() => onSelectOptionValue(optionId, valId)}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-[550] uppercase border transition-all cursor-pointer ${
-                      isSelected
+                    className={`px-4 py-2.5 rounded-xl text-xs font-[550] uppercase border transition-all ${
+                      !isAvailable
+                        ? 'border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 text-neutral-500 dark:text-neutral-400 cursor-not-allowed'
+                        : isSelected
                         ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black shadow-sm'
-                        : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600'
+                        : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600 cursor-pointer'
                     }`}
+                    title={isAvailable ? val.value_option : unavailableLabel}
                   >
-                    {val.value_option}
+                    <span className={!isAvailable ? 'line-through decoration-neutral-400' : ''}>{val.value_option}</span>
+                    {!isAvailable && <span className="ml-1 text-[10px] font-semibold normal-case tracking-normal text-rose-600 dark:text-rose-400">Hết hàng</span>}
                   </button>
                 );
               })}

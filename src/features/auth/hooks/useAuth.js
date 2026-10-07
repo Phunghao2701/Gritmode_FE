@@ -23,6 +23,7 @@ import {
   refreshTokenApi,
 } from '../apis/auth.api';
 import { tokenService } from '../services/token.service';
+import { requireApiObject } from '@/shared/services/responseContract';
 import { clearPrivateQueryCache } from '../../../shared/services/queryClient';
 
 export default function useAuth() {
@@ -61,7 +62,11 @@ export default function useAuth() {
 
       try {
         const res = await requestOtpApi(email);
-        const expiredIn = res.data?.data?.expired_in ?? 300;
+        const payload = requireApiObject(res, 'OTP response');
+        if (!Number.isInteger(payload.expired_in) || payload.expired_in <= 0) {
+          throw new Error('OTP response thiếu expired_in hợp lệ');
+        }
+        const expiredIn = payload.expired_in;
 
         setOtpRequested({ email, expiredIn });
         toast.success('Mã OTP đã được gửi đến email của bạn!');

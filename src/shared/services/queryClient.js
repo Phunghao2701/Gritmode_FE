@@ -12,6 +12,7 @@ function makeQueryClient() {
         gcTime: 1000 * 60 * 60,   // 1 hour
         retry: 1,
         refetchOnWindowFocus: false,
+        refetchOnReconnect: true,
       },
     },
   });
@@ -42,11 +43,102 @@ const PUBLIC_QUERY_KEYS = new Set([
   'category-detail',
   'collections-public-list',
   'collection-detail',
+  'banners',
 ]);
 
 export const clearPrivateQueryCache = () => {
-  const client = getQueryClient();
-  return client.removeQueries({
+  return queryClient.removeQueries({
     predicate: ({ queryKey }) => !PUBLIC_QUERY_KEYS.has(queryKey[0]),
   });
+};
+
+const CACHE_SYNC_CHANNEL = 'gritmode:query-invalidation';
+const CACHE_SYNC_STORAGE_KEY = 'gritmode:query-invalidation:event';
+let cacheSyncChannel = null;
+let cacheSyncSubscribers = 0;
+
+const isBrowser = () => typeof window !== 'undefined';
+
+const getCacheSyncChannel = () => {
+  if (!isBrowser() || typeof window.BroadcastChannel !== 'function') return null;
+  if (!cacheSyncChannel) {
+    cacheSyncChannel = new window.BroadcastChannel(CACHE_SYNC_CHANNEL);
+  }
+  return cacheSyncChannel;
+};
+
+const createCacheSyncEvent = (queryKeys) => ({
+  id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random()}`,
+  queryKeys,
+  timestamp: Date.now(),
+});
+
+const readQueryKeys = (payload) => {
+  if (!payload || !Array.isArray(payload.queryKeys)) return [];
+  return payload.queryKeys.filter((queryKey) => (
+    Array.isArray(queryKey) && queryKey.length > 0 && typeof queryKey[0] === 'string'
+  ));
+};
+
+/**
+ * Tell other tabs that a mutation changed data represented by these query keys.
+ * BroadcastChannel is preferred; localStorage is kept as a compatibility
+ * fallback for browsers where BroadcastChannel is unavailable.
+ */
+export const broadcastQueryInvalidation = (queryKeys) => {
+  if (!isBrowser() || !Array.isArray(queryKeys) || queryKeys.length === 0) return;
+
+  const message = createCacheSyncEvent(queryKeys);
+  const channel = getCacheSyncChannel();
+  if (channel) {
+    channel.postMessage(message);
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(CACHE_SYNC_STORAGE_KEY, JSON.stringify(message));
+  } catch {
+    // Local invalidation in the source tab remains authoritative.
+  }
+};
+
+/** Subscribe to cache invalidation messages from other tabs. */
+export const subscribeToQueryInvalidation = (onInvalidate) => {
+  if (!isBrowser() || typeof onInvalidate !== 'function') return () => {};
+
+  const handleMessage = (event) => {
+    readQueryKeys(event.data).forEach(onInvalidate);
+  };
+
+  const handleStorage = (event) => {
+    if (event.key !== CACHE_SYNC_STORAGE_KEY || !event.newValue) return;
+    try {
+      readQueryKeys(JSON.parse(event.newValue)).forEach(onInvalidate);
+    } catch {
+      // Ignore malformed or unavailable cross-tab payloads.
+    }
+  };
+
+  const channel = getCacheSyncChannel();
+
+  if (channel) {
+    channel.addEventListener('message', handleMessage);
+    cacheSyncSubscribers += 1;
+  } else {
+    window.addEventListener('storage', handleStorage);
+  }
+
+  return () => {
+    if (channel) {
+      channel.removeEventListener('message', handleMessage);
+      cacheSyncSubscribers = Math.max(0, cacheSyncSubscribers - 1);
+      if (cacheSyncSubscribers === 0 && cacheSyncChannel === channel) {
+        channel.close();
+        cacheSyncChannel = null;
+      }
+    }
+    window.removeEventListener('storage', handleStorage);
+  };
 };

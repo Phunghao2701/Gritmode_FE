@@ -1,6 +1,6 @@
 /**
  * Vietnam Administrative Divisions (Tỉnh/Thành, Quận/Huyện, Phường/Xã)
- * Fetches from standard Open-API with persistent local caching and offline fallback.
+ * Fetches from standard Open-API with persistent local caching.
  */
 
 const FALLBACK_PROVINCES = [
@@ -114,21 +114,17 @@ export const loadVietnamAddressTree = async () => {
           }
         }
       } catch (err) {
-        console.warn('Could not load online Vietnam address tree, using fallback:', err);
+        throw new Error(`Không thể tải dữ liệu địa chỉ Việt Nam: ${err.message}`);
       }
-      // Fallback minimal structure
-      memoryTree = FALLBACK_PROVINCES.map((p, idx) => ({
-        code: idx + 1,
-        name: p,
-        districts: [],
-      }));
-      return memoryTree;
+      throw new Error('Dữ liệu địa chỉ Việt Nam không hợp lệ');
     })();
   }
 
-  const result = await fetchPromise;
-  fetchPromise = null;
-  return result;
+  try {
+    return await fetchPromise;
+  } finally {
+    fetchPromise = null;
+  }
 };
 
 // Initial sync load if cached
@@ -138,10 +134,7 @@ try {
 } catch {}
 
 export const getInitialProvincesList = () => {
-  if (memoryTree && memoryTree.length > 0) {
-    return memoryTree.map((p) => p.name);
-  }
-  return FALLBACK_PROVINCES;
+  return memoryTree?.map((p) => p.name) || [];
 };
 
 export const findProvinceObject = (tree, provinceName) => {

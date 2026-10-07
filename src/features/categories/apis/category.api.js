@@ -3,12 +3,13 @@
  * Communicates with /api/v1/categories and /api/v1/admin/categories
  */
 import api, { publicApi } from '../../../shared/services/api';
+import { withPublicCacheBuster } from '../../../shared/services/cachePolicy';
 
 /**
  * Lấy cây danh mục sản phẩm (Public)
  */
 export const getCategoriesApi = () => {
-  return publicApi.get('/categories');
+  return publicApi.get('/categories', { params: withPublicCacheBuster() });
 };
 
 /**
@@ -16,7 +17,7 @@ export const getCategoriesApi = () => {
  * @param {number|string} categoryId
  */
 export const getCategoryByIdApi = (categoryId) => {
-  return publicApi.get(`/categories/${categoryId}`);
+  return publicApi.get(`/categories/${categoryId}`, { params: withPublicCacheBuster() });
 };
 
 /**
@@ -25,7 +26,7 @@ export const getCategoryByIdApi = (categoryId) => {
  * @param {object} params
  */
 export const getCategoryProductsApi = (categoryId, params = {}) => {
-  return publicApi.get(`/categories/${categoryId}/products`, { params });
+  return publicApi.get(`/categories/${categoryId}/products`, { params: withPublicCacheBuster(params) });
 };
 
 /**

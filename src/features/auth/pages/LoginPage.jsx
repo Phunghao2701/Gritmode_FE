@@ -10,6 +10,7 @@ import { tokenService } from '../services/token.service';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useCartStore } from '@/shared/store/cartStore';
 import gritmodeLogo from '../../../assets/icons/GM den.jpg';
+import { requireApiObject } from '@/shared/services/responseContract';
 
 // ----------------------------------------------------------------
 // OTP Input — 6 ô số riêng biệt
@@ -153,7 +154,11 @@ export default function LoginPage() {
 
     try {
       const res = await requestOtpApi(email.trim());
-      const returned = res.data?.data?.expired_in ?? 300;
+      const payload = requireApiObject(res, 'OTP response');
+      if (!Number.isInteger(payload.expired_in) || payload.expired_in <= 0) {
+        throw new Error('OTP response thiếu expired_in hợp lệ');
+      }
+      const returned = payload.expired_in;
       setExpiredIn(returned);
       setOtpExpired(false);
       setOtp('');
@@ -190,7 +195,11 @@ export default function LoginPage() {
 
     try {
       const res = await requestOtpApi(email.trim());
-      const returned = res.data?.data?.expired_in ?? 300;
+      const payload = requireApiObject(res, 'OTP response');
+      if (!Number.isInteger(payload.expired_in) || payload.expired_in <= 0) {
+        throw new Error('OTP response thiếu expired_in hợp lệ');
+      }
+      const returned = payload.expired_in;
       setExpiredIn(returned);
       setOtpExpired(false);
       toast.success('Đã gửi lại mã OTP!');
