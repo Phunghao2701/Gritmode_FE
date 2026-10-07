@@ -6,10 +6,13 @@ import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import { toast } from '../../../shared/utils/toast';
+import AdminPageHeader from '../components/AdminPageHeader';
 import {
   deleteCollectionApi,
   getAdminCollectionsApi,
 } from '../../collections/apis/collection.api';
+import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
+import { requireApiArray } from '../../../shared/services/responseContract';
 
 export default function AdminCollectionsPage() {
   const router = useRouter();
@@ -19,10 +22,12 @@ export default function AdminCollectionsPage() {
 
   const { data: collections = [], isLoading } = useQuery({
     queryKey: ['admin-collections'],
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+    refetchOnReconnect: true,
     queryFn: async () => {
       const response = await getAdminCollectionsApi();
-      const data = response.data?.data || response.data || [];
-      return Array.isArray(data) ? data : data.items || [];
+      return requireApiArray(response, 'Danh sách bộ sưu tập');
     },
   });
 
@@ -40,6 +45,11 @@ export default function AdminCollectionsPage() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['admin-collections'] }),
       queryClient.invalidateQueries({ queryKey: ['collections-public-list'] }),
+    ]);
+    broadcastQueryInvalidation([
+      ['admin-collections'],
+      ['collections-public-list'],
+      ['collection-detail'],
     ]);
   };
 
@@ -60,23 +70,20 @@ export default function AdminCollectionsPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
-      {/* Top Banner */}
-      <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">Store merchandising</span>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white mt-1">
-            Quản lý bộ sưu tập
-          </h1>
-          <p className="text-xs text-neutral-500 mt-1">Nhóm cha là tiêu đề menu; bộ sưu tập con chứa sản phẩm và ảnh đại diện.</p>
-        </div>
-        <PrimaryButton
-          icon="solar:add-circle-linear"
-          onClick={() => router.push('/admin/collections/create')}
-          size="sm"
-        >
-          Thêm nhóm mới
-        </PrimaryButton>
-      </div>
+      <AdminPageHeader
+        eyebrow="Sản phẩm & Kho"
+        title="Quản lý bộ sưu tập"
+        description="Nhóm cha là tiêu đề menu; bộ sưu tập con chứa sản phẩm và ảnh đại diện."
+        actions={(
+          <PrimaryButton
+            icon="solar:add-circle-linear"
+            onClick={() => router.push('/admin/collections/create')}
+            size="sm"
+          >
+            Thêm nhóm mới
+          </PrimaryButton>
+        )}
+      />
 
       {isLoading ? (
         <div className="space-y-4">

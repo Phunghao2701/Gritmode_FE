@@ -8,6 +8,7 @@ import {
 } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import { getAdminOrderByIdApi } from '../apis/admin.api';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export default function OrderDetailModal({
   order,
@@ -42,7 +43,7 @@ export default function OrderDetailModal({
       getAdminOrderByIdApi(orderId)
         .then((res) => {
           if (isMounted) {
-            setFullDetail(res.data?.data || res.data);
+            setFullDetail(requireApiObject(res, 'Chi tiết đơn hàng'));
           }
         })
         .catch((err) => {

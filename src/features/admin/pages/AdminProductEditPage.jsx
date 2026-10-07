@@ -9,8 +9,8 @@ import InputField from '../../../shared/components/InputField';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import {
   getAdminCategoriesApi,
+  getAdminCollectionsApi,
   getAdminProductByIdApi,
-  getAdminProductMetaApi,
   createCategoryApi,
   updateCategoryApi,
   createAdminFullProductApi,
@@ -19,10 +19,15 @@ import {
 } from '../apis/admin.api';
 import { generateSkuSuggestion } from '../utils/productVariants';
 import CategoryFormModal from '../components/CategoryFormModal';
+import QuickCollectionFormModal from '../components/QuickCollectionFormModal';
 import { toast } from '../../../shared/utils/toast';
+import { createCollectionApi } from '../../collections/apis/collection.api';
+import { unwrapApiData, requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
+import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 
-const splitValues = (value) => [...new Set(value.split(',').map((item) => item.trim()).filter(Boolean))];
+const splitValues = (value) => [...new Set(value.split(',').map((item) => item.trim().toUpperCase()).filter(Boolean))];
 const combinationKey = (color, size) => `${color}\u0000${size}`;
+const optionValueKey = (optionName, value) => `${String(optionName || '').trim().toLowerCase()}\u0000${String(value || '').trim().toLowerCase()}`;
 
 export const formatNumberWithDots = (val) => {
   if (val === undefined || val === null || val === '') return '';
@@ -76,8 +81,12 @@ const organizeCategories = (items = []) => {
 };
 
 const responseItems = (response) => {
-  const data = response?.data?.data ?? response?.data ?? [];
-  return Array.isArray(data) ? data : data.items || data.collections || data.categories || [];
+  const data = unwrapApiData(response);
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.items)) return data.items;
+  if (data && Array.isArray(data.collections)) return data.collections;
+  if (data && Array.isArray(data.categories)) return data.categories;
+  throw new Error('Danh sách quản trị không hợp lệ');
 };
 
 const STANDARD_SIZES = ['S', 'M', 'L', 'XL', '2XL', 'Free'];
@@ -92,7 +101,10 @@ export default function AdminProductEditPage() {
   const [form, setForm] = useState({ name_product: '', description: '', primary_category_id: '', collection_ids: [] });
   const [colorText, setColorText] = useState('');
   const [selectedSizes, setSelectedSizes] = useState([]);
-  const [customSizeText, setCustomSizeText] = useState('');
+  const [selectedCustomSizes, setSelectedCustomSizes] = useState([]);
+  const [customSizeDraft, setCustomSizeDraft] = useState('');
+  const [isAddingCustomSize, setIsAddingCustomSize] = useState(false);
+  const [hiddenOptionValues, setHiddenOptionValues] = useState({});
   const [defaultPrice, setDefaultPrice] = useState('');
   const [defaultSalePercent, setDefaultSalePercent] = useState('');
   const [defaultStock, setDefaultStock] = useState('');
@@ -104,28 +116,98 @@ export default function AdminProductEditPage() {
   const [loadingProduct, setLoadingProduct] = useState(isEditMode);
   const [submittingAction, setSubmittingAction] = useState(null); // 'draft' | 'publish' | null
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const variantsSectionRef = useRef(null);
+  const categorySectionRef = useRef(null);
+  const imagesSectionRef = useRef(null);
+  const nameFieldRef = useRef(null);
+  const priceFieldRef = useRef(null);
+  const inventoryFieldRef = useRef(null);
+  const imageFieldRef = useRef(null);
+  const fieldRefs = {
+    name: nameFieldRef,
+    category: categorySectionRef,
+    variants: variantsSectionRef,
+    price: priceFieldRef,
+    inventory: inventoryFieldRef,
+    images: imageFieldRef,
+  };
 
   // Category modal state
   const [categoryModal, setCategoryModal] = useState({ open: false, editing: null, initialParentId: '' });
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [collectionDropdownOpen, setCollectionDropdownOpen] = useState(false);
+  const [expandedCollections, setExpandedCollections] = useState({});
   const [catDropdownOpen, setCatDropdownOpen] = useState(false);
   const [expandedCats, setExpandedCats] = useState({});
   const catDropdownRef = useRef(null);
 
   const colors = useMemo(() => splitValues(colorText), [colorText]);
-  const customSizes = useMemo(() => splitValues(customSizeText), [customSizeText]);
-  const sizes = useMemo(() => [...new Set([...selectedSizes, ...customSizes])], [selectedSizes, customSizes]);
+  const sizeOptions = useMemo(() => [...new Set([...STANDARD_SIZES, ...selectedCustomSizes])], [selectedCustomSizes]);
+  const sizes = useMemo(() => [...new Set([...selectedSizes, ...selectedCustomSizes])], [selectedSizes, selectedCustomSizes]);
   const combinations = useMemo(() => colors.flatMap((color) => sizes.map((size) => ({ color, size, key: combinationKey(color, size) }))), [colors, sizes]);
+  const isOptionValueHidden = (optionName, value) => Boolean(hiddenOptionValues[optionValueKey(optionName, value)]);
+  const toggleOptionValueHidden = (optionName, value) => {
+    const key = optionValueKey(optionName, value);
+    setHiddenOptionValues((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleAddCustomSize = () => {
+    const nextSizes = splitValues(customSizeDraft);
+    if (!nextSizes.length) return;
+
+    setSelectedCustomSizes((prev) => [
+      ...prev,
+      ...nextSizes.filter((size) => !STANDARD_SIZES.includes(size) && !prev.includes(size)),
+    ]);
+    setCustomSizeDraft('');
+    setIsAddingCustomSize(false);
+    clearFieldError('variants');
+  };
+
+  const uploadedImages = images.filter((img) => !img.isUploading && img.url_product_image);
+  const parentCollections = useMemo(
+    () => collections.filter((collection) => !collection.parent_collection_id),
+    [collections],
+  );
+  const childCollections = useMemo(
+    () => collections.filter((collection) => collection.parent_collection_id),
+    [collections],
+  );
+
+  const clearFieldError = (field) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const scrollToField = (field) => {
+    const target = fieldRefs[field]?.current;
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const focusTarget = target.matches?.('input, textarea, button')
+      ? target
+      : target.querySelector('input, textarea, button');
+    focusTarget?.focus({ preventScroll: true });
+  };
 
   // Fetch Categories & Collections references via 1 meta API
   useEffect(() => {
     let mounted = true;
     const fetchRefs = async () => {
       try {
-        const metaRes = await getAdminProductMetaApi();
-        const meta = metaRes.data?.data || metaRes.data || {};
+        const [categoriesRes, collectionsRes] = await Promise.all([
+          getAdminCategoriesApi(),
+          getAdminCollectionsApi(),
+        ]);
         if (mounted) {
-          setCategories(organizeCategories(meta.categories || []));
-          setCollections(meta.collections || []);
+          setCategories(organizeCategories(responseItems(categoriesRes)));
+          setCollections(responseItems(collectionsRes));
         }
       } catch {
         if (mounted) setError('Không thể tải danh mục hoặc bộ sưu tập.');
@@ -146,27 +228,36 @@ export default function AdminProductEditPage() {
       try {
         setLoadingProduct(true);
         const res = await getAdminProductByIdApi(productId);
-        const p = res.data?.data || res.data;
-        if (!mounted || !p) return;
-        setProductStatus(p.status_product || 'draft');
+        const p = requireApiObject(res, 'Chi tiết sản phẩm quản trị');
+        if (!mounted) return;
+        setProductStatus(p.status_product);
 
         const options = Array.isArray(p.options) ? p.options : [];
+        const hiddenValues = {};
+        options.forEach((option) => {
+          (option.values || []).forEach((rawValue) => {
+            const value = typeof rawValue === 'string' ? rawValue : rawValue.value_option;
+            if (value) hiddenValues[optionValueKey(option.name_option, value)] = Boolean(rawValue?.is_hidden);
+          });
+        });
+        setHiddenOptionValues(hiddenValues);
         const colorOption = options.find((opt) => opt.name_option?.toLowerCase().includes('màu') || opt.name_option?.toLowerCase().includes('color'));
         const sizeOption = options.find((opt) => opt.name_option?.toLowerCase().includes('kích') || opt.name_option?.toLowerCase().includes('size'));
 
-        let initialColors = colorOption ? colorOption.values.map((v) => (typeof v === 'string' ? v : v.value_option)).filter(Boolean) : [];
-        let initialSizes = sizeOption ? sizeOption.values.map((v) => (typeof v === 'string' ? v : v.value_option)).filter(Boolean) : [];
+        let initialColors = colorOption ? colorOption.values.map((v) => (typeof v === 'string' ? v : v.value_option)).filter(Boolean).map((value) => String(value).trim().toUpperCase()) : [];
+        let initialSizes = sizeOption ? sizeOption.values.map((v) => (typeof v === 'string' ? v : v.value_option)).filter(Boolean).map((value) => String(value).trim().toUpperCase()) : [];
 
         if (initialColors.length === 0 && options[0]?.values) {
-          initialColors = options[0].values.map((v) => (typeof v === 'string' ? v : v.value_option)).filter(Boolean);
+          initialColors = options[0].values.map((v) => (typeof v === 'string' ? v : v.value_option)).filter(Boolean).map((value) => String(value).trim().toUpperCase());
         }
         if (initialSizes.length === 0 && options[1]?.values) {
-          initialSizes = options[1].values.map((v) => (typeof v === 'string' ? v : v.value_option)).filter(Boolean);
+          initialSizes = options[1].values.map((v) => (typeof v === 'string' ? v : v.value_option)).filter(Boolean).map((value) => String(value).trim().toUpperCase());
         }
 
         setColorText(initialColors.join(', '));
         setSelectedSizes(initialSizes.filter((s) => STANDARD_SIZES.includes(s)));
-        setCustomSizeText(initialSizes.filter((s) => !STANDARD_SIZES.includes(s)).join(', '));
+        const initialCustomSizes = initialSizes.filter((s) => !STANDARD_SIZES.includes(s));
+        setSelectedCustomSizes(initialCustomSizes);
 
         const primaryCat = p.categories?.find((c) => c.is_primary) || p.categories?.[0];
         setForm({
@@ -183,15 +274,15 @@ export default function AdminProductEditPage() {
           let vSize = '';
           (v.option_values || []).forEach((ov) => {
             const optName = (ov.name_option || ov.option_name || '').toLowerCase();
-            const val = String(ov.value_option || ov.value || '').trim();
+            const val = String(ov.value_option || ov.value || '').trim().toUpperCase();
             if (optName.includes('màu') || optName.includes('color')) vColor = val;
             else if (optName.includes('size') || optName.includes('kích')) vSize = val;
             else if (initialColors.includes(val)) vColor = val;
             else if (initialSizes.includes(val)) vSize = val;
           });
 
-          if (!vColor && v.option_values?.[0]) vColor = String(v.option_values[0].value_option || v.option_values[0].value || '').trim();
-          if (!vSize && v.option_values?.[1]) vSize = String(v.option_values[1].value_option || v.option_values[1].value || '').trim();
+          if (!vColor && v.option_values?.[0]) vColor = String(v.option_values[0].value_option || v.option_values[0].value || '').trim().toUpperCase();
+          if (!vSize && v.option_values?.[1]) vSize = String(v.option_values[1].value_option || v.option_values[1].value || '').trim().toUpperCase();
 
           if (vColor && vSize) {
             const key = combinationKey(vColor, vSize);
@@ -209,8 +300,8 @@ export default function AdminProductEditPage() {
               sale_price: v.sale_price ? formatNumberWithDots(v.sale_price) : '',
               sale_start_at: v.sale_start_at ? v.sale_start_at.slice(0, 16) : '',
               sale_end_at: v.sale_end_at ? v.sale_end_at.slice(0, 16) : '',
-              stock: v.inventory?.quantity_stock ?? v.quantity_stock ?? '',
-              is_active: v.is_active ?? true,
+              stock: v.inventory?.quantity_stock ?? '',
+              is_active: v.is_active,
             };
           }
         });
@@ -219,7 +310,7 @@ export default function AdminProductEditPage() {
         if (firstVariant) {
           const price = Number(firstVariant.price || 0);
           const salePrice = Number(firstVariant.sale_price || 0);
-          setDefaultStock(firstVariant.inventory?.quantity_stock ?? firstVariant.quantity_stock ?? '');
+          setDefaultStock(firstVariant.inventory?.quantity_stock ?? '');
           setDefaultPrice(price ? formatNumberWithDots(price) : '');
           setDefaultSalePercent(
             price > 0 && salePrice > 0 && salePrice < price
@@ -292,7 +383,7 @@ export default function AdminProductEditPage() {
               prev.map((img) => (img.__tempId === item.__tempId ? { ...img, progress: percent } : img))
             );
           });
-          const uploaded = res.data?.data || res.data || [];
+          const uploaded = requireApiArray(res, 'Ảnh sản phẩm tải lên');
           const serverUrl = uploaded[0]?.url;
           if (serverUrl) {
             setImages((prev) =>
@@ -342,41 +433,84 @@ export default function AdminProductEditPage() {
         toast.success('Đã cập nhật danh mục!');
       } else {
         const res = await createCategoryApi(categoryData);
-        const created = res.data?.data || res.data;
+        const created = requireApiObject(res, 'Danh mục');
         catId = String(created.category_id || created.id);
         toast.success('Đã tạo danh mục mới!');
         setForm((prev) => ({ ...prev, primary_category_id: catId }));
       }
       await refreshCategories();
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-categories'] }),
+        queryClient.invalidateQueries({ queryKey: ['categories-public-tree'] }),
+        queryClient.invalidateQueries({ queryKey: ['category-detail'] }),
+      ]);
+      broadcastQueryInvalidation([
+        ['admin-categories'],
+        ['categories-public-tree'],
+        ['category-detail'],
+      ]);
       setCategoryModal({ open: false, editing: null, initialParentId: '' });
     } catch {
       toast.error('Không thể lưu danh mục');
     }
   };
 
+  const handleQuickCollectionSubmit = async (collectionData) => {
+    try {
+      setIsCreatingCollection(true);
+      const response = await createCollectionApi(collectionData);
+      const created = requireApiObject(response, 'Bộ sưu tập');
+      const createdId = created.collection_id || created.id;
+
+      const collectionsRes = await getAdminCollectionsApi();
+      setCollections(responseItems(collectionsRes));
+
+      if (collectionData.parent_collection_id && createdId) {
+        setForm((prev) => ({
+          ...prev,
+          collection_ids: [...new Set([...prev.collection_ids, String(createdId)])],
+        }));
+      }
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-collections'] }),
+        queryClient.invalidateQueries({ queryKey: ['collections-public-list'] }),
+        queryClient.invalidateQueries({ queryKey: ['collection-detail'] }),
+      ]);
+      broadcastQueryInvalidation([
+        ['admin-collections'],
+        ['collections-public-list'],
+        ['collection-detail'],
+      ]);
+      setCollectionModalOpen(false);
+      toast.success(collectionData.parent_collection_id ? 'Đã tạo và chọn bộ sưu tập mới.' : 'Đã tạo nhóm bộ sưu tập mới.');
+    } catch (collectionError) {
+      toast.error(collectionError.response?.data?.message || 'Không thể tạo bộ sưu tập.');
+    } finally {
+      setIsCreatingCollection(false);
+    }
+  };
+
   const handleSave = async (publishNow = false) => {
-    if (images.some((img) => img.isUploading)) {
-      toast.warning('Ảnh đang được tải lên, vui lòng đợi hoàn tất trước khi lưu!');
-      return;
-    }
-    if (!form.name_product.trim()) {
-      toast.error('Vui lòng nhập tên sản phẩm.');
-      return;
-    }
-    if (!form.primary_category_id) {
-      toast.error('Vui lòng chọn danh mục chính.');
-      return;
-    }
-    if (combinations.length === 0) {
-      toast.error('Vui lòng chọn ít nhất 1 màu sắc và 1 kích thước.');
+    const nextErrors = {};
+    if (!form.name_product.trim()) nextErrors.name = 'Vui lòng nhập tên sản phẩm.';
+    if (!form.primary_category_id) nextErrors.category = 'Vui lòng chọn danh mục chính.';
+    if (combinations.length === 0) nextErrors.variants = 'Vui lòng chọn ít nhất 1 màu sắc và 1 kích thước.';
+
+    const price = parsePriceNumber(defaultPrice);
+    if (price <= 0) nextErrors.price = 'Vui lòng nhập giá bán hợp lệ.';
+    if (images.some((img) => img.isUploading)) nextErrors.images = 'Ảnh đang tải lên, vui lòng đợi hoàn tất.';
+    if (publishNow && uploadedImages.length === 0) nextErrors.images = 'Cần ít nhất 1 ảnh trước khi đăng bán.';
+    if (publishNow && defaultStock === '') nextErrors.inventory = 'Hãy nhập tồn kho ban đầu trước khi đăng bán.';
+
+    setFieldErrors(nextErrors);
+    const firstError = Object.keys(nextErrors)[0];
+    if (firstError) {
+      toast.error(nextErrors[firstError]);
+      scrollToField(firstError);
       return;
     }
 
-    const price = parsePriceNumber(defaultPrice);
-    if (price <= 0) {
-      toast.error('Vui lòng nhập giá bán hợp lệ.');
-      return;
-    }
     const salePercent = Number(defaultSalePercent || 0);
     const salePrice = salePercent > 0 && salePercent < 100
       ? Math.round(price * (100 - salePercent) / 100)
@@ -406,8 +540,8 @@ export default function AdminProductEditPage() {
       primary_category_id: Number(form.primary_category_id),
       collection_ids: form.collection_ids.map(Number),
       options: [
-        { name_option: 'Màu sắc', values: colors },
-        { name_option: 'Kích thước', values: sizes },
+        { name_option: 'Màu sắc', values: colors.map((value) => ({ value_option: value, is_hidden: isOptionValueHidden('Màu sắc', value) })) },
+        { name_option: 'Kích thước', values: sizes.map((value) => ({ value_option: value, is_hidden: isOptionValueHidden('Kích thước', value) })) },
       ],
       variants: payloadVariants,
       images: images
@@ -436,8 +570,22 @@ export default function AdminProductEditPage() {
         await createAdminFullProductApi(createPayload);
         toast.success(publishNow ? 'Đăng bán sản phẩm thành công!' : 'Tạo nháp sản phẩm thành công!');
       }
-      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-products'] }),
+        queryClient.invalidateQueries({ queryKey: ['products'] }),
+        queryClient.invalidateQueries({ queryKey: ['product-detail'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-inventory'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-categories'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-collections'] }),
+      ]);
+      broadcastQueryInvalidation([
+        ['admin-products'],
+        ['products'],
+        ['product-detail'],
+        ['admin-inventory'],
+        ['admin-categories'],
+        ['admin-collections'],
+      ]);
       router.push('/admin/products');
     } catch (err) {
       const missing = err.response?.data?.errors?.missing;
@@ -522,12 +670,18 @@ export default function AdminProductEditPage() {
               1. Thông tin cơ bản
             </h2>
             
-            <InputField
-              label="Tên sản phẩm *"
-              placeholder="VD: Áo Thun Oversized Streetwear Gritmode"
-              value={form.name_product}
-              onChange={(e) => setForm((p) => ({ ...p, name_product: e.target.value }))}
-            />
+            <div ref={nameFieldRef}>
+              <InputField
+                label="Tên sản phẩm *"
+                placeholder="VD: Áo Thun Oversized Streetwear Gritmode"
+                value={form.name_product}
+                error={fieldErrors.name}
+                onChange={(e) => {
+                  clearFieldError('name');
+                  setForm((p) => ({ ...p, name_product: e.target.value }));
+                }}
+              />
+            </div>
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
@@ -544,10 +698,11 @@ export default function AdminProductEditPage() {
           </div>
 
           {/* Section 2: Options & Variants Builder */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
+          <div ref={variantsSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 scroll-mt-24">
             <h2 className="text-sm font-black uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               2. Màu sắc, kích thước & giá bán
             </h2>
+            {fieldErrors.variants && <p className="text-xs font-bold text-rose-500">{fieldErrors.variants}</p>}
 
             {/* Colors */}
             <div>
@@ -558,56 +713,151 @@ export default function AdminProductEditPage() {
                 type="text"
                 placeholder="VD: Đen, Trắng, Xám Tiêu, Rêu"
                 value={colorText}
-                onChange={(e) => setColorText(e.target.value)}
+                onChange={(e) => {
+                  clearFieldError('variants');
+                  setColorText(e.target.value.toUpperCase());
+                }}
                 className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-3 text-sm focus:outline-none focus:border-black dark:focus:border-white"
               />
               <div className="flex flex-wrap gap-2 mt-2">
-                {colors.map((c, i) => (
-                  <span key={i} className="px-3 py-1 bg-black text-white dark:bg-white dark:text-black rounded-full text-xs font-bold">
-                    {c}
-                  </span>
-                ))}
+                {colors.map((c, i) => {
+                  const isHidden = isOptionValueHidden('Màu sắc', c);
+                  return (
+                    <div
+                      key={i}
+                      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+                        isHidden
+                          ? 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500'
+                          : 'bg-black text-white dark:bg-white dark:text-black'
+                      }`}
+                    >
+                      <span className={isHidden ? 'line-through' : ''}>{c}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleOptionValueHidden('Màu sắc', c)}
+                        aria-pressed={isHidden}
+                        aria-label={`${isHidden ? 'Hiện' : 'Ẩn'} màu ${c} trên cửa hàng`}
+                        title={isHidden ? 'Hiện trên cửa hàng' : 'Ẩn trên cửa hàng'}
+                        className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full transition-colors hover:bg-white/20 dark:hover:bg-black/10"
+                      >
+                        <Icon icon={isHidden ? 'solar:eye-closed-linear' : 'solar:eye-linear'} className="text-sm" />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Sizes */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
-                Kích thước tiêu chuẩn *
-              </label>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+                  Kích thước tiêu chuẩn *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsAddingCustomSize(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
+                >
+                  <Icon icon="solar:add-circle-linear" />
+                  Thêm size
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
-                {STANDARD_SIZES.map((s) => {
-                  const isSelected = selectedSizes.includes(s);
+                {sizeOptions.map((s) => {
+                  const isStandardSize = STANDARD_SIZES.includes(s);
+                  const isSelected = isStandardSize ? selectedSizes.includes(s) : selectedCustomSizes.includes(s);
+                  const isHidden = isOptionValueHidden('Kích thước', s);
                   return (
-                    <button
+                    <div
                       key={s}
-                      type="button"
-                      onClick={() => setSelectedSizes((prev) => isSelected ? prev.filter((item) => item !== s) : [...prev, s])}
-                      className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-black text-white dark:bg-white dark:text-black border-black dark:border-white'
-                          : 'bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400'
+                      className={`inline-flex items-stretch overflow-hidden rounded-xl border transition-all ${
+                        isHidden || !isSelected ? 'border-neutral-200 dark:border-neutral-800' : 'border-black dark:border-white'
                       }`}
                     >
-                      {s}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          clearFieldError('variants');
+                          if (isStandardSize) {
+                            setSelectedSizes((prev) => isSelected ? prev.filter((item) => item !== s) : [...prev, s]);
+                          } else {
+                            setSelectedCustomSizes((prev) => isSelected ? prev.filter((item) => item !== s) : [...prev, s]);
+                          }
+                        }}
+                        className={`px-3.5 py-2 text-xs font-black uppercase tracking-wider transition-colors cursor-pointer ${
+                          isHidden
+                            ? 'bg-neutral-100 text-neutral-400 dark:bg-neutral-900 dark:text-neutral-500 line-through'
+                            : isSelected
+                              ? 'bg-black text-white dark:bg-white dark:text-black'
+                              : 'bg-neutral-50 text-neutral-600 dark:bg-neutral-950 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleOptionValueHidden('Kích thước', s)}
+                        aria-pressed={isHidden}
+                        aria-label={`${isHidden ? 'Hiện' : 'Ẩn'} size ${s} trên cửa hàng`}
+                        title={isHidden ? 'Hiện trên cửa hàng' : 'Ẩn trên cửa hàng'}
+                        className={`inline-flex w-8 items-center justify-center border-l text-sm transition-colors cursor-pointer ${
+                          isHidden
+                            ? 'border-neutral-200 bg-neutral-100 text-neutral-400 hover:text-black dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-500 dark:hover:text-white'
+                            : 'border-white/20 bg-black/10 text-current hover:bg-black/20 dark:border-black/10 dark:bg-white/10 dark:hover:bg-white/20'
+                        }`}
+                      >
+                        <Icon icon={isHidden ? 'solar:eye-closed-linear' : 'solar:eye-linear'} />
+                      </button>
+                    </div>
                   );
                 })}
               </div>
 
-              <div className="mt-3">
-                <input
-                  type="text"
-                  placeholder="Kích thước tùy chỉnh khác (VD: 3XL, 30, 31, 32...)"
-                  value={customSizeText}
-                  onChange={(e) => setCustomSizeText(e.target.value)}
-                  className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-2.5 text-xs"
-                />
-              </div>
+              <p className="mt-2 flex items-center gap-1.5 text-[11px] text-neutral-400">
+                <Icon icon="solar:eye-linear" />
+                Bấm biểu tượng mắt để ẩn/hiện option trên cửa hàng.
+              </p>
+
+              {isAddingCustomSize && (
+                <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-950">
+                  <input
+                    type="text"
+                    value={customSizeDraft}
+                    onChange={(event) => setCustomSizeDraft(event.target.value.toUpperCase())}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        handleAddCustomSize();
+                      }
+                    }}
+                    placeholder="Nhập size, ví dụ 3XL hoặc 31"
+                    autoFocus
+                    className="min-w-0 flex-1 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs outline-none focus:border-black dark:border-neutral-700 dark:bg-neutral-900 dark:text-white dark:focus:border-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomSize}
+                    className="rounded-full bg-black px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white transition-transform hover:scale-[1.02] dark:bg-white dark:text-black"
+                  >
+                    Thêm
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomSizeDraft('');
+                      setIsAddingCustomSize(false);
+                    }}
+                    className="rounded-full border border-neutral-200 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-neutral-500 hover:border-black hover:text-black dark:border-neutral-700 dark:hover:border-white dark:hover:text-white"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Shared pricing */}
-            <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 space-y-3">
+              <div ref={priceFieldRef} className={`p-4 rounded-2xl border space-y-3 ${fieldErrors.price ? 'border-rose-300 bg-rose-50/60 dark:border-rose-900 dark:bg-rose-950/20' : 'border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950'}`}>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
                 Giá bán chung
               </span>
@@ -617,7 +867,10 @@ export default function AdminProductEditPage() {
                   inputMode="numeric"
                   placeholder="Giá bán (VND)"
                   value={formatNumberWithDots(defaultPrice)}
-                  onChange={(e) => setDefaultPrice(formatNumberWithDots(e.target.value))}
+                  onChange={(e) => {
+                    clearFieldError('price');
+                    setDefaultPrice(formatNumberWithDots(e.target.value));
+                  }}
                   className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 text-xs font-bold"
                 />
                 <div className="relative">
@@ -637,10 +890,17 @@ export default function AdminProductEditPage() {
                   min="0"
                   placeholder="Số lượng tồn kho"
                   value={defaultStock}
-                  onChange={(e) => setDefaultStock(e.target.value)}
-                  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 text-xs font-bold"
+                  onChange={(e) => {
+                    clearFieldError('inventory');
+                    setDefaultStock(e.target.value);
+                  }}
+                  ref={inventoryFieldRef}
+                  aria-invalid={Boolean(fieldErrors.inventory)}
+                  className={`rounded-xl border bg-white px-3 py-2 text-xs font-bold dark:bg-neutral-900 ${fieldErrors.inventory ? 'border-rose-500' : 'border-neutral-200 dark:border-neutral-800'}`}
                 />
               </div>
+              {fieldErrors.price && <p className="text-xs font-bold text-rose-500">{fieldErrors.price}</p>}
+              {fieldErrors.inventory && <p className="text-xs font-bold text-rose-500">{fieldErrors.inventory}</p>}
             </div>
 
           </div>
@@ -651,9 +911,17 @@ export default function AdminProductEditPage() {
         <div className="lg:col-span-4 space-y-8">
           
           {/* Categories */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
+          <div ref={categorySectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4 scroll-mt-24">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-neutral-400">Danh mục chính *</span>
+              <button
+                type="button"
+                onClick={() => setCategoryModal({ open: true, editing: null, initialParentId: '' })}
+                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
+              >
+                <Icon icon="solar:add-circle-linear" />
+                Tạo mới
+              </button>
             </div>
 
             {/* Collapsible Category Tree Dropdown */}
@@ -661,7 +929,12 @@ export default function AdminProductEditPage() {
               <button
                 type="button"
                 onClick={() => setCatDropdownOpen((v) => !v)}
-                className="w-full flex items-center justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-3 text-xs font-bold text-left cursor-pointer focus:outline-none"
+                aria-expanded={catDropdownOpen}
+                aria-haspopup="listbox"
+                aria-controls="admin-category-options"
+                aria-invalid={Boolean(fieldErrors.category)}
+                onFocus={() => clearFieldError('category')}
+                className={`w-full flex items-center justify-between rounded-2xl border bg-neutral-50 px-4 py-3 text-xs font-bold text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:bg-neutral-950 dark:focus-visible:ring-white ${fieldErrors.category ? 'border-rose-500' : 'border-neutral-200 dark:border-neutral-800'}`}
               >
                 <span className={form.primary_category_id ? 'text-black dark:text-white' : 'text-neutral-400'}>
                   {form.primary_category_id
@@ -675,7 +948,7 @@ export default function AdminProductEditPage() {
               </button>
 
               {catDropdownOpen && (
-                <div className="absolute z-30 top-full mt-1 left-0 right-0 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl overflow-hidden max-h-64 overflow-y-auto">
+                <div id="admin-category-options" role="listbox" className="absolute z-30 top-full mt-1 left-0 right-0 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl overflow-hidden max-h-64 overflow-y-auto">
                   {(() => {
                     // Build root-level tree from flat organized list
                     const roots = categories.filter((c) => c.__depth === 0);
@@ -688,7 +961,14 @@ export default function AdminProductEditPage() {
                         <div key={root.__id}>
                           {/* Parent row */}
                           <div
-                            className={`group flex items-center gap-2 px-4 py-2.5 select-none transition-colors ${
+                            onClick={() => {
+                              clearFieldError('category');
+                              setForm((prev) => ({ ...prev, primary_category_id: root.__id }));
+                              setCatDropdownOpen(false);
+                            }}
+                            role="option"
+                            aria-selected={isRootSelected}
+                            className={`group flex cursor-pointer items-center gap-2 px-4 py-2.5 select-none transition-colors ${
                               isRootSelected
                                 ? 'bg-black text-white dark:bg-white dark:text-black'
                                 : 'text-neutral-400'
@@ -698,6 +978,7 @@ export default function AdminProductEditPage() {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setExpandedCats((prev) => ({ ...prev, [root.__id]: !prev[root.__id] })); }}
+                              aria-label={`${isExpanded ? 'Thu gọn' : 'Mở rộng'} ${root.name_category || root.name}`}
                               className={`w-4 h-4 flex items-center justify-center flex-shrink-0 transition-transform ${
                                 isRootSelected ? 'text-white dark:text-black' : 'text-neutral-400'
                               } ${children.length === 0 ? 'opacity-0 pointer-events-none' : ''}`}
@@ -716,6 +997,7 @@ export default function AdminProductEditPage() {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setCategoryModal({ open: true, editing: root, initialParentId: '' }); setCatDropdownOpen(false); }}
+                              aria-label={`Chỉnh sửa ${root.name_category || root.name}`}
                               className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg ${
                                 isRootSelected ? 'hover:bg-white/20' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700'
                               }`}
@@ -740,13 +1022,14 @@ export default function AdminProductEditPage() {
                                 <span
                                   className="flex-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 truncate"
                                   style={isChildSelected ? { color: 'inherit' } : {}}
-                                  onClick={() => { setForm((p) => ({ ...p, primary_category_id: child.__id })); setCatDropdownOpen(false); }}
+                                  onClick={() => { clearFieldError('category'); setForm((p) => ({ ...p, primary_category_id: child.__id })); setCatDropdownOpen(false); }}
                                 >
                                   ↳ {child.name_category || child.name}
                                 </span>
                                 <button
                                   type="button"
                                   onClick={(e) => { e.stopPropagation(); setCategoryModal({ open: true, editing: child, initialParentId: child.__parentId || '' }); setCatDropdownOpen(false); }}
+                                  aria-label={`Chỉnh sửa ${child.name_category || child.name}`}
                                   className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg ${
                                     isChildSelected ? 'hover:bg-white/20' : 'hover:bg-neutral-200 dark:hover:bg-neutral-700'
                                   }`}
@@ -764,6 +1047,7 @@ export default function AdminProductEditPage() {
                 </div>
               )}
             </div>
+            {fieldErrors.category && <p className="text-xs font-bold text-rose-500">{fieldErrors.category}</p>}
           </div>
 
           {categoryModal.open && (
@@ -778,44 +1062,100 @@ export default function AdminProductEditPage() {
 
           {/* Collections */}
           <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
-            <span className="text-xs font-black uppercase tracking-wider text-neutral-400 block">
-              Bộ sưu tập (Collections)
-            </span>
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {collections.filter((col) => col.parent_collection_id).map((col) => {
-                const colId = String(col.collection_id || col.id);
-                const isSelected = form.collection_ids.includes(colId);
-                return (
-                  <label key={colId} className="flex items-center gap-2 text-xs font-bold text-neutral-700 dark:text-neutral-300 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) => {
-                        setForm((prev) => ({
-                          ...prev,
-                          collection_ids: e.target.checked
-                            ? [...prev.collection_ids, colId]
-                            : prev.collection_ids.filter((id) => id !== colId),
-                        }));
-                      }}
-                      className="rounded border-neutral-300 w-4 h-4 cursor-pointer"
-                    />
-                    <span>{col.name_collection || col.name}</span>
-                  </label>
-                );
-              })}
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs font-black uppercase tracking-wider text-neutral-400 block">
+                Bộ sưu tập
+              </span>
+              <button
+                type="button"
+                onClick={() => setCollectionModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
+              >
+                <Icon icon="solar:add-circle-linear" />
+                Tạo mới
+              </button>
+            </div>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setCollectionDropdownOpen((value) => !value)}
+                aria-expanded={collectionDropdownOpen}
+                aria-haspopup="listbox"
+                className="flex w-full items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-left text-xs font-bold text-black outline-none transition-colors hover:border-neutral-400 focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:hover:border-neutral-600 dark:focus-visible:ring-white"
+              >
+                <span className={form.collection_ids.length ? 'text-black dark:text-white' : 'text-neutral-400'}>
+                  {form.collection_ids.length
+                    ? `Đã chọn ${form.collection_ids.length} bộ sưu tập`
+                    : childCollections.length
+                      ? '-- Chọn bộ sưu tập --'
+                      : '-- Chưa có bộ sưu tập con --'}
+                </span>
+                <Icon icon={collectionDropdownOpen ? 'solar:alt-arrow-up-linear' : 'solar:alt-arrow-down-linear'} className="text-neutral-400" />
+              </button>
+
+              {collectionDropdownOpen && (
+                <div role="listbox" className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-1 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
+                  {parentCollections.map((parent) => {
+                    const parentId = String(parent.collection_id || parent.id);
+                    const children = childCollections.filter((child) => String(child.parent_collection_id) === parentId);
+                    const isExpanded = expandedCollections[parentId];
+                    return (
+                      <div key={parentId}>
+                        <div className="group flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-black uppercase tracking-wide text-neutral-400 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedCollections((prev) => ({ ...prev, [parentId]: !prev[parentId] }))}
+                            aria-label={`${isExpanded ? 'Thu gọn' : 'Mở rộng'} ${parent.name_collection || parent.name}`}
+                            className={`flex size-4 items-center justify-center transition-transform ${children.length === 0 ? 'opacity-0 pointer-events-none' : ''}`}
+                          >
+                            <Icon icon={isExpanded ? 'solar:alt-arrow-down-linear' : 'solar:alt-arrow-right-linear'} />
+                          </button>
+                          <span className="truncate">{parent.name_collection || parent.name}</span>
+                        </div>
+
+                        {isExpanded && children.map((col) => {
+                          const colId = String(col.collection_id || col.id);
+                          const isSelected = form.collection_ids.includes(colId);
+                          return (
+                            <label key={colId} className="flex cursor-pointer items-center gap-3 rounded-xl py-2.5 pl-10 pr-3 text-xs font-bold text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(event) => {
+                                  setForm((prev) => ({
+                                    ...prev,
+                                    collection_ids: event.target.checked
+                                      ? [...new Set([...prev.collection_ids, colId])]
+                                      : prev.collection_ids.filter((id) => id !== colId),
+                                  }));
+                                }}
+                                className="size-4 cursor-pointer rounded border-neutral-300"
+                              />
+                              <span className="truncate">↳ {col.name_collection || col.name}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+
+                  {parentCollections.length === 0 && (
+                    <div className="px-3 py-2.5 text-xs text-neutral-400">-- Chưa có nhóm cha --</div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Images Upload & Gallery */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
+          <div ref={imagesSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4 scroll-mt-24">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-neutral-400">
                 Hình ảnh sản phẩm ({images.length})
               </span>
             </div>
 
-            <label className="flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 dark:border-neutral-700 rounded-2xl p-6 text-center hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors cursor-pointer bg-neutral-50 dark:bg-neutral-950">
+            <label ref={imageFieldRef} className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-6 text-center hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors cursor-pointer bg-neutral-50 dark:bg-neutral-950 ${fieldErrors.images ? 'border-rose-400' : 'border-neutral-300 dark:border-neutral-700'}`}>
               <Icon icon="solar:cloud-upload-linear" className="text-3xl text-neutral-400 mb-2" />
               <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">
                 Bấm để chọn hoặc kéo thả ảnh vào đây
@@ -823,6 +1163,7 @@ export default function AdminProductEditPage() {
               <span className="text-[10px] text-neutral-400 mt-1">JPEG, PNG, WebP (Tối đa 10MB)</span>
               <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
             </label>
+            {fieldErrors.images && <p className="text-xs font-bold text-rose-500">{fieldErrors.images}</p>}
 
             {images.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
@@ -912,6 +1253,15 @@ export default function AdminProductEditPage() {
         </div>
 
       </div>
+
+      {collectionModalOpen && (
+        <QuickCollectionFormModal
+          parentCollections={parentCollections}
+          isSaving={isCreatingCollection}
+          onClose={() => setCollectionModalOpen(false)}
+          onSubmit={handleQuickCollectionSubmit}
+        />
+      )}
 
       {/* Floating Save Footer on mobile/desktop */}
       <div className="sticky bottom-4 z-40 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-xl flex items-center justify-between gap-4">

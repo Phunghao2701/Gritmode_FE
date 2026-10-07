@@ -1,13 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useAdminInventory } from '../hooks/useAdmin';
 import StockAdjustModal from '../components/StockAdjustModal';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
+import AdminPageHeader from '../components/AdminPageHeader';
 
 export default function AdminInventoryPage() {
-  const [search, setSearch] = useState('');
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [adjustItem, setAdjustItem] = useState(null);
@@ -22,13 +26,26 @@ export default function AdminInventoryPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { inventory, isLoading, total, updateStock, isUpdatingStock } = useAdminInventory({
+  const {
+    inventory,
+    isLoading,
+    total,
+    outOfStockTotal,
+    isOutOfStockCountLoading,
+    isOutOfStockCountError,
+    updateStock,
+    isUpdatingStock,
+  } = useAdminInventory({
     search: debouncedSearch.trim() || undefined,
     low_stock: statusFilter === 'LOW_STOCK' ? true : undefined,
     out_of_stock: statusFilter === 'OUT_OF_STOCK' ? true : undefined,
     page,
     limit,
   });
+
+  const outOfStockLabel = isOutOfStockCountLoading || isOutOfStockCountError || outOfStockTotal === undefined
+    ? 'Hết hàng'
+    : `Hết hàng (${outOfStockTotal})`;
 
   const getStatusBadge = (item) => {
     const available = Number(item.quantity_available ?? 0);
@@ -69,14 +86,11 @@ export default function AdminInventoryPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner */}
-      <div className="bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
-            Quản lý kho
-          </h1>
-        </div>
-      </div>
+      <AdminPageHeader
+        eyebrow="Tồn kho"
+        title="Quản lý kho"
+        description="Theo dõi tồn thực tế, tồn có thể bán và cập nhật từng biến thể."
+      />
 
       {/* Filter and Search */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -98,7 +112,7 @@ export default function AdminInventoryPage() {
           {[
             { id: 'ALL', label: 'Tất cả trạng thái' },
             { id: 'LOW_STOCK', label: 'Sắp hết hàng' },
-            { id: 'OUT_OF_STOCK', label: 'Hết hàng (0)' },
+            { id: 'OUT_OF_STOCK', label: outOfStockLabel },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -132,8 +146,8 @@ export default function AdminInventoryPage() {
               <table className="w-full text-left text-xs">
                 <thead className="uppercase text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                   <tr>
-                    <th className="pb-3 font-black">Mã sản phẩm</th>
-                    <th className="pb-3 font-black">Tên sản phẩm</th>
+                    <th className="pb-3 font-black">Mã biến thể</th>
+                    <th className="pb-3 font-black">Sản phẩm</th>
                     <th className="pb-3 font-black text-center">Tồn thực tế</th>
                     <th className="pb-3 font-black text-center">Có thể bán</th>
                     <th className="pb-3 font-black text-center">Trạng thái</th>
@@ -161,21 +175,39 @@ export default function AdminInventoryPage() {
                         <td className="py-4 font-black text-center text-black dark:text-white">
                           {item.quantity_stock ?? 0}
                         </td>
-                        <td className="py-4 font-black text-center text-emerald-600 dark:text-emerald-400">
+                        <td className={`py-4 font-black text-center ${Number(item.quantity_available ?? 0) <= 0
+                          ? 'text-rose-600 dark:text-rose-400'
+                          : Number(item.quantity_available) <= 5
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-emerald-600 dark:text-emerald-400'
+                        }`}>
                           {item.quantity_available ?? 0}
                         </td>
                         <td className="py-4 text-center">
                           {getStatusBadge(item)}
                         </td>
                         <td className="py-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setAdjustItem(item)}
-                            className="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 font-bold text-[11px] text-black dark:text-white transition-all cursor-pointer inline-flex items-center gap-1.5"
-                          >
-                            <Icon icon="solar:pen-linear" />
-                            <span>Cập nhật</span>
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            {item.product_id && (
+                              <Link
+                                href={`/admin/products/${item.product_id}/edit`}
+                                aria-label={`Chỉnh sửa sản phẩm ${item.name_product || item.product_name || item.product_id}`}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-[11px] font-bold text-black transition-all hover:border-neutral-400 dark:border-neutral-700 dark:text-white dark:hover:border-neutral-500"
+                                title="Chỉnh sửa sản phẩm"
+                              >
+                                <Icon icon="solar:t-shirt-linear" />
+                                <span className="hidden xl:inline">Sản phẩm</span>
+                              </Link>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setAdjustItem(item)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-[11px] font-bold text-black transition-all hover:border-neutral-400 dark:border-neutral-700 dark:text-white dark:hover:border-neutral-500"
+                            >
+                              <Icon icon="solar:pen-linear" />
+                              <span>Cập nhật</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

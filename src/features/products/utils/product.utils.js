@@ -105,6 +105,57 @@ export const isVariantAvailable = (variant) => {
   return false;
 };
 
+export const optionValueAvailabilityKey = (optionId, valueId) => `${optionId}:${valueId}`;
+
+const getVariantOptionValueIds = (variant) => {
+  if (Array.isArray(variant?.option_value_ids)) {
+    return variant.option_value_ids.map(Number);
+  }
+  if (Array.isArray(variant?.option_values)) {
+    return variant.option_values.map((value) => Number(value.product_option_value_id));
+  }
+  return [];
+};
+
+/**
+ * Resolves which option values still lead to an in-stock variant for the
+ * currently selected values in the other option groups.
+ */
+export const getOptionValueAvailability = (options = [], variants = [], selectedOptionValues = {}) => {
+  const availability = {};
+  const safeVariants = Array.isArray(variants) ? variants : [];
+  const hiddenValueIds = new Set(
+    options.flatMap((option) => (option.values || [])
+      .filter((value) => value.is_hidden)
+      .map((value) => Number(value.product_option_value_id)))
+  );
+
+  options.forEach((option) => {
+    (option.values || []).forEach((value) => {
+      const valueId = Number(value.product_option_value_id);
+      const key = optionValueAvailabilityKey(option.product_option_id, valueId);
+      if (value.is_hidden) {
+        availability[key] = false;
+        return;
+      }
+
+      availability[key] = safeVariants.some((variant) => {
+        if (!isVariantAvailable(variant)) return false;
+        const variantValueIds = getVariantOptionValueIds(variant);
+        if (variantValueIds.some((id) => hiddenValueIds.has(id))) return false;
+        if (!variantValueIds.includes(valueId)) return false;
+
+        return Object.entries(selectedOptionValues || {}).every(([selectedOptionId, selectedValueId]) => {
+          if (String(selectedOptionId) === String(option.product_option_id)) return true;
+          return variantValueIds.includes(Number(selectedValueId));
+        });
+      });
+    });
+  });
+
+  return availability;
+};
+
 /**
  * Filters and sorts product images by position and selected option value (e.g. Color)
  * @param {Array<object>} images - List of product images

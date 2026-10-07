@@ -10,6 +10,7 @@ import { useAddresses } from '../../profile/hooks/useProfile';
 import { createOrderApi } from '../apis/checkout.api';
 import { validateVoucherApi } from '../../vouchers/apis/voucher.api';
 import { toast } from '../../../shared/utils/toast';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export const useCheckout = () => {
   const router = useRouter();
@@ -75,7 +76,7 @@ export const useCheckout = () => {
       try {
         const code = appliedVoucher.code_voucher;
         const res = await validateVoucherApi(code);
-        const data = res.data?.data || res.data;
+        const data = requireApiObject(res, 'Voucher');
         setAppliedVoucher(data);
       } catch {
         setAppliedVoucher(null);
@@ -188,14 +189,15 @@ const normalizePhone = (phone) => {
       }
 
       const res = await createOrderApi(orderPayload);
-      const orderData = res.data?.data || res.data;
+      const orderData = requireApiObject(res, 'Đơn hàng');
+      if (!orderData.order_id) throw new Error('Đơn hàng trả về thiếu mã đơn');
 
       // Reset cart upon successful order placement
       resetCartState();
       toast.success('Đặt hàng thành công!');
 
       // Directly navigate to finalized order page with embedded VietQR / order details
-      router.push(orderData?.order_id ? `/orders/${orderData.order_id}/success` : '/profile', {
+      router.push(`/orders/${orderData.order_id}/success`, {
         state: { order: orderData },
       });
     } catch (err) {

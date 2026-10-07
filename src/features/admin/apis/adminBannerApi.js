@@ -1,11 +1,12 @@
 import api from '../../../shared/services/api';
+import { requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 
 /**
  * Lấy toàn bộ cấu hình Hero & danh sách ảnh slide (Admin)
  */
 export const getAdminHeroApi = async () => {
   const response = await api.get('/admin/banners');
-  return response.data?.data || response.data || { settings: {}, slides: [] };
+  return requireApiObject(response, 'Cấu hình banner');
 };
 
 /**
@@ -13,7 +14,7 @@ export const getAdminHeroApi = async () => {
  */
 export const updateHeroContentApi = async (payload) => {
   const response = await api.put('/admin/banners/content', payload);
-  return response.data?.data || response.data;
+  return requireApiObject(response, 'Nội dung banner');
 };
 
 /**
@@ -21,7 +22,7 @@ export const updateHeroContentApi = async (payload) => {
  */
 export const addHeroImageApi = async (payload) => {
   const response = await api.post('/admin/banners/images', payload);
-  return response.data?.data || response.data;
+  return requireApiObject(response, 'Ảnh banner');
 };
 
 /**
@@ -29,7 +30,7 @@ export const addHeroImageApi = async (payload) => {
  */
 export const toggleImageStatusApi = async ({ id, is_active }) => {
   const response = await api.patch(`/admin/banners/images/${id}/status`, { is_active });
-  return response.data?.data || response.data;
+  return requireApiObject(response, 'Trạng thái ảnh banner');
 };
 
 /**
@@ -37,7 +38,7 @@ export const toggleImageStatusApi = async ({ id, is_active }) => {
  */
 export const deleteHeroImageApi = async (id) => {
   const response = await api.delete(`/admin/banners/images/${id}`);
-  return response.data?.data || response.data;
+  return requireApiObject(response, 'Ảnh banner');
 };
 
 /**
@@ -51,6 +52,7 @@ export const uploadBannerImageApi = async (file) => {
       'Content-Type': 'multipart/form-data',
     },
   });
-  const uploaded = response.data?.data || response.data;
-  return Array.isArray(uploaded) ? uploaded[0] : uploaded;
+  const uploaded = requireApiArray(response, 'Ảnh banner tải lên');
+  if (!uploaded[0]) throw new Error('Upload banner không trả về ảnh');
+  return uploaded[0];
 };

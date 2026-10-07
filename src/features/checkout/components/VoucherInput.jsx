@@ -3,6 +3,7 @@ import Icon from '../../../shared/components/Icon';
 import { validateVoucherApi } from '../../vouchers/apis/voucher.api';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import { toast } from '../../../shared/utils/toast';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export default function VoucherInput({ appliedVoucher, onApplyVoucher, onRemoveVoucher }) {
   const [code, setCode] = useState('');
@@ -16,7 +17,7 @@ export default function VoucherInput({ appliedVoucher, onApplyVoucher, onRemoveV
     setIsLoading(true);
     try {
       const res = await validateVoucherApi(cleanCode);
-      const voucherData = res.data?.data || res.data;
+      const voucherData = requireApiObject(res, 'Voucher');
       onApplyVoucher(voucherData);
       toast.success(`Áp dụng mã giảm giá "${voucherData.code_voucher}" thành công!`);
       setCode('');

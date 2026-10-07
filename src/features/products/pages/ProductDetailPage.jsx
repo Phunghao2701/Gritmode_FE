@@ -8,11 +8,13 @@ import { useProductDetail } from '../hooks/useProductDetail';
 import { useProducts } from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
 import ProductVariantSelector from '../components/ProductVariantSelector';
+import OutOfStockOverlay from '../components/OutOfStockOverlay';
 import Icon from '../../../shared/components/Icon';
 import { useCartStore } from '@/shared/store/cartStore';
 import { toast } from '../../../shared/utils/toast';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
+import ErrorState from '../../../shared/components/ErrorState';
 import { formatPriceVND, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
 
 export default function ProductDetailPage() {
@@ -25,7 +27,9 @@ export default function ProductDetailPage() {
     product,
     isLoadingProduct,
     isError,
+    refetch,
     selectedOptionValues,
+    availableOptionValues,
     selectedVariant,
     isAllOptionsSelected,
     isAvailable,
@@ -169,7 +173,15 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (isError || !product) {
+  if (isError) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20">
+        <ErrorState onRetry={refetch} />
+      </div>
+    );
+  }
+
+  if (!product) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20">
         <EmptyState
@@ -299,11 +311,7 @@ export default function ProductDetailPage() {
             )}
 
             {!isAvailable && (
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-20 pointer-events-none">
-                <span className="text-xs font-black uppercase tracking-widest bg-white text-black px-5 py-2 rounded-full shadow-2xl">
-                  Tạm hết hàng
-                </span>
-              </div>
+              <OutOfStockOverlay />
             )}
           </div>
 
@@ -357,15 +365,6 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Availability Indicator - Only show warning when out of stock */}
-            {!isAvailable && (
-              <div className="flex items-center gap-2 mt-2 text-xs">
-                <span className="text-rose-500 font-normal uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-rose-500" />
-                  <span>Phân loại này hiện đang tạm hết hàng</span>
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Dynamic Variant Options (Color, Size, etc.) */}
@@ -373,6 +372,7 @@ export default function ProductDetailPage() {
             <ProductVariantSelector
               options={product.options}
               selectedOptionValues={selectedOptionValues}
+              availableOptionValues={availableOptionValues}
               onSelectOptionValue={selectOptionValue}
             />
 

@@ -5,20 +5,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { getCategoriesApi, getCategoryByIdApi } from '../apis/category.api';
 import { buildCategoryTree, flattenCategoryTree } from '../utils/category.utils';
+import { CACHE_STALE_TIME } from '../../../shared/services/cachePolicy';
+import { requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 
 export const useCategories = () => {
   const query = useQuery({
     queryKey: ['categories-public-tree'],
     queryFn: async () => {
       const res = await getCategoriesApi();
-      const data = res.data?.data || res.data || [];
-      const rawList = Array.isArray(data) ? data : [];
+      const rawList = requireApiArray(res, 'Danh mục');
       // Build and sort hierarchical tree
       return buildCategoryTree(rawList);
     },
-    staleTime: 1000 * 60 * 30, // 30 minutes cache
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    staleTime: CACHE_STALE_TIME.categories,
+    refetchOnWindowFocus: 'always',
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
   });
 
   const categoryTree = query.data || [];
@@ -38,9 +40,12 @@ export const useCategoryDetail = (categoryId) => {
     queryFn: async () => {
       if (!categoryId) return null;
       const res = await getCategoryByIdApi(categoryId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Chi tiết danh mục');
     },
     enabled: !!categoryId,
-    staleTime: 1000 * 60 * 10,
+    staleTime: CACHE_STALE_TIME.categories,
+    refetchOnWindowFocus: 'always',
+    refetchOnMount: 'always',
+    refetchOnReconnect: true,
   });
 };

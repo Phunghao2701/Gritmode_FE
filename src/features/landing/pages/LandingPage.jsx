@@ -8,6 +8,7 @@ import { useProducts, useCategories } from '../../products/hooks/useProducts';
 import { useBanners } from '../hooks/useBanners';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
+import ErrorState from '../../../shared/components/ErrorState';
 import Icon from '../../../shared/components/Icon';
 
 export default function LandingPage() {
@@ -16,11 +17,11 @@ export default function LandingPage() {
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
 
   const { data: dbCategories = [] } = useCategories();
-  const { data: heroData } = useBanners();
+  const { data: heroData, isError: isHeroError, refetch: refetchHero } = useBanners();
 
   const heroSettings = heroData?.settings || {};
 
-  const { products, isLoadingProducts: isLoading } = useProducts({ 
+  const { products, isLoadingProducts: isLoading, isError: isProductsError, refetch: refetchProducts } = useProducts({
     category_id: activeCategoryId || undefined,
     sort: 'newest',
     limit: 15,
@@ -70,7 +71,11 @@ export default function LandingPage() {
           onClick={handleHeroClick}
           className="relative min-h-[75vh] sm:min-h-[92vh] flex flex-col justify-end p-6 sm:p-14 cursor-pointer group overflow-hidden"
         >
-          {heroSlides.length > 0 ? (
+          {isHeroError ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-neutral-950 p-6">
+              <ErrorState onRetry={refetchHero} className="w-full max-w-md border-white/20 bg-black/40 text-white" />
+            </div>
+          ) : heroSlides.length > 0 ? (
             heroSlides.map((slide, index) => {
               const isActive = index === activeHeroIndex;
               return (
@@ -194,6 +199,8 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        ) : isProductsError ? (
+          <ErrorState onRetry={refetchProducts} />
         ) : products.length === 0 ? (
           <div className="py-16">
             <EmptyState

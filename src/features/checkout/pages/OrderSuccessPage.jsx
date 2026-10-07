@@ -12,6 +12,8 @@ import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import { useAuthStore } from '@/shared/store/authStore';
 import { toast } from '../../../shared/utils/toast';
+import ErrorState from '../../../shared/components/ErrorState';
+import { requireApiObject } from '../../../shared/services/responseContract';
 
 export default function OrderSuccessPage() {
   const params = useParams();
@@ -21,12 +23,12 @@ export default function OrderSuccessPage() {
   const [copiedField, setCopiedField] = useState(null);
 
   // 1. Fetch Order Details (Both Guest & Authenticated)
-  const { data: fetchedOrder, isPending: isOrderPending, isFetching: isOrderFetching, refetch: refetchOrder } = useQuery({
+  const { data: fetchedOrder, isPending: isOrderPending, isFetching: isOrderFetching, isError: isOrderError, refetch: refetchOrder } = useQuery({
     queryKey: ['order-detail', orderId],
     queryFn: async () => {
-      if (!orderId) return null;
+      if (!orderId) throw new Error('Thiếu mã đơn hàng');
       const res = await getMyOrderByIdApi(orderId);
-      return res.data?.data || res.data;
+      return requireApiObject(res, 'Chi tiết đơn hàng');
     },
     enabled: !!orderId,
   });
@@ -67,6 +69,10 @@ export default function OrderSuccessPage() {
   const transferContent = qrDetails?.description || `ORDER${orderId}`;
   const orderAmount = payment?.amount_payment || order?.total_order || 0;
   const items = Array.isArray(order?.items) ? order.items : [];
+
+  if (isOrderError || (!isOrderLoading && !order)) {
+    return <ErrorState onRetry={refetchOrder} title="Không thể tải đơn hàng" />;
+  }
 
   return (
     <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in">
