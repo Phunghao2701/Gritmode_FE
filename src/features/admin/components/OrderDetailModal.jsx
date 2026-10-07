@@ -84,7 +84,11 @@ export default function OrderDetailModal({
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-xl rounded-[28px] bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xl overflow-hidden p-7 sm:p-8 space-y-5 max-h-[92vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-order-detail-title"
+        data-lenis-prevent
+        className="relative w-full max-w-xl rounded-[28px] bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xl overflow-hidden overscroll-contain scrollbar-none p-7 sm:p-8 space-y-5 max-h-[92dvh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         
@@ -94,7 +98,7 @@ export default function OrderDetailModal({
             <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 block">
               CHI TIẾT ĐƠN HÀNG ADMIN
             </span>
-            <h3 className="font-mono font-bold text-xl text-black dark:text-white uppercase mt-0.5 tracking-tight">
+            <h3 id="admin-order-detail-title" className="font-mono font-bold text-xl text-black dark:text-white uppercase mt-0.5 tracking-tight">
               {activeOrder.order_code || activeOrder.code_order || `#ORD-${orderId}`}
             </h3>
             <p className="text-[11px] text-neutral-400 mt-0.5">

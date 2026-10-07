@@ -123,6 +123,20 @@ api.interceptors.response.use(
         const { useAuthStore } = await import('../store/authStore');
         useAuthStore.getState().clearAuth();
 
+        // Cart supports guests. If an expired account session cannot be
+        // refreshed, retry cart requests with the stable guest token instead
+        // of leaving add-to-cart blocked by the stale Bearer token.
+        const requestUrl = originalRequest.url || '';
+        if (requestUrl.includes('/cart')) {
+          const guestToken = guestTokenService.getGuestToken();
+          const headers = { ...(originalRequest.headers || {}) };
+          delete headers.Authorization;
+          delete headers.authorization;
+          headers['X-Guest-Token'] = guestToken;
+          originalRequest.headers = headers;
+          return api(originalRequest);
+        }
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
