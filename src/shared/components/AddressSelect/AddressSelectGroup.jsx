@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Icon from '../Icon';
 import {
+  findCommuneObject,
   findProvinceObject,
   getVietnamAddressMetadata,
   loadVietnamAddressTree,
@@ -8,7 +9,7 @@ import {
 
 export default function AddressSelectGroup({
   province = '',
-  district = '',
+  district: _district = '',
   ward = '',
   onChange,
   errors = {},
