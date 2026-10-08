@@ -73,7 +73,7 @@ export default function PaymentMethodSelector({
                   </span>
                 )}
               </div>
-              <p className="text-[11px] font-normal uppercase tracking-wider text-neutral-500 dark:text-neutral-400 leading-relaxed">
+              <p className="text-xs font-normal text-neutral-500 dark:text-neutral-400 leading-relaxed">
                 {m.description}
               </p>
             </div>

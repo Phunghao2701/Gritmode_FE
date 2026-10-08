@@ -1,11 +1,12 @@
 /* global process */
 'use client';
 import React, { useState } from 'react';
-import Link from 'next/link';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import InputField from '../../../shared/components/InputField';
+import Breadcrumb from '../../../shared/components/Breadcrumb';
 import { toast } from '../../../shared/utils/toast';
+import { submitContactMessage } from '../apis/contact.api';
 
 const SOCIAL_CHANNELS = [
   { name: 'Instagram', icon: 'solar:camera-linear', href: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM_URL },
@@ -13,14 +14,16 @@ const SOCIAL_CHANNELS = [
   { name: 'TikTok', icon: 'solar:play-circle-linear', href: process.env.NEXT_PUBLIC_SOCIAL_TIKTOK_URL },
 ].filter((social) => social.href);
 
+const CONTACT_FORM_INITIAL_STATE = {
+  fullName: '',
+  email: '',
+  phone: '',
+  topic: 'order_support',
+  message: '',
+};
+
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    topic: 'order_support',
-    message: '',
-  });
+  const [formData, setFormData] = useState(CONTACT_FORM_INITIAL_STATE);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -30,7 +33,7 @@ export default function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.fullName.trim() || !formData.email.trim() || !formData.message.trim()) {
       toast.error('Vui lòng điền đầy đủ các thông tin bắt buộc.');
@@ -38,8 +41,14 @@ export default function ContactPage() {
     }
 
     setIsSubmitting(true);
-    // Simulate sending message to Gritmode Support
-    setTimeout(() => {
+    try {
+      await submitContactMessage({
+        full_name: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim() || null,
+        topic: formData.topic,
+        message: formData.message.trim(),
+      });
       setIsSubmitting(false);
       setIsSubmitted(true);
       toast.success('Tin nhắn của bạn đã được gửi thành công! Đội ngũ Gritmode sẽ phản hồi sớm nhất.');
@@ -50,14 +59,16 @@ export default function ContactPage() {
         topic: 'order_support',
         message: '',
       });
-    }, 800);
+    } catch (error) {
+      setIsSubmitting(false);
+      toast.error(error?.response?.data?.message || 'Không thể gửi tin nhắn lúc này. Vui lòng thử lại.');
+    }
   };
 
   const stores = [
     {
       city: 'TP. HỒ CHÍ MINH',
       name: 'Gritmode Online Store',
-      address: 'Based in HCM City',
       phone: '0326 747 206',
       hours: '09:30 – 22:00 (Hàng ngày)',
       tag: 'ONLINE STORE',
@@ -66,16 +77,16 @@ export default function ContactPage() {
 
   const faqs = [
     {
-      q: 'Chính sách đổi trả sản phẩm của Gritmode như thế nào?',
-      a: 'Gritmode hỗ trợ đổi size hoặc đổi mẫu trong vòng 7 ngày kể từ ngày nhận hàng với điều kiện sản phẩm còn nguyên tem mác, chưa qua sử dụng hoặc giặt tẩy.',
+      q: 'Đổi trả sản phẩm như thế nào?',
+      a: 'Hỗ trợ đổi size hoặc mẫu trong 7 ngày khi sản phẩm còn nguyên tem mác và chưa qua sử dụng.',
     },
     {
-      q: 'Thời gian giao hàng tiêu chuẩn là bao lâu?',
-      a: 'Đơn hàng khu vực TPHCM & miền Nam từ 1 - 3 ngày làm việc. Khu vực miền Trung & miền Bắc từ 3 - 5 ngày làm việc.',
+      q: 'Bao lâu nhận được hàng?',
+      a: 'TPHCM và miền Nam: 1–3 ngày làm việc. Miền Trung và miền Bắc: 3–5 ngày làm việc.',
     },
     {
-      q: 'Chất liệu vải áo thun và hoodie của Gritmode có gì đặc biệt?',
-      a: '100% sản phẩm sử dụng vải Premium Heavyweight Cotton định lượng từ 280GSM đến 380GSM, xử lý chải kỹ chống xù lông, bo cổ dệt kép giữ form cực tốt qua hàng trăm lần giặt.',
+      q: 'Vải Gritmode có gì đặc biệt?',
+      a: 'Premium Heavyweight Cotton 280–380GSM, giữ form tốt và phù hợp với phong cách streetwear.',
     },
   ];
 
@@ -85,22 +96,18 @@ export default function ContactPage() {
       {/* 1. Header Banner */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 py-12 sm:py-16">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-neutral-400">
-            <Link href="/" className="hover:text-black dark:hover:text-white transition-colors">
-              Trang chủ
-            </Link>
-            <span>/</span>
-            <span className="text-black dark:text-white">Liên hệ</span>
-          </div>
+          <Breadcrumb
+            items={[
+              { label: 'Trang chủ', href: '/' },
+              { label: 'Liên hệ', current: true },
+            ]}
+          />
 
-          <span className="text-[11px] font-black uppercase tracking-widest text-neutral-400 block">
-            Connect with Gritmode
-          </span>
-          <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-black dark:text-white">
+          <h1 className="font-sans font-[550] text-2xl sm:text-3xl lg:text-4xl uppercase tracking-widest text-black dark:text-white">
             Liên hệ & Trải nghiệm
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-500 max-w-2xl leading-relaxed">
-            Đội ngũ Gritmode luôn sẵn sàng lắng nghe câu chuyện, tư vấn phong cách và hỗ trợ xử lý mọi thắc mắc về đơn hàng của bạn.
+          <p className="text-xs sm:text-sm font-normal text-neutral-500 max-w-2xl leading-relaxed">
+            Cần hỗ trợ về đơn hàng, sản phẩm hoặc size? Gritmode luôn sẵn sàng lắng nghe.
           </p>
         </div>
       </div>
@@ -115,7 +122,7 @@ export default function ContactPage() {
 
             {/* Store Locations */}
             <div className="space-y-4">
-              <h2 className="font-display font-black text-base uppercase tracking-tight flex items-center gap-2">
+              <h2 className="font-sans font-[550] text-xl uppercase tracking-widest flex items-center gap-2">
                 <Icon icon="solar:shop-2-bold" className="text-lg" />
                 <span>Hệ thống Store</span>
               </h2>
@@ -127,15 +134,15 @@ export default function ContactPage() {
                     className="p-5 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-2.5 transition-all hover:border-neutral-400"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-black text-xs uppercase tracking-tight text-black dark:text-white">
+                      <h3 className="font-[550] text-xs uppercase tracking-widest text-black dark:text-white">
                         {s.name}
                       </h3>
-                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-black text-white dark:bg-white dark:text-black">
+                      <span className="text-[10px] font-[550] uppercase tracking-wider px-2 py-0.5 rounded-full bg-black text-white dark:bg-white dark:text-black">
                         {s.city}
                       </span>
                     </div>
-                    <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                      {s.address}
+                      <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                      Mua sắm trực tuyến toàn quốc.
                     </p>
                     <div className="pt-2 border-t border-neutral-200/60 dark:border-neutral-800 text-[11px] text-neutral-400 space-y-1">
                       <p className="flex items-center gap-1.5">
@@ -154,7 +161,7 @@ export default function ContactPage() {
 
             {/* Online Support Channels */}
             <div className="p-6 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-4">
-              <h3 className="font-display font-black text-sm uppercase tracking-tight">
+              <h3 className="font-sans font-[550] text-xs uppercase tracking-widest">
                 Kênh hỗ trợ trực tuyến
               </h3>
 
@@ -166,13 +173,13 @@ export default function ContactPage() {
                   </a>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral-400">Email phản hồi & Đơn hàng:</span>
+                  <span className="text-neutral-400">Email đơn hàng:</span>
                   <a href="mailto:support.gritmode@gmail.com" className="font-bold hover:underline">
                     support.gritmode@gmail.com
                   </a>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral-400">Hợp tác truyền thông & B2B:</span>
+                  <span className="text-neutral-400">Hợp tác:</span>
                   <a href="mailto:gritmode.stu@gmail.com" className="font-bold hover:underline">
                     gritmode.stu@gmail.com
                   </a>
@@ -180,7 +187,7 @@ export default function ContactPage() {
               </div>
 
               {/* Social Channels */}
-              <div className="pt-3 border-t border-neutral-200/60 dark:border-neutral-800 flex items-center gap-2">
+              <div className="pt-3 border-t border-neutral-200/60 dark:border-neutral-800 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {SOCIAL_CHANNELS.map((soc) => (
                   <a
                     key={soc.href}
@@ -201,26 +208,23 @@ export default function ContactPage() {
           {/* RIGHT: Send Message Form (7 cols) */}
           <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">
-                Direct Message
-              </span>
-              <h2 className="font-display font-black text-xl uppercase tracking-tight text-black dark:text-white">
+              <h2 className="font-sans font-[550] text-xl sm:text-2xl uppercase tracking-widest text-black dark:text-white">
                 Gửi tin nhắn cho Gritmode
               </h2>
-              <p className="text-xs text-neutral-500 mt-1">
-                Điền thông tin và yêu cầu của bạn, chúng tôi sẽ liên hệ phản hồi trong vòng 24 giờ làm việc.
+              <p className="text-xs sm:text-sm font-normal text-neutral-500 mt-1 leading-relaxed">
+                Điền thông tin, Gritmode sẽ phản hồi trong vòng 24 giờ làm việc.
               </p>
             </div>
 
             {isSubmitted ? (
-              <div className="p-8 rounded-2xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-center space-y-4 animate-fade-in">
+              <div className="py-8 border-y border-neutral-200 dark:border-neutral-800 text-center space-y-4 animate-fade-in">
                 <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl mx-auto">
                   <Icon icon="solar:check-circle-bold" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-display font-black text-base uppercase">Gửi tin nhắn thành công!</h3>
+                  <h3 className="font-sans font-[550] text-base normal-case tracking-normal">Tin nhắn đã được gửi</h3>
                   <p className="text-xs text-neutral-400">
-                    Cảm ơn bạn đã liên hệ với Gritmode. Đội ngũ CSKH sẽ kiểm tra và phản hồi qua email hoặc số điện thoại của bạn.
+                    Cảm ơn bạn đã liên hệ. Gritmode sẽ phản hồi qua email hoặc số điện thoại.
                   </p>
                 </div>
                 <PrimaryButton
@@ -236,7 +240,7 @@ export default function ContactPage() {
                   <InputField
                     label="Họ và tên"
                     name="fullName"
-                    placeholder=""
+                    placeholder="Nhập họ và tên"
                     value={formData.fullName}
                     onChange={handleChange}
                     required
@@ -246,7 +250,7 @@ export default function ContactPage() {
                     label="Số điện thoại"
                     name="phone"
                     type="tel"
-                    placeholder=""
+                    placeholder="Nhập số điện thoại"
                     value={formData.phone}
                     onChange={handleChange}
                     className="mb-0"
@@ -257,7 +261,7 @@ export default function ContactPage() {
                   label="Địa chỉ Email"
                   name="email"
                   type="email"
-                  placeholder=""
+                  placeholder="Nhập địa chỉ email"
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -266,14 +270,15 @@ export default function ContactPage() {
 
                 {/* Topic Selector */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    Chủ đề cần hỗ trợ *
+                  <label className="block text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300 mb-1.5">
+                    Chủ đề cần hỗ trợ <span className="text-rose-500 ml-1">*</span>
                   </label>
                   <select
                     name="topic"
                     value={formData.topic}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs font-bold text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all cursor-pointer"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs sm:text-sm font-medium text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all cursor-pointer"
                   >
                     <option value="order_support">Hỗ trợ thông tin & Đổi trả đơn hàng</option>
                     <option value="size_advice">Tư vấn chọn size & Phom dáng thiết kế</option>
@@ -285,24 +290,24 @@ export default function ContactPage() {
 
                 {/* Message Content */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-black uppercase tracking-wider text-black dark:text-white">
-                    Nội dung tin nhắn *
+                  <label className="block text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300 mb-1.5">
+                    Nội dung tin nhắn <span className="text-rose-500 ml-1">*</span>
                   </label>
                   <textarea
                     name="message"
                     rows={4}
-                    placeholder=""
+                    placeholder="Bạn cần Gritmode hỗ trợ điều gì?"
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs sm:text-sm font-medium text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all"
                   />
                 </div>
 
                 <PrimaryButton
                   type="submit"
                   isLoading={isSubmitting}
-                  className="w-full justify-center py-4 uppercase tracking-widest text-xs font-black rounded-2xl shadow-xl mt-2"
+                  className="w-full justify-center py-4 uppercase tracking-widest text-xs font-[550] rounded-xl shadow-xl mt-2"
                 >
                   Gửi yêu cầu hỗ trợ
                 </PrimaryButton>
@@ -315,21 +320,18 @@ export default function ContactPage() {
         {/* 3. FAQ Section */}
         <div className="pt-8 border-t border-neutral-200 dark:border-neutral-800 space-y-6">
           <div className="text-center space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-              Frequently Asked Questions
-            </span>
-            <h2 className="font-display font-black text-2xl uppercase tracking-tight">
-              Câu hỏi thường gặp
+            <h2 className="font-sans font-[550] text-xl sm:text-2xl uppercase tracking-widest">
+              CÂU HỎI THƯỜNG GẶP
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-y border-neutral-200 dark:border-neutral-800">
             {faqs.map((f, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-2.5"
+                className="py-6 md:px-6 space-y-2.5 border-b md:border-b-0 md:border-r last:border-b-0 md:last:border-r-0 border-neutral-200 dark:border-neutral-800"
               >
-                <h3 className="font-black text-xs uppercase tracking-tight text-black dark:text-white leading-relaxed">
+                <h3 className="font-[550] text-sm uppercase tracking-wide text-black dark:text-white leading-relaxed">
                   {f.q}
                 </h3>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">

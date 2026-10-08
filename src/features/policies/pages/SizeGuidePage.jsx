@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
+import Breadcrumb from '../../../shared/components/Breadcrumb';
 
 export default function SizeGuidePage() {
   const [activeTab, setActiveTab] = useState('tees');
@@ -50,20 +51,15 @@ export default function SizeGuidePage() {
       {/* 1. Header Banner */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 py-12 sm:py-16">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-bold text-neutral-400">
-            <Link href="/" className="hover:text-black dark:hover:text-white transition-colors">
-              Trang chủ
-            </Link>
-            <span>/</span>
-            <span className="text-neutral-400">Hỗ trợ mua hàng</span>
-            <span>/</span>
-            <span className="text-black dark:text-white">Bảng quy đổi kích cỡ (Size Chart)</span>
-          </nav>
+          <Breadcrumb
+            items={[
+              { label: 'Trang chủ', href: '/' },
+              { label: 'Hỗ trợ mua hàng' },
+              { label: 'Bảng quy đổi kích cỡ (Size Chart)', current: true },
+            ]}
+          />
 
-          <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">
-            FIT & SIZING GUIDE
-          </span>
-          <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-black dark:text-white">
+          <h1 className="font-sans font-[550] text-2xl sm:text-3xl lg:text-4xl uppercase tracking-widest text-black dark:text-white">
             Bảng quy đổi kích cỡ (Size Chart)
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 max-w-2xl leading-relaxed">
@@ -75,7 +71,11 @@ export default function SizeGuidePage() {
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-12">
 
         {/* Category Switcher Tabs */}
-        <div className="flex items-center gap-3 border-b border-neutral-200 dark:border-neutral-800 pb-4 overflow-x-auto scrollbar-none">
+        <div
+          role="tablist"
+          aria-label="Chọn loại sản phẩm"
+          className="flex items-center gap-3 border-b border-neutral-200 dark:border-neutral-800 pb-4 overflow-x-auto scrollbar-none"
+        >
           {[
             { id: 'tees', label: 'Áo Thun BOXY T-SHIRT' },
             { id: 'hoodies', label: 'Áo Hoodie & Sweatshirt' },
@@ -84,8 +84,12 @@ export default function SizeGuidePage() {
             <button
               key={tab.id}
               type="button"
+              id={`size-tab-${tab.id}`}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls="size-chart-panel"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all shrink-0 cursor-pointer ${activeTab === tab.id
+              className={`px-5 py-2.5 rounded-full text-xs font-[550] uppercase tracking-wider transition-all shrink-0 cursor-pointer ${activeTab === tab.id
                 ? 'bg-black text-white dark:bg-white dark:text-black shadow-md'
                 : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white'
                 }`}
@@ -96,9 +100,14 @@ export default function SizeGuidePage() {
         </div>
 
         {/* Size Chart Table */}
-        <div className="space-y-4">
+        <div
+          id="size-chart-panel"
+          role="tabpanel"
+          aria-labelledby={`size-tab-${activeTab}`}
+          className="space-y-4"
+        >
           <div>
-            <h2 className="font-display font-black text-xl uppercase tracking-tight text-black dark:text-white">
+            <h2 className="font-sans font-[550] text-xl uppercase tracking-widest text-black dark:text-white">
               {currentChart.title}
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
@@ -106,12 +115,26 @@ export default function SizeGuidePage() {
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm">
-            <table className="w-full text-left text-xs border-collapse">
+          <p id="size-chart-scroll-hint" className="text-[11px] text-neutral-400 sm:hidden">
+            Vuốt ngang để xem đủ bảng thông số.
+          </p>
+
+          <div
+            role="region"
+            aria-label="Bảng quy đổi kích cỡ"
+            aria-describedby="size-chart-scroll-hint"
+            tabIndex={0}
+            className="overflow-x-auto border-y border-neutral-200 dark:border-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white"
+          >
+            <table className="w-full min-w-[620px] text-left text-xs border-collapse">
+              <caption className="sr-only">{currentChart.title}</caption>
               <thead>
                 <tr className="bg-neutral-50 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800">
-                  {currentChart.headers.map((h, i) => (
-                    <th key={i} className="p-4 font-black uppercase tracking-wider text-black dark:text-white">
+                {currentChart.headers.map((h, i) => (
+                    <th
+                      key={i}
+                      className={`p-4 font-[550] uppercase tracking-wider text-black dark:text-white ${i === 0 ? 'sticky left-0 z-10 bg-neutral-50 dark:bg-neutral-900' : ''}`}
+                    >
                       {h}
                     </th>
                   ))}
@@ -121,7 +144,10 @@ export default function SizeGuidePage() {
                 {currentChart.rows.map((row, rIdx) => (
                   <tr key={rIdx} className="hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors">
                     {row.map((cell, cIdx) => (
-                      <td key={cIdx} className={`p-4 ${cIdx === 0 ? 'font-black text-black dark:text-white' : 'text-neutral-600 dark:text-neutral-400 font-mono'}`}>
+                      <td
+                        key={cIdx}
+                        className={`p-4 ${cIdx === 0 ? 'sticky left-0 z-10 bg-white dark:bg-neutral-950 font-[550] text-black dark:text-white' : 'text-neutral-600 dark:text-neutral-400 font-mono'}`}
+                      >
                         {cell}
                       </td>
                     ))}
@@ -133,32 +159,32 @@ export default function SizeGuidePage() {
         </div>
 
         {/* Measuring Guide Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-          <div className="p-6 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-2">
-            <div className="w-9 h-9 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-base">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-y border-neutral-200 dark:border-neutral-800">
+          <div className="py-7 md:px-6 space-y-3 border-b md:border-b-0 md:border-r border-neutral-200 dark:border-neutral-800 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-950">
+            <div className="w-10 h-10 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-base">
               <Icon icon="solar:ruler-bold" />
             </div>
-            <h3 className="font-black text-xs uppercase tracking-tight">Rộng ngực (Chest)</h3>
+            <h3 className="font-[550] text-xs uppercase tracking-wide">Rộng ngực (Chest)</h3>
             <p className="text-xs text-neutral-500 leading-relaxed">
               Đo từ mép nách bên này sang mép nách bên kia của một chiếc áo thun bạn đang mặc vừa vặn nhất khi trải phẳng trên mặt bàn.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-2">
-            <div className="w-9 h-9 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-base">
+          <div className="py-7 md:px-6 space-y-3 border-b md:border-b-0 md:border-r border-neutral-200 dark:border-neutral-800 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-950">
+            <div className="w-10 h-10 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-base">
               <Icon icon="solar:maximize-square-bold" />
             </div>
-            <h3 className="font-black text-xs uppercase tracking-tight">Dài áo (Length)</h3>
+            <h3 className="font-[550] text-xs uppercase tracking-wide">Dài áo (Length)</h3>
             <p className="text-xs text-neutral-500 leading-relaxed">
               Đo từ điểm cao nhất của vai áo (ngay cạnh chân cổ) thẳng xuống đến mép lai gấu áo phía dưới.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 space-y-2">
-            <div className="w-9 h-9 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-base">
+          <div className="py-7 md:px-6 space-y-3 last:border-b-0 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-950">
+            <div className="w-10 h-10 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-base">
               <Icon icon="solar:chat-round-dots-bold" />
             </div>
-            <h3 className="font-black text-xs uppercase tracking-tight">Bạn phân vân giữa 2 size?</h3>
+            <h3 className="font-[550] text-xs uppercase tracking-wide">Bạn phân vân giữa 2 size?</h3>
             <p className="text-xs text-neutral-500 leading-relaxed">
               Nếu bạn thích mặc vừa người gọn gàng, hãy chọn size nhỏ hơn. Nếu bạn thích form thụng rộng cá tính, hãy chọn size lớn hơn hoặc liên hệ CSKH để được tư vấn.
             </p>
@@ -166,12 +192,12 @@ export default function SizeGuidePage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="p-8 sm:p-10 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="py-8 sm:py-10 border-y border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">
+            <span className="text-[10px] font-[550] uppercase tracking-widest text-neutral-400 block">
               TƯ VẤN TRỰC TIẾP
             </span>
-            <h3 className="font-display font-black text-lg uppercase tracking-tight mt-0.5">
+            <h3 className="font-sans font-[550] text-lg uppercase tracking-widest mt-0.5">
               Vẫn chưa chắc chắn về size của bạn?
             </h3>
             <p className="text-xs text-neutral-500 mt-1">
@@ -179,7 +205,7 @@ export default function SizeGuidePage() {
             </p>
           </div>
           <Link href="/contact">
-            <PrimaryButton className="px-6 py-3 text-xs font-black uppercase tracking-widest rounded-2xl shrink-0">
+            <PrimaryButton className="px-6 py-3 text-xs font-[550] uppercase tracking-widest rounded-2xl shrink-0">
               Nhận tư vấn size
             </PrimaryButton>
           </Link>

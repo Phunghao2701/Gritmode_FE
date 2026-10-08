@@ -36,14 +36,14 @@ export default function AdminHeader({ onMenuOpen }) {
         </button>
         <div className="flex min-w-0 flex-1 items-center gap-2 text-xs">
           {parentPath ? (
-            <Link href={parentPath} className="font-bold text-neutral-400 transition-colors hover:text-black dark:hover:text-white">
+            <Link href={parentPath} className="font-[550] text-neutral-400 transition-colors hover:text-black dark:hover:text-white">
               {parent}
             </Link>
           ) : (
-            <span className="font-bold text-neutral-400">{parent}</span>
+            <span className="font-[550] text-neutral-400">{parent}</span>
           )}
           <span className="text-neutral-300 dark:text-neutral-700">/</span>
-          <h2 className="truncate font-display text-sm font-black uppercase tracking-tight text-black dark:text-white">
+          <h2 className="truncate font-display text-sm font-[550] uppercase tracking-tight text-black dark:text-white">
             {title}
           </h2>
         </div>

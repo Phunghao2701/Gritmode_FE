@@ -113,7 +113,7 @@ export default function CheckoutPage() {
 
         {/* Right Column: Sticky Order Summary (5 cols) */}
         <div className="lg:col-span-5">
-          <div className="sticky top-28">
+          <div className="lg:sticky lg:top-28">
             <OrderSummaryCard
               items={items}
               subtotal={subtotal}

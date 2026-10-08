@@ -66,11 +66,12 @@ export default function AddressSelectGroup({
   return (
     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${className}`}>
       <div className="space-y-1.5">
-        <label className="block text-[11px] font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
+          <label htmlFor="address-province" className="block text-[11px] font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
           Tỉnh / Thành phố {required && <span className="text-rose-500">*</span>}
         </label>
         <div className="relative">
           <select
+            id="address-province"
             name="province"
             value={province}
             onChange={(event) => {
@@ -98,11 +99,12 @@ export default function AddressSelectGroup({
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-[11px] font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
+          <label htmlFor="address-ward" className="block text-[11px] font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
           Phường / Xã {required && <span className="text-rose-500">*</span>}
         </label>
         <div className="relative">
           <select
+            id="address-ward"
             name="ward"
             value={ward}
             onChange={(event) => {
@@ -120,7 +122,7 @@ export default function AddressSelectGroup({
             className={selectClass(errors.ward, disabled || !province || communeOptions.length === 0)}
           >
             <option value="" disabled>
-              {province ? 'Chọn Phường / Xã' : 'Chọn Tỉnh / Thành trước'}
+              {province ? 'Chọn phường / xã' : 'Chọn tỉnh / thành phố trước'}
             </option>
             {communeOptions.map((name) => <option key={name} value={name}>{name}</option>)}
           </select>

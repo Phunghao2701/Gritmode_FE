@@ -18,7 +18,7 @@ export default function PrimaryButton({
   onClick,
   ...props
 }) {
-  const baseStyles = "inline-flex items-center justify-center font-black uppercase tracking-wider rounded-xl transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98]";
+  const baseStyles = "inline-flex items-center justify-center font-[550] uppercase tracking-wider rounded-xl transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-[0.98]";
 
   const sizeStyles = {
     sm: "text-xs px-3.5 py-2 gap-1.5",
