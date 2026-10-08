@@ -3,7 +3,8 @@ import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { getOrderPaymentApi } from '../apis/payment.api';
+import { getMyOrderByIdApi } from '../../orders/apis/order.api';
+import { useOrderPayment } from '../hooks/usePayment';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
@@ -11,38 +12,60 @@ import { getPaymentStatusInfo } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import ErrorState from '../../../shared/components/ErrorState';
 import { requireApiObject } from '../../../shared/services/responseContract';
+import { useAuthStore } from '../../../shared/store/authStore';
 
 export default function PaymentResultPage() {
   const [searchParams] = useSearchParams();
   const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
 
   const orderId = searchParams.get('orderId') || searchParams.get('order_id');
   const isCancelledFlow = window.location.pathname.includes('cancel');
 
-  const { data: payment, isLoading, isError, refetch } = useQuery({
-    queryKey: ['order-payment-result', orderId],
+  const {
+    data: guestOrder,
+    isLoading: isGuestOrderLoading,
+    isError: isGuestOrderError,
+    refetch: refetchGuestOrder,
+  } = useQuery({
+    queryKey: ['order-payment-result-order', orderId],
     queryFn: async () => {
       if (!orderId) throw new Error('Thiếu mã đơn hàng');
-      const res = await getOrderPaymentApi(orderId);
-      return requireApiObject(res, 'Trạng thái thanh toán');
+      const res = await getMyOrderByIdApi(orderId);
+      return requireApiObject(res, 'Chi tiết đơn hàng');
     },
-    enabled: !!orderId,
-    refetchInterval: (queryData) => {
-      const p = queryData?.state?.data;
-      if (p?.payment_method === 'payos' && ['pending', 'processing'].includes(p?.status_payment)) {
-        return 3000;
-      }
-      return false;
+    enabled: !!orderId && !isAuthenticated,
+  });
+
+  const {
+    payment,
+    isLoading: isPaymentLoading,
+    isError: isPaymentError,
+    refetch,
+  } = useOrderPayment(orderId, {
+    enabled: !!orderId && (
+      isAuthenticated ||
+      Boolean(guestOrder?.email_order && guestOrder?.phone_order)
+    ),
+    guestInfo: {
+      email: guestOrder?.email_order,
+      phone: guestOrder?.phone_order,
     },
   });
 
+  const isLoading = isGuestOrderLoading || isPaymentLoading;
+  const isError = isGuestOrderError || isPaymentError;
+  const retry = () => {
+    if (isGuestOrderError) refetchGuestOrder();
+    if (isPaymentError) refetch();
+  };
+
   const isPaid = payment?.status_payment === 'paid';
   const paymentStatus = payment ? getPaymentStatusInfo(payment.status_payment) : null;
-
-  if (!orderId || isError) return <ErrorState onRetry={refetch} title="Không thể tải trạng thái thanh toán" />;
+  if (!orderId || isError) return <ErrorState onRetry={retry} title="Không thể tải trạng thái thanh toán" />;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16 text-center space-y-8">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16 text-center space-y-8 font-sans">
       {isLoading ? (
         <div className="space-y-4 max-w-md mx-auto">
           <LoadingSkeleton height="4rem" className="rounded-full w-16 mx-auto" />
@@ -58,7 +81,7 @@ export default function PaymentResultPage() {
           <span className="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
             Giao dịch thành công
           </span>
-          <h1 className="font-display font-black text-3xl sm:text-4xl text-black dark:text-white uppercase tracking-tight">
+          <h1 className="font-sans font-black text-3xl sm:text-4xl text-black dark:text-white uppercase tracking-tight">
             Xác nhận thanh toán payOS
           </h1>
           <p className="text-xs text-neutral-500 max-w-md mx-auto">
@@ -74,7 +97,7 @@ export default function PaymentResultPage() {
           <span className="text-xs font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">
             {isCancelledFlow ? 'Hủy phiên thanh toán' : 'Đang xử lý thanh toán'}
           </span>
-          <h1 className="font-display font-black text-3xl sm:text-4xl text-black dark:text-white uppercase tracking-tight">
+          <h1 className="font-sans font-black text-3xl sm:text-4xl text-black dark:text-white uppercase tracking-tight">
             {isCancelledFlow ? 'Bạn đã hủy phiên payOS' : 'Chờ xác nhận giao dịch'}
           </h1>
           <p className="text-xs text-neutral-500 max-w-md mx-auto">
@@ -113,7 +136,8 @@ export default function PaymentResultPage() {
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
         <PrimaryButton
           onClick={() => router.push('/products')}
-          className="w-full sm:w-auto px-8 py-3.5 uppercase tracking-widest text-xs font-black rounded-2xl shadow-xl"
+          variant={isPaid ? 'secondary' : 'primary'}
+          className="w-full sm:w-auto px-8 py-3.5 uppercase tracking-widest text-xs font-black rounded-2xl"
         >
           Tiếp tục mua sắm
         </PrimaryButton>

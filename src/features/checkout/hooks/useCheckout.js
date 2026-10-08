@@ -223,6 +223,9 @@ const normalizePhone = (phone) => {
         // Insufficient inventory or voucher exhausted
         toast.error(apiMessage || 'Có sản phẩm hết hàng hoặc mã giảm giá không còn hiệu lực.');
         fetchCart();
+      } else if (status === 404 && err.response?.data?.code === 'CART_NOT_FOUND') {
+        await fetchCart();
+        toast.error('Giỏ hàng đã hết phiên. Vui lòng thêm sản phẩm lại trước khi đặt hàng.');
       } else if (status === 400) {
         toast.error(apiMessage || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại thông tin.');
       } else {

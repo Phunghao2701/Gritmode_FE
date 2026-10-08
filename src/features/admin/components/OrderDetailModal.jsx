@@ -7,8 +7,7 @@ import {
   getAllowedAdminOrderActions,
 } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
-import { getAdminOrderByIdApi } from '../apis/admin.api';
-import { requireApiObject } from '../../../shared/services/responseContract';
+import { useAdminOrderDetail } from '../hooks/useAdmin';
 
 export default function OrderDetailModal({
   order,
@@ -22,10 +21,9 @@ export default function OrderDetailModal({
 }) {
   const [cancelReason, setCancelReason] = useState('');
   const [showCancelInput, setShowCancelInput] = useState(false);
-  const [fullDetail, setFullDetail] = useState(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const orderId = order?.order_id || order?.id;
+  const { data: fullDetail, isPending: loadingDetail } = useAdminOrderDetail(orderId);
 
   // Lock body scroll when modal is active
   useEffect(() => {
@@ -36,29 +34,9 @@ export default function OrderDetailModal({
     };
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-    if (orderId) {
-      setLoadingDetail(true);
-      getAdminOrderByIdApi(orderId)
-        .then((res) => {
-          if (isMounted) {
-            setFullDetail(requireApiObject(res, 'Chi tiết đơn hàng'));
-          }
-        })
-        .catch((err) => {
-          console.error('Failed to fetch full admin order details:', err);
-        })
-        .finally(() => {
-          if (isMounted) setLoadingDetail(false);
-        });
-    }
-    return () => { isMounted = false; };
-  }, [orderId]);
-
   if (!order) return null;
 
-  const activeOrder = fullDetail || order;
+  const activeOrder = fullDetail ? { ...fullDetail, ...order } : order;
 
   const orderStatus = getOrderStatusInfo(activeOrder.status_order);
   const paymentMethod = activeOrder.payment_method || activeOrder.payment?.payment_method || 'cod';

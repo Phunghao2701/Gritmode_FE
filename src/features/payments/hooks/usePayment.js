@@ -15,11 +15,18 @@ import { CACHE_STALE_TIME, invalidateOrderQueries } from '../../../shared/servic
 import { requireApiObject } from '../../../shared/services/responseContract';
 
 export const useOrderPayment = (orderId, options = {}) => {
+  const guestEmail = options.guestInfo?.email || '';
+  const guestPhone = options.guestInfo?.phone || '';
+  const detailToken = options.detailToken || '';
+
   const query = useQuery({
-    queryKey: ['order-payment', orderId],
+    queryKey: ['order-payment', orderId, guestEmail, guestPhone, detailToken ? 'signed' : 'unsigned'],
     queryFn: async () => {
       if (!orderId) return null;
-      const res = await getOrderPaymentApi(orderId);
+      const res = await getOrderPaymentApi(orderId, {
+        email: guestEmail,
+        phone: guestPhone,
+      }, detailToken);
       return requireApiObject(res, 'Trạng thái thanh toán');
     },
     enabled: !!orderId && (options.enabled ?? true),

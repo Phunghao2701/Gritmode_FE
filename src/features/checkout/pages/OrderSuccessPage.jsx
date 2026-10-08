@@ -1,9 +1,9 @@
 'use client';
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { getMyOrderByIdApi } from '../../orders/apis/order.api';
+import { getMyOrderByIdApi, getSharedOrderByIdApi } from '../../orders/apis/order.api';
 import { useOrderPayment, useCreatePayOSPayment, usePaymentCountdown } from '../../payments/hooks/usePayment';
 import { formatCountdown, parseVietQR } from '../../payments/utils/payment.utils';
 import Icon from '../../../shared/components/Icon';
@@ -14,27 +14,35 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { toast } from '../../../shared/utils/toast';
 import ErrorState from '../../../shared/components/ErrorState';
 import { requireApiObject } from '../../../shared/services/responseContract';
+import { CACHE_STALE_TIME } from '../../../shared/services/cachePolicy';
 
 export default function OrderSuccessPage() {
   const params = useParams();
   const orderId = params?.orderId || params?.id;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderDetailToken = searchParams.get('token');
   const { isAuthenticated } = useAuthStore();
   const [copiedField, setCopiedField] = useState(null);
 
   // 1. Fetch Order Details (Both Guest & Authenticated)
-  const { data: fetchedOrder, isPending: isOrderPending, isFetching: isOrderFetching, isError: isOrderError, refetch: refetchOrder } = useQuery({
-    queryKey: ['order-detail', orderId],
+  const { data: fetchedOrder, isPending: isOrderPending, isError: isOrderError, refetch: refetchOrder } = useQuery({
+    queryKey: ['order-detail', orderId, orderDetailToken ? 'shared' : 'authenticated'],
     queryFn: async () => {
       if (!orderId) throw new Error('Thiếu mã đơn hàng');
-      const res = await getMyOrderByIdApi(orderId);
+      const res = orderDetailToken
+        ? await getSharedOrderByIdApi(orderId, orderDetailToken)
+        : await getMyOrderByIdApi(orderId);
       return requireApiObject(res, 'Chi tiết đơn hàng');
     },
     enabled: !!orderId,
+    staleTime: CACHE_STALE_TIME.orderDetail,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const order = fetchedOrder;
-  const isOrderLoading = isOrderPending || isOrderFetching;
+  const isOrderLoading = isOrderPending;
 
   // 2. Polling Payment Status (every 3s for payOS until paid)
   const {
@@ -43,7 +51,14 @@ export default function OrderSuccessPage() {
     isExpired,
     isFailed,
     refetch: refetchPayment,
-  } = useOrderPayment(orderId, { enabled: !!orderId });
+  } = useOrderPayment(orderId, {
+    enabled: !!orderId && (isAuthenticated || Boolean(order?.email_order && order?.phone_order)),
+    guestInfo: {
+      email: order?.email_order,
+      phone: order?.phone_order,
+    },
+    detailToken: orderDetailToken,
+  });
 
   const createPayOSMutation = useCreatePayOSPayment();
   const remainingSeconds = usePaymentCountdown(payment?.expired_at, () => {
@@ -75,7 +90,7 @@ export default function OrderSuccessPage() {
   }
 
   return (
-    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in">
+    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in font-sans">
       
       {/* 1. Top Status Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -131,7 +146,7 @@ export default function OrderSuccessPage() {
         {/* ========================================================================= */}
         {/* LEFT COLUMN: Finalized Order Details (7 cols / ~58%)                       */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-7 space-y-6">
+        <div id="order-details" className="lg:col-span-7 space-y-6 scroll-mt-28">
           
           {/* Recipient & Shipping Information */}
           <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
@@ -302,7 +317,7 @@ export default function OrderSuccessPage() {
                   <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
                     Giao dịch hoàn tất
                   </span>
-                  <h3 className="font-display font-black text-xl text-black dark:text-white uppercase">
+                  <h3 className="font-sans font-black text-xl text-black dark:text-white uppercase">
                     Thanh toán thành công!
                   </h3>
                   <p className="text-xs text-neutral-500 leading-relaxed">
@@ -314,6 +329,7 @@ export default function OrderSuccessPage() {
                   <Icon icon="solar:shield-check-bold" className="text-base" />
                   <span>Xác thực bởi NAPAS247 & payOS</span>
                 </div>
+
               </div>
             ) : effectiveExpired ? (
               /* Case B: PayOS Expired */
