@@ -1,10 +1,10 @@
 /* global process */
 'use client';
 import React, { useState } from 'react';
-import Link from 'next/link';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import InputField from '../../../shared/components/InputField';
+import Breadcrumb from '../../../shared/components/Breadcrumb';
 import { toast } from '../../../shared/utils/toast';
 import { submitContactMessage } from '../apis/contact.api';
 
@@ -96,13 +96,12 @@ export default function ContactPage() {
       {/* 1. Header Banner */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 py-12 sm:py-16">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-400">
-            <Link href="/" className="hover:text-black dark:hover:text-white transition-colors">
-              Trang chủ
-            </Link>
-            <span>/</span>
-            <span className="text-black dark:text-white">Liên hệ</span>
-          </div>
+          <Breadcrumb
+            items={[
+              { label: 'Trang chủ', href: '/' },
+              { label: 'Liên hệ', current: true },
+            ]}
+          />
 
           <h1 className="font-sans font-[550] text-2xl sm:text-3xl lg:text-4xl uppercase tracking-widest text-black dark:text-white">
             Liên hệ & Trải nghiệm
