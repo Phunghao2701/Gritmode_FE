@@ -2,12 +2,12 @@ import Icon from '../../../shared/components/Icon';
 
 export default function LowStockAlert({ lowStockItems = [], onManageInventory, isLoading = false }) {
   return (
-    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 flex flex-col justify-between">
+    <div className="p-6 sm:p-8 lg:h-full rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 flex flex-col justify-between">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-            <h2 className="font-display font-black text-lg text-black dark:text-white uppercase tracking-tight">
+            <h2 className="font-display font-[550] text-lg text-black dark:text-white uppercase tracking-tight">
               Cảnh báo kho hàng
             </h2>
           </div>
@@ -17,12 +17,12 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory, i
           Các biến thể sản phẩm có số lượng khả dụng dưới ngưỡng an toàn cần nhập thêm.
         </p>
 
-        <div className="space-y-3 pt-2">
+        <div className="space-y-0 pt-2">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
               <div 
                 key={`stock-skel-${i}`}
-                className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-between animate-pulse"
+                className="py-3.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between animate-pulse"
               >
                 <div className="space-y-1.5 flex-1 mr-4">
                   <div className="h-3.5 w-36 bg-neutral-200/80 dark:bg-neutral-700/60 rounded" />
@@ -37,10 +37,10 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory, i
             lowStockItems.map((item) => (
               <div 
                 key={item.inventory_id || item.product_variant_id || item.id}
-                className="p-3.5 rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700/60 flex items-center justify-between"
+                className="py-3.5 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between"
               >
                 <div>
-                  <h4 className="font-bold text-xs text-black dark:text-white line-clamp-1">
+                  <h4 className="font-[550] text-xs text-black dark:text-white line-clamp-1">
                     {item.name_product || item.productTitle || item.name}
                   </h4>
                   <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-mono">
@@ -48,8 +48,10 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory, i
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-black text-rose-500">
-                    Còn {item.quantity_available ?? item.available ?? item.onHand ?? 0} cái
+                  <span className="text-xs font-[550] text-rose-500">
+                    {(item.quantity_available ?? item.available ?? item.onHand ?? 0) <= 0
+                      ? 'Hết hàng'
+                      : `Còn ${item.quantity_available ?? item.available ?? item.onHand} cái`}
                   </span>
                 </div>
               </div>
@@ -61,7 +63,7 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory, i
       <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
         <button
           onClick={onManageInventory}
-          className="w-full py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-black uppercase tracking-wider text-black dark:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-xs font-[550] uppercase tracking-wider text-black dark:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>Quản lý kho</span>
           <Icon icon="solar:arrow-right-linear" />

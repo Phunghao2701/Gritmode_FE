@@ -88,12 +88,12 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
             className="group flex cursor-pointer flex-col items-start"
           >
             <div className="flex items-center gap-1.5">
-              <span className="font-display font-black text-xl tracking-tight uppercase leading-none text-white">
+              <span className="font-display font-[550] text-xl tracking-tight uppercase leading-none text-white">
                 GRITMODE<span className="text-[10px] align-super font-sans">®</span>
               </span>
             </div>
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-[9px] font-black uppercase tracking-widest bg-white/10 text-white px-2 py-0.5 rounded">
+              <span className="text-[9px] font-[550] uppercase tracking-widest bg-white/10 text-white px-2 py-0.5 rounded">
                 Admin Console
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -106,7 +106,7 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
           {navigationSections.map((section, idx) => (
             <div key={idx} className="space-y-1.5">
               {section.group && (
-                <p className="px-3 text-[10px] font-black uppercase tracking-widest text-neutral-500">
+                <p className="px-3 text-[10px] font-[550] uppercase tracking-widest text-neutral-500">
                   {section.group}
                 </p>
               )}
@@ -118,9 +118,9 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
                     type="button"
                     onClick={() => goTo(item.path)}
                     className={cn(
-                      "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all text-left cursor-pointer",
+                      "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-[550] uppercase tracking-wider transition-all text-left cursor-pointer",
                       active
-                        ? "bg-white text-black shadow-md font-black"
+                        ? "bg-white text-black shadow-md font-[550]"
                         : "hover:bg-neutral-900 text-neutral-400 hover:text-white"
                     )}
                   >
@@ -138,11 +138,11 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
       <div className="p-4 border-t border-neutral-800/80 space-y-3 shrink-0 bg-black/95 backdrop-blur-sm z-10">
         {/* Current Admin User Badge */}
         <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-neutral-900/60 border border-neutral-800">
-          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-black text-xs shrink-0">
+          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-[550] text-xs shrink-0">
             {user?.fullName?.charAt(0) || 'A'}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-white truncate leading-tight">
+            <p className="text-xs font-[550] text-white truncate leading-tight">
               {user?.fullName || 'Quản trị viên'}
             </p>
             <p className="text-[10px] text-neutral-400 truncate">
@@ -156,7 +156,7 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
           <button
             type="button"
             onClick={() => goTo('/')}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-neutral-400 hover:bg-neutral-900 hover:text-white transition-all text-left cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-[550] text-neutral-400 hover:bg-neutral-900 hover:text-white transition-all text-left cursor-pointer"
           >
             <Icon icon="solar:shop-2-linear" className="text-base shrink-0" />
             <span>Về trang bán hàng</span>
@@ -168,7 +168,7 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
               logout();
               goTo('/login');
             }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all text-left cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-[550] text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all text-left cursor-pointer"
           >
             <Icon icon="solar:logout-2-linear" className="text-base shrink-0" />
             <span>Đăng xuất</span>

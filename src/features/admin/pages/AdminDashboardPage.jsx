@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
 
   const statCards = [
     {
-      title: 'Doanh thu',
+      title: 'Doanh thu tích lũy',
       value: formatPriceVND(stats?.totalRevenue ?? stats?.revenueThisMonth ?? 0),
       icon: 'solar:dollar-minimalistic-linear',
       bg: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
@@ -41,7 +41,7 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Khách hàng thành viên',
-      value: `${stats?.totalUsers || 0} users`,
+      value: `${stats?.totalUsers || 0} khách hàng`,
       icon: 'solar:users-group-rounded-linear',
       bg: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
     },
@@ -50,20 +50,20 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <AdminPageHeader
-        eyebrow="Tổng quan"
+        eyebrow="Bảng điều khiển"
         title="Tổng quan"
         description="Theo dõi các chỉ số và việc cần xử lý trong cửa hàng."
       />
 
       {isError && (
         <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 flex items-center justify-between gap-4">
-          <p className="text-xs font-bold text-rose-600 dark:text-rose-400">
+          <p className="text-xs font-[550] text-rose-600 dark:text-rose-400">
             Không thể tải dữ liệu bảng điều khiển từ máy chủ. Vui lòng bấm thử lại.
           </p>
           <button
             type="button"
             onClick={() => refetch()}
-            className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-black uppercase tracking-wider hover:bg-rose-700 transition-colors shrink-0 cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-[550] uppercase tracking-wider hover:bg-rose-700 transition-colors shrink-0 cursor-pointer"
           >
             Thử lại
           </button>
@@ -79,14 +79,14 @@ export default function AdminDashboardPage() {
 
       {/* 2-Column Grid: Recent Orders (7 cols) + Low Stock Alert (5 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-7 lg:h-full">
           <RecentOrdersTable
             orders={orders.slice(0, 5)}
             onViewAll={() => router.push('/admin/orders')}
             isLoading={isInitialLoading}
           />
         </div>
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-5 lg:h-full">
           <LowStockAlert
             lowStockItems={lowStockItems.slice(0, 3)}
             onManageInventory={() => router.push('/admin/inventory')}

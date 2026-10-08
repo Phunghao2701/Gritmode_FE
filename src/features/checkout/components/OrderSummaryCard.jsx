@@ -48,10 +48,10 @@ export default function OrderSummaryCard({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
       {/* 1. Giỏ hàng Card */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-4">
-        <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100">
+      <section className="space-y-4">
+        <h3 className="font-sans font-[550] text-base text-neutral-900 dark:text-neutral-100">
           Giỏ hàng
         </h3>
 
@@ -122,11 +122,11 @@ export default function OrderSummaryCard({
                               {formatPriceVND(originalPrice * quantity)}
                             </span>
                           )}
-                          <span className={`font-bold text-sm ${hasSale ? 'text-red-600 dark:text-red-500' : 'text-neutral-900 dark:text-neutral-100'}`}>
+                          <span className={`font-[550] text-sm ${hasSale ? 'text-red-600 dark:text-red-500' : 'text-neutral-900 dark:text-neutral-100'}`}>
                             {formatPriceVND(lineTotal)}
                           </span>
                           {discountPercent > 0 && (
-                            <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                            <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-[550] text-red-600 dark:bg-red-950/40 dark:text-red-400">
                               -{discountPercent}%
                             </span>
                           )}
@@ -162,20 +162,20 @@ export default function OrderSummaryCard({
             );
           })}
         </div>
-      </div>
+      </section>
 
       {/* 2. Mã khuyến mãi Card */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-3">
-        <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100">
+      <section className="border-t border-neutral-200 dark:border-neutral-800 pt-6 space-y-3">
+        <h3 className="font-sans font-[550] text-base text-neutral-900 dark:text-neutral-100">
           Mã khuyến mãi
         </h3>
 
         {/* Applied Voucher or Select Voucher button */}
-        {appliedVoucher ? (
+        {appliedVoucher && (
           <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Icon icon="solar:ticket-bold" className="text-emerald-600 dark:text-emerald-400 text-base" />
-              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
+              <span className="text-xs font-[550] text-emerald-700 dark:text-emerald-300">
                 {appliedVoucher.code_voucher || appliedVoucher.code}
               </span>
             </div>
@@ -188,17 +188,6 @@ export default function OrderSummaryCard({
               <Icon icon="solar:close-circle-linear" className="text-base" />
             </button>
           </div>
-        ) : (
-          <button
-            type="button"
-            className="w-full border border-neutral-200 dark:border-neutral-800 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 hover:border-neutral-400 transition-colors cursor-pointer bg-white dark:bg-neutral-950"
-          >
-            <div className="flex items-center gap-2">
-              <Icon icon="solar:ticket-linear" className="text-base text-neutral-400" />
-              <span>Chọn mã</span>
-            </div>
-            <Icon icon="solar:alt-arrow-right-linear" className="text-sm text-neutral-400" />
-          </button>
         )}
 
         {/* Voucher Input */}
@@ -213,16 +202,16 @@ export default function OrderSummaryCard({
           <button
             type="submit"
             disabled={!voucherCode.trim() || isApplyingVoucher}
-            className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-xl text-xs font-bold hover:opacity-85 disabled:opacity-40 transition-all cursor-pointer shadow-sm"
+            className="bg-black text-white dark:bg-white dark:text-black px-4 py-2 rounded-xl text-xs font-[550] hover:opacity-85 disabled:opacity-40 transition-all cursor-pointer shadow-sm"
           >
             {isApplyingVoucher ? '...' : 'Áp dụng'}
           </button>
         </form>
-      </div>
+      </section>
 
       {/* 3. Tóm tắt đơn hàng Card */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-4">
-        <h3 className="font-bold text-base text-neutral-900 dark:text-neutral-100">
+      <section className="border-t border-neutral-200 dark:border-neutral-800 pt-6 space-y-4">
+        <h3 className="font-sans font-[550] text-base text-neutral-900 dark:text-neutral-100">
           Tóm tắt đơn hàng
         </h3>
 
@@ -248,7 +237,7 @@ export default function OrderSummaryCard({
           <div className="flex justify-between items-center">
             <span>Phí vận chuyển</span>
             <span className="font-normal text-neutral-900 dark:text-neutral-100">
-              {shippingFee === 0 ? '-' : formatPriceVND(shippingFee)}
+              {shippingFee === 0 ? 'Miễn phí' : formatPriceVND(shippingFee)}
             </span>
           </div>
 
@@ -259,9 +248,9 @@ export default function OrderSummaryCard({
             </div>
           )}
 
-          <div className="flex justify-between items-center pt-2 text-sm font-bold text-neutral-900 dark:text-neutral-100 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="flex justify-between items-center pt-2 text-sm font-[550] text-neutral-900 dark:text-neutral-100 border-t border-neutral-200 dark:border-neutral-800">
             <span>Tổng thanh toán</span>
-            <span className="text-base font-bold">{formatPriceVND(finalAmount)}</span>
+            <span className="text-base font-[550]">{formatPriceVND(finalAmount)}</span>
           </div>
         </div>
 
@@ -269,11 +258,11 @@ export default function OrderSummaryCard({
           type="button"
           onClick={onSubmitOrder}
           disabled={isLoading || items.length === 0}
-          className="w-full bg-black text-white dark:bg-white dark:text-black py-3.5 rounded-xl font-bold text-sm hover:opacity-90 active:scale-[0.99] disabled:opacity-40 transition-all cursor-pointer shadow-md"
+          className="w-full bg-black text-white dark:bg-white dark:text-black py-3.5 rounded-xl font-[550] text-sm hover:opacity-90 active:scale-[0.99] disabled:opacity-40 transition-all cursor-pointer shadow-md"
         >
           {isLoading ? 'Đang xử lý...' : 'Đặt hàng'}
         </button>
-      </div>
+      </section>
     </div>
   );
 }
