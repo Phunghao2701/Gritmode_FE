@@ -224,7 +224,17 @@ export default function OrderSuccessPage() {
               </div>
 
               <div className="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-64 overflow-y-auto pr-1 scrollbar-none">
-                {items.map((item, idx) => (
+                {items.map((item, idx) => {
+                  const salePrice = Number(item.price_order_item || 0);
+                  const originalPrice = Number(item.original_price_order_item ?? salePrice);
+                  const quantity = Number(item.quantity_order_item || item.quantity || 1);
+                  const lineTotal = Number(item.total_order_item || salePrice * quantity);
+                  const hasSale = originalPrice > salePrice;
+                  const discountPercent = hasSale && originalPrice > 0
+                    ? Math.round((1 - salePrice / originalPrice) * 100)
+                    : 0;
+
+                  return (
                   <div key={item.order_item_id || idx} className="py-3 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-3 min-w-0">
                       {item.image_product ? (
@@ -247,11 +257,24 @@ export default function OrderSuccessPage() {
                         </p>
                       </div>
                     </div>
-                    <span className="font-[550] text-xs text-black dark:text-white shrink-0">
-                      {formatPriceVND(item.total_order_item || item.price_order_item * (item.quantity_order_item || item.quantity))}
-                    </span>
+                    <div className="flex flex-wrap items-baseline justify-end gap-2 shrink-0">
+                      {hasSale && (
+                        <span className="text-[11px] text-neutral-400 line-through">
+                          {formatPriceVND(originalPrice * quantity)}
+                        </span>
+                      )}
+                      <span className={`font-[550] text-xs ${hasSale ? 'text-red-600 dark:text-red-500' : 'text-black dark:text-white'}`}>
+                        {formatPriceVND(lineTotal)}
+                      </span>
+                      {discountPercent > 0 && (
+                        <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                          -{discountPercent}%
+                        </span>
+                      )}
+                    </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

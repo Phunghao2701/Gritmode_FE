@@ -11,6 +11,12 @@ export default function CartItem({
 }) {
   const itemId = item.cart_item_id || item.variantId || item.id;
   const isOutOfStock = item.has_stock_issue || item.quantity > item.quantity_available;
+  const salePrice = Number(item.price || 0);
+  const originalPrice = Number(item.original_price ?? item.originalPrice ?? salePrice);
+  const hasSale = originalPrice > salePrice;
+  const discountPercent = hasSale && originalPrice > 0
+    ? Math.round((1 - salePrice / originalPrice) * 100)
+    : 0;
 
   // Format variant into Color and Size
   let colorText = '';
@@ -68,8 +74,20 @@ export default function CartItem({
             {item.title}
           </h4>
 
-          <div className="font-normal text-sm text-neutral-800 dark:text-neutral-200 mt-1">
-            {formatPriceVND(item.price || item.line_total)}
+          <div className="flex flex-wrap items-baseline gap-2 mt-1">
+            {hasSale && (
+              <span className="text-xs text-neutral-400 line-through">
+                {formatPriceVND(originalPrice)}
+              </span>
+            )}
+            <span className={`font-normal text-sm ${hasSale ? 'text-red-600 dark:text-red-500' : 'text-neutral-800 dark:text-neutral-200'}`}>
+              {formatPriceVND(salePrice)}
+            </span>
+            {discountPercent > 0 && (
+              <span className="rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                -{discountPercent}%
+              </span>
+            )}
           </div>
 
           <div className="mt-2 space-y-0.5 text-xs text-neutral-500 font-normal">

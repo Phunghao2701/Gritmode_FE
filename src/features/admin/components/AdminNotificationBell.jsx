@@ -6,9 +6,24 @@ import Icon from '../../../shared/components/Icon';
 import ErrorState from '../../../shared/components/ErrorState';
 import { useAdminNotifications } from '../hooks/useAdminNotifications';
 
-const formatTime = (value) => {
+const formatRelativeTime = (value) => {
   if (!value) return '';
-  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
+
+  const createdAt = new Date(value).getTime();
+  if (Number.isNaN(createdAt)) return '';
+
+  const diffSeconds = Math.max(0, Math.floor((Date.now() - createdAt) / 1000));
+  if (diffSeconds < 60) return 'Vừa xong';
+  if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)} phút`;
+  if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)} giờ`;
+  if (diffSeconds < 172800) return 'Hôm qua';
+  if (diffSeconds < 604800) return `${Math.floor(diffSeconds / 86400)} ngày`;
+
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(value));
 };
 
 const getNotificationMeta = (notification) => {
@@ -17,7 +32,7 @@ const getNotificationMeta = (notification) => {
   }
 
   if (notification.entity_type === 'order' || notification.event_type?.includes('order')) {
-    return { icon: 'solar:bag-4-linear', label: 'Đơn hàng' };
+    return { icon: 'solar:box-linear', label: 'Đơn hàng' };
   }
 
   return { icon: 'solar:bell-linear', label: 'Hệ thống' };
@@ -136,7 +151,7 @@ export default function AdminNotificationBell() {
                       : 'text-neutral-400 hover:text-neutral-700 dark:text-neutral-500 dark:hover:text-neutral-300'
                   }`}
                 >
-                  {tab.label} <span className="ml-0.5 tabular-nums">{tab.count}</span>
+                  {tab.label} <span className="ml-0.5 tabular-nums">({tab.count})</span>
                   {filter === tab.value && <span className="absolute inset-x-0 bottom-0 h-0.5 bg-red-600" />}
                 </button>
               ))}
@@ -177,16 +192,17 @@ export default function AdminNotificationBell() {
                       <Icon icon={meta.icon} className="text-sm" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="flex min-w-0 items-start gap-2">
+                      <span className="flex min-w-0 items-start justify-between gap-3">
                         <span className={`min-w-0 flex-1 break-words text-[13px] leading-snug ${notification.is_read ? 'font-medium text-neutral-700 dark:text-neutral-300' : 'font-bold text-neutral-950 dark:text-white'}`}>
                           {notification.title}
                         </span>
-                        {!notification.is_read && <span className="mt-1 size-1.5 shrink-0 rounded-full bg-red-600" aria-label="Chưa đọc" />}
+                        <span className="flex shrink-0 items-center gap-1.5 text-[10px] text-neutral-400 dark:text-neutral-500">
+                          {formatRelativeTime(notification.created_at)}
+                          {!notification.is_read && <span className="size-1.5 rounded-full bg-red-600" aria-label="Chưa đọc" />}
+                        </span>
                       </span>
                       <span className="mt-1 block break-words text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">{notification.body}</span>
                       <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-neutral-400">
-                        <span>{formatTime(notification.created_at)}</span>
-                        <span className="size-0.5 rounded-full bg-neutral-300 dark:bg-neutral-700" />
                         <span>{meta.label}</span>
                       </span>
                     </span>
