@@ -246,7 +246,8 @@ export default function GuestOrderLookupPage() {
             </div>
           </div>
 
-          {guestPaymentIsPending && (
+          {/* Guest lookup stays read-only; PayOS QR is available only on the payment page. */}
+          {false && guestPaymentIsPending && (
             <div className="space-y-3">
               {guestPayment.payment_display?.qr_code ? (
                 <PayOSPaymentCard
