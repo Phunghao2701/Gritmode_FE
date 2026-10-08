@@ -21,7 +21,7 @@ export default function HowToOrderPage() {
     {
       step: '03',
       title: 'Điền địa chỉ giao hàng & Chọn phương thức thanh toán',
-      desc: 'Nhập thông tin người nhận, số điện thoại và địa chỉ giao hàng. Lựa chọn hình thức thanh toán thuận tiện: Tiền mặt khi nhận hàng (COD) hoặc Chuyển khoản VietQR tức thì.',
+      desc: 'Nhập thông tin người nhận, số điện thoại và địa chỉ giao hàng. Lựa chọn hình thức thanh toán thuận tiện: Tiền mặt khi nhận hàng (COD) hoặc thanh toán trực tuyến qua payOS.',
       icon: 'solar:card-send-bold',
     },
     {
@@ -112,11 +112,11 @@ export default function HowToOrderPage() {
 
             <div className="p-5 rounded-2xl bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 space-y-2">
               <h4 className="font-black uppercase text-sm flex items-center gap-2">
-                <Icon icon="solar:qr-code-bold" className="text-base" />
-                <span>2. Chuyển khoản VietQR (payOS / NAPAS247)</span>
+                <Icon icon="solar:shield-check-bold" className="text-base" />
+                <span>2. Thanh toán trực tuyến qua payOS</span>
               </h4>
               <p className="text-neutral-500 leading-relaxed">
-                Quét mã QR bằng ứng dụng ngân hàng di động bất kỳ. Hệ thống tự động xác nhận đơn hàng ngay lập tức trong 2 giây mà không cần gửi ủy nhiệm chi.
+                Thực hiện thanh toán trên trang hosted của payOS. Hệ thống tự động xác nhận đơn hàng qua máy chủ sau khi giao dịch hoàn tất.
               </p>
             </div>
           </div>

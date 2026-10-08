@@ -15,9 +15,9 @@ export default function PaymentMethodSelector({
     },
     {
       id: 'payos',
-      title: 'Chuyển khoản VietQR tức thì (payOS / NAPAS247)',
-      description: 'Quét mã VietQR chuyển khoản ngân hàng 24/7 trực tiếp trên màn hình. Xác nhận thanh toán tự động ngay lập tức.',
-      icon: 'solar:qr-code-linear',
+      title: 'Thanh toán trực tuyến qua payOS',
+      description: 'Mở trang thanh toán bảo mật do payOS cung cấp. Giao dịch được xác nhận tự động.',
+      icon: 'solar:shield-check-linear',
       badge: 'NAPAS247',
     },
   ];

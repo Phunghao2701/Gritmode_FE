@@ -116,7 +116,7 @@ export default function AdminOrdersPage() {
             >
               <option value="">Phương thức: Tất cả</option>
               <option value="cod">COD (Tiền mặt)</option>
-              <option value="payos">payOS (VietQR)</option>
+              <option value="payos">payOS hosted</option>
             </select>
 
             {/* Payment Status Filter */}

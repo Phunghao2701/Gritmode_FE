@@ -61,6 +61,7 @@ export const useOrderPayment = (orderId, options = {}) => {
   return {
     ...query,
     payment,
+    isPaymentReady: query.isFetchedAfterMount && Boolean(payment),
     isPaid,
     isExpired,
     isFailed,
@@ -73,13 +74,20 @@ export const useCreatePayOSPayment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (orderId) => createPayOSPaymentApi(orderId),
-    onSuccess: (res, orderId) => {
+    mutationFn: (input) => {
+      const orderId = typeof input === 'object' ? input.orderId || input.order_id : input;
+      const guestInfo = typeof input === 'object' ? input.guestInfo || {} : {};
+      return createPayOSPaymentApi(orderId, guestInfo);
+    },
+    onSuccess: (res, input) => {
+      const orderId = typeof input === 'object' ? input.orderId || input.order_id : input;
       toast.success('Đã tạo liên kết thanh toán payOS mới.');
       const newPayment = requireApiObject(res, 'Payment payOS');
       queryClient.setQueryData(['order-payment', String(orderId)], newPayment);
       queryClient.setQueryData(['order-payment', Number(orderId)], newPayment);
       invalidateOrderQueries(queryClient, orderId);
+      queryClient.invalidateQueries({ queryKey: ['order-payment', String(orderId)] });
+      queryClient.invalidateQueries({ queryKey: ['order-payment', Number(orderId)] });
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Không thể tạo link thanh toán payOS.');
