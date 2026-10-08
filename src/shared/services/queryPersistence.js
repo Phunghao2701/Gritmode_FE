@@ -10,15 +10,6 @@ const RECORD_KEY = 'public-query-cache';
 export const PUBLIC_QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24 * 7;
 export const PUBLIC_QUERY_CACHE_BUSTER = 'gritmode-public-query-cache-v1';
 
-  'products',
-  'product-detail',
-  'categories-public-tree',
-  'category-detail',
-  'collections-public-list',
-  'collection-detail',
-  'banners',
-]);
-
 const isBrowser = () => typeof window !== 'undefined' && Boolean(window.indexedDB);
 
 const shouldPersistQuery = (query) => (
