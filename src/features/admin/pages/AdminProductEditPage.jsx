@@ -153,6 +153,7 @@ export default function AdminProductEditPage() {
   const [defaultSalePercent, setDefaultSalePercent] = useState('');
   const [defaultStock, setDefaultStock] = useState('');
   const [variants, setVariants] = useState({});
+  const [editingInventoryKey, setEditingInventoryKey] = useState(null);
   const [images, setImages] = useState([]);
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
@@ -351,6 +352,10 @@ export default function AdminProductEditPage() {
               sale_start_at: v.sale_start_at ? v.sale_start_at.slice(0, 16) : '',
               sale_end_at: v.sale_end_at ? v.sale_end_at.slice(0, 16) : '',
               stock: v.inventory?.quantity_stock ?? '',
+              reserved: v.inventory?.quantity_reserved ?? 0,
+              available: v.inventory?.quantity_available ?? (
+                Number(v.inventory?.quantity_stock ?? 0) - Number(v.inventory?.quantity_reserved ?? 0)
+              ),
               is_active: v.is_active,
             };
           }
@@ -398,6 +403,8 @@ export default function AdminProductEditPage() {
           next[key] = {
             sku: generateSkuSuggestion(form.name_product, [{ value_option: color }, { value_option: size }]),
             stock: 0,
+            reserved: 0,
+            available: 0,
             is_active: true,
           };
         }
@@ -580,7 +587,18 @@ export default function AdminProductEditPage() {
     if (price <= 0) nextErrors.price = 'Vui lòng nhập giá bán hợp lệ.';
     if (images.some((img) => img.isUploading)) nextErrors.images = 'Ảnh đang tải lên, vui lòng đợi hoàn tất.';
     if (publishNow && uploadedImages.length === 0) nextErrors.images = 'Cần ít nhất 1 ảnh trước khi đăng bán.';
-    if (publishNow && defaultStock === '') nextErrors.inventory = 'Hãy nhập tồn kho ban đầu trước khi đăng bán.';
+    if (publishNow && !isEditMode && defaultStock === '') nextErrors.inventory = 'Hãy nhập tồn kho ban đầu trước khi đăng bán.';
+
+    if (isEditMode) {
+      const invalidInventoryVariant = combinations.find(({ key }) => {
+        const variant = variants[key] || {};
+        return Number(variant.stock ?? 0) < Number(variant.reserved ?? 0);
+      });
+      if (invalidInventoryVariant) {
+        const variant = variants[invalidInventoryVariant.key] || {};
+        nextErrors.inventory = `Tồn kho ${invalidInventoryVariant.color} / ${invalidInventoryVariant.size} không thể thấp hơn số lượng đang giữ (${variant.reserved ?? 0}).`;
+      }
+    }
 
     setFieldErrors(nextErrors);
     const firstError = Object.keys(nextErrors)[0];
@@ -604,7 +622,9 @@ export default function AdminProductEditPage() {
         sale_price: salePrice,
         sale_start_at: v.sale_start_at || null,
         sale_end_at: v.sale_end_at || null,
-        quantity_stock: Number(defaultStock) || 0,
+        quantity_stock: isEditMode
+          ? Math.max(Number(v.stock ?? 0), Number(v.reserved ?? 0))
+          : Number(defaultStock) || 0,
         is_active: v.is_active ?? true,
         option_values: {
           'Màu sắc': color,
@@ -764,8 +784,8 @@ export default function AdminProductEditPage() {
         <div className="lg:col-span-8 space-y-8">
           
           {/* Section 1: Basic Info */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-5">
-            <h2 className="text-sm font-black uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-5">
+            <h2 className="text-sm font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               1. Thông tin cơ bản
             </h2>
             
@@ -797,8 +817,8 @@ export default function AdminProductEditPage() {
           </div>
 
           {/* Section 2: Options & Variants Builder */}
-          <div ref={variantsSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 scroll-mt-24">
-            <h2 className="text-sm font-black uppercase tracking-wider text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
+          <div ref={variantsSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-6 scroll-mt-24">
+            <h2 className="text-sm font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               2. Màu sắc, kích thước & giá bán
             </h2>
             {fieldErrors.variants && <p className="text-xs font-bold text-rose-500">{fieldErrors.variants}</p>}
@@ -848,7 +868,7 @@ export default function AdminProductEditPage() {
             </div>
 
             {/* Sizes */}
-            <div>
+            <div className="border-t border-neutral-100 pt-6 dark:border-neutral-800">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
                   Kích thước tiêu chuẩn *
@@ -956,11 +976,11 @@ export default function AdminProductEditPage() {
             </div>
 
             {/* Shared pricing */}
-              <div ref={priceFieldRef} className={`p-4 rounded-2xl border space-y-3 ${fieldErrors.price ? 'border-rose-300 bg-rose-50/60 dark:border-rose-900 dark:bg-rose-950/20' : 'border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950'}`}>
+              <div ref={priceFieldRef} className={`border-t border-neutral-100 pt-6 space-y-3 dark:border-neutral-800 ${fieldErrors.price ? 'text-rose-600 dark:text-rose-400' : ''}`}>
               <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
                 Giá bán chung
               </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className={`grid grid-cols-1 ${isEditMode ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -984,23 +1004,142 @@ export default function AdminProductEditPage() {
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs font-bold pointer-events-none">%</span>
                 </div>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Số lượng tồn kho"
-                  value={defaultStock}
-                  onChange={(e) => {
-                    clearFieldError('inventory');
-                    setDefaultStock(e.target.value);
-                  }}
-                  ref={inventoryFieldRef}
-                  aria-invalid={Boolean(fieldErrors.inventory)}
-                  className={`rounded-xl border bg-white px-3 py-2 text-xs font-bold dark:bg-neutral-900 ${fieldErrors.inventory ? 'border-rose-500' : 'border-neutral-200 dark:border-neutral-800'}`}
-                />
+                {!isEditMode && (
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Số lượng tồn kho"
+                    value={defaultStock}
+                    onChange={(e) => {
+                      clearFieldError('inventory');
+                      setDefaultStock(e.target.value);
+                    }}
+                    ref={inventoryFieldRef}
+                    aria-invalid={Boolean(fieldErrors.inventory)}
+                    className={`rounded-xl border bg-white px-3 py-2 text-xs font-bold dark:bg-neutral-900 ${fieldErrors.inventory ? 'border-rose-500' : 'border-neutral-200 dark:border-neutral-800'}`}
+                  />
+                )}
               </div>
               {fieldErrors.price && <p className="text-xs font-bold text-rose-500">{fieldErrors.price}</p>}
-              {fieldErrors.inventory && <p className="text-xs font-bold text-rose-500">{fieldErrors.inventory}</p>}
+              {!isEditMode && fieldErrors.inventory && <p className="text-xs font-bold text-rose-500">{fieldErrors.inventory}</p>}
             </div>
+
+            {isEditMode && (
+              <div
+                ref={inventoryFieldRef}
+                className={`scroll-mt-24 border-t border-neutral-100 pt-6 space-y-4 dark:border-neutral-800 ${fieldErrors.inventory ? 'text-rose-600 dark:text-rose-400' : ''}`}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-xs font-black uppercase tracking-wider text-neutral-700 dark:text-neutral-200">Tồn kho theo biến thể</h2>
+                    <p className="mt-1 max-w-xl text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+                      Cập nhật tồn tổng theo từng màu và kích thước. Số đang giữ không thể bị giảm.
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-black px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white dark:bg-white dark:text-black">
+                    {combinations.length} biến thể
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto bg-white dark:bg-neutral-900">
+                  <div className="min-w-[640px]">
+                    <div className="grid grid-cols-[minmax(0,1.6fr)_90px_90px_100px_120px] gap-3 border-b border-neutral-200 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
+                      <span>Biến thể</span>
+                      <span className="text-center">Tồn kho</span>
+                      <span className="text-center">Đang giữ</span>
+                      <span className="text-center">Có thể bán</span>
+                      <span className="text-right">Cập nhật</span>
+                    </div>
+
+                    {combinations.map(({ color, size, key }) => {
+                      const variant = variants[key] || {};
+                      const stock = Number(variant.stock ?? 0);
+                      const reserved = Number(variant.reserved ?? 0);
+                      const available = stock - reserved;
+                      const hasInvalidStock = stock < reserved;
+                      const isEditingInventory = editingInventoryKey === key;
+
+                      return (
+                        <div
+                          key={key}
+                          className="grid grid-cols-[minmax(0,1.6fr)_90px_90px_100px_120px] items-center gap-3 border-b border-neutral-100 px-3 py-3 last:border-b-0 dark:border-neutral-800/80"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-black text-neutral-800 dark:text-neutral-100">{color} / {size}</p>
+                            <p className="mt-0.5 truncate font-mono text-[10px] text-neutral-400">{variant.sku || 'SKU sẽ được tạo tự động'}</p>
+                          </div>
+                          <span className="text-center text-xs font-bold text-neutral-700 dark:text-neutral-200">{stock}</span>
+                          <span className="text-center text-xs font-bold text-neutral-500 dark:text-neutral-400">{reserved}</span>
+                          <span className={`text-center text-xs font-black ${available > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                            {Math.max(0, available)}
+                          </span>
+                          <div className="flex items-center justify-end gap-1.5">
+                            {isEditingInventory ? (
+                              <>
+                                <input
+                                  type="number"
+                                  min={reserved}
+                                  step="1"
+                                  value={variant.stock ?? 0}
+                                  onChange={(event) => {
+                                    const rawValue = event.target.value;
+                                    setVariants((prev) => ({
+                                      ...prev,
+                                      [key]: {
+                                        ...(prev[key] || {}),
+                                        stock: rawValue === '' ? '' : Math.max(0, Number.parseInt(rawValue, 10) || 0),
+                                      },
+                                    }));
+                                    clearFieldError('inventory');
+                                  }}
+                                  aria-label={`Tồn kho ${color} ${size}`}
+                                  aria-invalid={hasInvalidStock}
+                                  className={`ml-auto w-20 rounded-lg border bg-white px-2.5 py-2 text-right text-xs font-bold outline-none transition-colors dark:bg-neutral-950 ${hasInvalidStock ? 'border-rose-500 text-rose-600' : 'border-neutral-200 focus:border-black dark:border-neutral-700 dark:focus:border-white'}`}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (hasInvalidStock) {
+                                      setFieldErrors((prev) => ({
+                                        ...prev,
+                                        inventory: `Tồn kho ${color} / ${size} không thể thấp hơn số lượng đang giữ (${reserved}).`,
+                                      }));
+                                      return;
+                                    }
+                                    clearFieldError('inventory');
+                                    setEditingInventoryKey(null);
+                                  }}
+                                  aria-label={`Xác nhận tồn kho ${color} ${size}`}
+                                  title="Xác nhận thay đổi"
+                                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-black text-white transition-colors hover:bg-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:bg-white dark:text-black dark:hover:bg-neutral-200 dark:focus-visible:ring-white"
+                                >
+                                  <Icon icon="solar:check-circle-linear" className="text-base" />
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  clearFieldError('inventory');
+                                  setEditingInventoryKey(key);
+                                }}
+                                aria-label={`Chỉnh sửa tồn kho ${color} ${size}`}
+                                title="Chỉnh sửa tồn kho"
+                                className="inline-flex size-8 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
+                              >
+                                <Icon icon="solar:pen-2-linear" className="text-base" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {fieldErrors.inventory && <p className="text-xs font-bold text-rose-500">{fieldErrors.inventory}</p>}
+              </div>
+            )}
 
           </div>
 
@@ -1010,7 +1149,7 @@ export default function AdminProductEditPage() {
         <div className="lg:col-span-4 space-y-8">
           
           {/* Categories */}
-          <div ref={categorySectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4 scroll-mt-24">
+          <div ref={categorySectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-4 scroll-mt-24">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-neutral-400">Danh mục chính *</span>
               <button
@@ -1160,7 +1299,7 @@ export default function AdminProductEditPage() {
           )}
 
           {/* Collections */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs font-black uppercase tracking-wider text-neutral-400 block">
                 Bộ sưu tập
@@ -1247,7 +1386,7 @@ export default function AdminProductEditPage() {
           </div>
 
           {/* Images Upload & Gallery */}
-          <div ref={imagesSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4 scroll-mt-24">
+          <div ref={imagesSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-4 scroll-mt-24">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-neutral-400">
                 Hình ảnh sản phẩm ({images.length})
