@@ -11,12 +11,13 @@ export default function PayOSModal({
   isOpen,
   onClose,
   onSuccess,
+  guestInfo,
 }) {
   const [copiedField, setCopiedField] = useState(null);
 
   const { payment, isPaid, isExpired, isFailed, refetch } = useOrderPayment(
     orderId,
-    { enabled: isOpen }
+    { enabled: isOpen, guestInfo }
   );
 
   const createPayOSMutation = useCreatePayOSPayment();
