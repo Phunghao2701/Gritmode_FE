@@ -104,7 +104,7 @@ Sản phẩm yêu cầu đổi trả cần đáp ứng đầy đủ các tiêu c
         id: 'coverage',
         title: '1. Khu vực giao hàng',
         content: `
-Gritmode cung cấp dịch vụ giao hàng tận nơi đến **tất cả 63 tỉnh thành trên toàn lãnh thổ Việt Nam**, bao gồm cả các khu vực huyện xã, hải đảo thông qua các đối tác vận chuyển uy tín (Giao Hàng Nhanh, Viettel Post, SPX Express).
+Gritmode cung cấp dịch vụ giao hàng tận nơi đến **tất cả 34 tỉnh thành trên toàn lãnh thổ Việt Nam**, bao gồm cả các khu vực xã phường, hải đảo thông qua các đối tác vận chuyển uy tín (Giao Hàng Nhanh, Viettel Post, SPX Express).
         `,
       },
       {
@@ -354,7 +354,7 @@ Khi truy cập và tiến hành đặt mua hàng trên website của **Gritmode�
         id: 'products',
         title: '3. Thông tin & Giá cả sản phẩm',
         content: `
-- Gritmode nỗ lực hiển thị màu sắc, chất liệu và phom dáng sản phẩm chân thực nhất trên ảnh Lookbook. Tuy nhiên, màu sắc thực tế có thể chênh lệch 3-5% do ánh sáng màn hình thiết bị hiển thị.
+- Gritmode nỗ lực hiển thị màu sắc, chất liệu và form dáng sản phẩm chân thực nhất trên ảnh Lookbook. Tuy nhiên, màu sắc thực tế có thể chênh lệch 3-5% do ánh sáng màn hình thiết bị hiển thị.
 - Giá bán niêm yết trên website là giá thanh toán cuối cùng đã bao gồm thuế và được tính bằng Việt Nam Đồng (VND).
         `,
       },
