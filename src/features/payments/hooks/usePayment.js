@@ -81,7 +81,7 @@ export const useCreatePayOSPayment = () => {
     },
     onSuccess: (res, input) => {
       const orderId = typeof input === 'object' ? input.orderId || input.order_id : input;
-      toast.success('Đã tạo liên kết thanh toán payOS mới.');
+      toast.success('Đã tạo liên kết thanh toán VIETQR mới.');
       const newPayment = requireApiObject(res, 'Payment payOS');
       queryClient.setQueryData(['order-payment', String(orderId)], newPayment);
       queryClient.setQueryData(['order-payment', Number(orderId)], newPayment);
@@ -90,7 +90,7 @@ export const useCreatePayOSPayment = () => {
       queryClient.invalidateQueries({ queryKey: ['order-payment', Number(orderId)] });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Không thể tạo link thanh toán payOS.');
+      toast.error(err.response?.data?.message || 'Không thể tạo liên kết VIETQR.');
     },
   });
 };
@@ -101,7 +101,7 @@ export const useCancelPayOSPayment = () => {
   return useMutation({
     mutationFn: (orderId) => cancelPayOSPaymentApi(orderId),
     onSuccess: (res, orderId) => {
-      toast.success('Đã hủy link thanh toán payOS.');
+      toast.success('Đã hủy liên kết VIETQR.');
       invalidateOrderQueries(queryClient, orderId);
     },
     onError: (err) => {

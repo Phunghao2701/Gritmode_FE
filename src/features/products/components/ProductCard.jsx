@@ -10,7 +10,6 @@ import OutOfStockOverlay from './OutOfStockOverlay';
 import { requireApiObject } from '../../../shared/services/responseContract';
 import {
   formatProductPriceRange,
-  slugifyProductName,
   getSizedProductImageUrl,
 } from '../utils/product.utils';
 
@@ -18,7 +17,7 @@ export default function ProductCard({ product }) {
   const [isHovered, setIsHovered] = useState(false);
 
   const name = product?.name_product || product?.title || product?.name || 'Sản phẩm Gritmode';
-  const productSlug = product?.slug_product || (product ? slugifyProductName(name) : '');
+  const productSlug = product?.slug_product || product?.product_id || product?.id || '';
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
@@ -47,17 +46,10 @@ export default function ProductCard({ product }) {
   const originalMinPrice = Number(product.original_min_price || product.original_price || minPrice);
   const originalMaxPrice = Number(product.original_max_price || product.original_price || maxPrice);
 
-  // The public catalog already contains active products, while the list
-  // response does not expose `is_active`. Do not turn a missing field into a
-  // false out-of-stock state.
-  const isActive = product.is_active === undefined || product.is_active === true;
-  const isAvailable = isActive && (
-    product.is_available !== undefined
-      ? product.is_available === true
-      : product.total_stock !== undefined
-        ? Number(product.total_stock) > 0
-        : true
-  );
+  // Availability is a server-owned state. Never infer "in stock" when the
+  // catalog response is missing the field; stale/legacy data must not make a
+  // sold-out product look purchasable.
+  const isAvailable = product.is_available === true;
   const hasSale = originalMinPrice > minPrice;
   const discountPercent = hasSale && originalMinPrice > 0
     ? Math.round((1 - minPrice / originalMinPrice) * 100)

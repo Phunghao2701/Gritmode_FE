@@ -15,6 +15,7 @@ const normalizeCartItem = (row) => {
   const cartItemId = Number(row.cart_item_id || row.id || 0);
   const variantId = Number(row.product_variant_id || row.variantId || 0);
   const price = Number(row.price || 0);
+  const originalPrice = Number(row.original_price ?? row.originalPrice ?? price);
   const quantity = Number(row.quantity || row.quantity_cart_item || 1);
   const available = Number(row.quantity_available);
   if (!Number.isFinite(available) || available < 0) {
@@ -33,6 +34,8 @@ const normalizeCartItem = (row) => {
     name_product: row.name_product || row.title || 'Sản phẩm Gritmode',
     sku: row.sku || '',
     price,
+    original_price: originalPrice,
+    has_sale: originalPrice > price,
     quantity,
     quantity_cart_item: quantity,
     quantity_available: available,
@@ -122,7 +125,7 @@ export const useCartStore = create(
       },
 
       // Add Item to Cart (Optimistic UI)
-      addItem: async ({ variantId, product_variant_id, productId, quantity = 1, quantity_available, title, price, image, variant }) => {
+      addItem: async ({ variantId, product_variant_id, productId, quantity = 1, quantity_available, title, price, originalPrice, original_price, image, variant, animate = true, sourceRect }) => {
         const targetVariantId = Number(product_variant_id || variantId);
         if (!targetVariantId) {
           toast.error('Vui lòng chọn phân loại sản phẩm hợp lệ.');
@@ -156,6 +159,7 @@ export const useCartStore = create(
           });
         } else {
           const itemPrice = Number(price || 0);
+          const itemOriginalPrice = Number(original_price ?? originalPrice ?? itemPrice);
           const optimisticItem = normalizeCartItem({
             id: `temp-${Date.now()}`,
             cart_item_id: null,
@@ -165,6 +169,7 @@ export const useCartStore = create(
             name_product: title || 'Sản phẩm Gritmode',
             title: title || 'Sản phẩm Gritmode',
             price: itemPrice,
+            original_price: itemOriginalPrice,
             quantity: qty,
             quantity_cart_item: qty,
             quantity_available,
@@ -182,9 +187,19 @@ export const useCartStore = create(
         set({
           items: optimisticItems,
           summary: { total_items: optimisticTotalItems, subtotal: optimisticSubtotal },
-          isDrawerOpen: true,
           isMutating: true,
         });
+
+        if (animate && typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('gritmode:cart-item-added', {
+            detail: {
+              image: image || '',
+              title: title || 'Sản phẩm Gritmode',
+              quantity: qty,
+              sourceRect: sourceRect || null,
+            },
+          }));
+        }
 
         // 2. Synchronize with Backend
         try {
