@@ -210,7 +210,7 @@ const normalizePhone = (phone) => {
       resetCartState();
       toast.success('Đặt hàng thành công!');
 
-      // Directly navigate to finalized order page with embedded VietQR / order details
+      // Directly navigate to the finalized order page; PayOS checkout is hosted externally.
       router.push(`/orders/${orderData.order_id}/success`, {
         state: { order: orderData },
       });

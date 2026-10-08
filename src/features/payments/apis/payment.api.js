@@ -23,9 +23,16 @@ export const getOrderPaymentApi = (orderId, guestInfo = {}, detailToken) => {
  * Tạo mới / Tạo lại link thanh toán payOS cho đơn hàng
  * @param {object|number} data - { order_id } or orderId number
  */
-export const createPayOSPaymentApi = (data) => {
+export const createPayOSPaymentApi = (data, guestInfo = {}) => {
   const orderId = typeof data === 'object' ? data.order_id || data.orderId : data;
-  return api.post('/payments/payos', { order_id: Number(orderId) });
+  const headers = {};
+  if (guestInfo.email) headers['X-Guest-Email'] = guestInfo.email;
+  if (guestInfo.phone) headers['X-Guest-Phone'] = guestInfo.phone;
+  return api.post(
+    '/payments/payos',
+    { order_id: Number(orderId) },
+    { headers: Object.keys(headers).length ? headers : undefined },
+  );
 };
 
 /**

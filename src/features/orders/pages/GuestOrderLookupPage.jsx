@@ -7,6 +7,8 @@ import { useGuestOrderLookup, useGuestCancelOrder } from '../hooks/useOrders';
 import { getOrderStatusInfo, getPaymentStatusInfo, isOrderCancellable } from '../utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import { requireApiObject } from '../../../shared/services/responseContract';
+import PayOSPaymentCard from '../../payments/components/PayOSPaymentCard';
+import { usePaymentCountdown } from '../../payments/hooks/usePayment';
 
 export default function GuestOrderLookupPage() {
   const searchParams = useSearchParams();
@@ -83,6 +85,11 @@ export default function GuestOrderLookupPage() {
   const orderStatus = searchedOrder ? getOrderStatusInfo(searchedOrder.status_order) : null;
   const paymentStatus = searchedOrder ? getPaymentStatusInfo(searchedOrder.payment?.status_payment) : null;
   const cancellable = searchedOrder ? isOrderCancellable(searchedOrder.status_order, searchedOrder.payment?.status_payment) : false;
+  const guestPayment = searchedOrder?.payment;
+  const guestPaymentMethod = String(guestPayment?.payment_method || '').toLowerCase();
+  const guestPaymentIsPending = guestPaymentMethod === 'payos'
+    && ['pending', 'processing'].includes(String(guestPayment?.status_payment || '').toLowerCase());
+  const guestRemainingSeconds = usePaymentCountdown(guestPayment?.expired_at);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-10">
@@ -238,6 +245,19 @@ export default function GuestOrderLookupPage() {
               <span className="text-base font-display">{formatPriceVND(searchedOrder.total_order)}</span>
             </div>
           </div>
+
+          {guestPaymentIsPending && (
+            <div className="space-y-3">
+              {guestPayment.payment_display?.qr_code ? (
+                <PayOSPaymentCard
+                  payment={guestPayment}
+                  remainingSeconds={guestRemainingSeconds}
+                />
+              ) : (
+                <p className="rounded-2xl border border-rose-200 px-4 py-5 text-center text-xs text-rose-600 dark:border-rose-900/60 dark:text-rose-400">Liên kết thanh toán chưa sẵn sàng.</p>
+              )}
+            </div>
+          )}
 
           {/* Cancel button if eligible */}
           {cancellable && (

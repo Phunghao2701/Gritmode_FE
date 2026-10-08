@@ -1,20 +1,19 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { getMyOrderByIdApi, getSharedOrderByIdApi } from '../../orders/apis/order.api';
 import { useOrderPayment, useCreatePayOSPayment, usePaymentCountdown } from '../../payments/hooks/usePayment';
-import { formatCountdown, parseVietQR } from '../../payments/utils/payment.utils';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import { useAuthStore } from '@/shared/store/authStore';
-import { toast } from '../../../shared/utils/toast';
 import ErrorState from '../../../shared/components/ErrorState';
 import { requireApiObject } from '../../../shared/services/responseContract';
 import { CACHE_STALE_TIME } from '../../../shared/services/cachePolicy';
+import PayOSPaymentCard from '../../payments/components/PayOSPaymentCard';
 
 export default function OrderSuccessPage() {
   const params = useParams();
@@ -23,7 +22,6 @@ export default function OrderSuccessPage() {
   const searchParams = useSearchParams();
   const orderDetailToken = searchParams.get('token');
   const { isAuthenticated } = useAuthStore();
-  const [copiedField, setCopiedField] = useState(null);
 
   // 1. Fetch Order Details (Both Guest & Authenticated)
   const { data: fetchedOrder, isPending: isOrderPending, isError: isOrderError, refetch: refetchOrder } = useQuery({
@@ -50,6 +48,8 @@ export default function OrderSuccessPage() {
     isPaid,
     isExpired,
     isFailed,
+    isError: isPaymentError,
+    isPaymentReady,
     refetch: refetchPayment,
   } = useOrderPayment(orderId, {
     enabled: !!orderId && (isAuthenticated || Boolean(order?.email_order && order?.phone_order)),
@@ -66,27 +66,36 @@ export default function OrderSuccessPage() {
     refetchOrder();
   });
 
-  const qrDetails = parseVietQR(payment?.qr_code);
-  const paymentMethod = (payment?.payment_method || order?.payment?.payment_method || 'cod').toLowerCase();
+  const paymentMethod = (order?.payment?.payment_method || payment?.payment_method || '').toLowerCase();
   const isPayOS = paymentMethod === 'payos';
-  const effectivePaid = isPaid || order?.payment?.status_payment === 'paid';
+  const effectivePaid = isPayOS ? isPaymentReady && isPaid : false;
   const isTimeExpired = Boolean(payment?.expired_at && remainingSeconds <= 0);
   const effectiveExpired = isExpired || (isTimeExpired && !effectivePaid);
 
-  const copyToClipboard = (text, fieldName) => {
-    if (!text) return;
-    navigator.clipboard.writeText(String(text));
-    setCopiedField(fieldName);
-    toast.success(`Đã sao chép ${fieldName}!`);
-    setTimeout(() => setCopiedField(null), 2000);
-  };
-
-  const transferContent = qrDetails?.description || `ORDER${orderId}`;
   const orderAmount = payment?.amount_payment || order?.total_order || 0;
   const items = Array.isArray(order?.items) ? order.items : [];
 
   if (isOrderError || (!isOrderLoading && !order)) {
     return <ErrorState onRetry={refetchOrder} title="Không thể tải đơn hàng" />;
+  }
+
+  if (isPaymentError && isPayOS) {
+    return <ErrorState onRetry={refetchPayment} title="Không thể tải trạng thái thanh toán" />;
+  }
+
+  if (isOrderLoading || (isPayOS && !isPaymentReady)) {
+    return (
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+        <LoadingSkeleton height="7rem" className="rounded-3xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+          <div className="lg:col-span-7 space-y-6">
+            <LoadingSkeleton height="13rem" className="rounded-3xl" />
+            <LoadingSkeleton height="10rem" className="rounded-3xl" />
+          </div>
+          <LoadingSkeleton height="34rem" className="lg:col-span-5 rounded-3xl" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -101,7 +110,7 @@ export default function OrderSuccessPage() {
                 ? 'solar:check-circle-bold'
                 : effectiveExpired || isFailed
                   ? 'solar:danger-triangle-bold'
-                  : 'solar:qr-code-bold'
+                  : 'solar:shield-check-bold'
             }
             className={`text-3xl sm:text-4xl shrink-0 ${
               effectivePaid || !isPayOS
@@ -125,7 +134,7 @@ export default function OrderSuccessPage() {
               {effectivePaid
                 ? 'Thanh toán thành công'
                 : isPayOS
-                  ? 'Đơn hàng đã chốt — Quét mã VietQR để hoàn tất'
+                  ? 'Đơn hàng đã chốt — Quét mã để hoàn tất'
                   : 'Đặt hàng thành công'}
             </h1>
           </div>
@@ -257,7 +266,7 @@ export default function OrderSuccessPage() {
               <div className="flex justify-between text-neutral-500 font-normal uppercase tracking-wider">
                 <span>Phương thức thanh toán:</span>
                 <span className="font-[550] text-black dark:text-white uppercase">
-                  {isPayOS ? 'Chuyển khoản VietQR (payOS)' : 'Thanh toán khi nhận hàng (COD)'}
+                  {isPayOS ? 'Thanh toán trực tuyến qua payOS' : 'Thanh toán khi nhận hàng (COD)'}
                 </span>
               </div>
               <div className="flex justify-between text-neutral-500 font-normal uppercase tracking-wider">
@@ -303,7 +312,7 @@ export default function OrderSuccessPage() {
         </div>
 
         {/* ========================================================================= */}
-        {/* RIGHT COLUMN: Embedded VietQR Code & Payment Details (5 cols / ~42%)        */}
+        {/* RIGHT COLUMN: Hosted PayOS checkout (5 cols / ~42%)        */}
         {/* ========================================================================= */}
         <div className="lg:col-span-5 sticky top-24">
           {isPayOS ? (
@@ -342,124 +351,34 @@ export default function OrderSuccessPage() {
                     Mã thanh toán đã hết hạn
                   </h3>
                   <p className="text-xs text-neutral-500">
-                    Thời gian thanh toán cho mã QR này đã kết thúc. Bạn có thể tạo lại mã mới để hoàn tất đơn hàng.
+                    Liên kết thanh toán PayOS này đã hết hạn. Bạn có thể tạo lại liên kết mới để hoàn tất đơn hàng.
                   </p>
                 </div>
                 <PrimaryButton
-                  onClick={() => createPayOSMutation.mutate(orderId)}
+                  onClick={() => createPayOSMutation.mutate({
+                    orderId,
+                    guestInfo: {
+                      email: order?.email_order,
+                      phone: order?.phone_order,
+                    },
+                  })}
                   isLoading={createPayOSMutation.isPending}
                   className="w-full justify-center py-3.5 uppercase tracking-widest text-xs font-black rounded-2xl shadow-lg"
                 >
-                  Tạo lại mã VietQR mới
+                  Tạo lại liên kết PayOS
                 </PrimaryButton>
               </div>
             ) : (
-              /* Case C: PayOS Pending - Embedded VietQR Code */
-              <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm text-center space-y-5">
-                
-                {/* Header with Countdown */}
-                <div className="flex items-center justify-between pb-3 border-b border-neutral-100 dark:border-neutral-800 text-left">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">
-                      Quét mã ngân hàng
-                    </span>
-                    <h3 className="font-display font-black text-base text-black dark:text-white uppercase tracking-tight">
-                      Mã VietQR Chuyển khoản
-                    </h3>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold uppercase text-neutral-400 block">Hết hạn sau</span>
-                    <span className="font-mono font-black text-sm text-rose-600 dark:text-rose-400">
-                      {formatCountdown(remainingSeconds)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Big Clean Scannable QR Code */}
-                <div className="p-3 bg-white rounded-2xl inline-block border border-neutral-200 dark:border-neutral-700 mx-auto shadow-sm">
-                  {payment?.qr_code ? (
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=4&data=${encodeURIComponent(payment.qr_code)}`}
-                      alt="VietQR payOS"
-                      className="w-56 h-56 object-contain mx-auto rounded-xl"
-                    />
-                  ) : (
-                    <div className="w-60 h-60 flex flex-col items-center justify-center text-neutral-400 gap-2">
-                      <Icon icon="solar:qr-code-linear" className="text-5xl animate-pulse" />
-                      <span className="text-xs font-bold">Đang tải mã VietQR...</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Complete Bank Transfer Details with 1-Click Copy Buttons */}
-                <div className="space-y-2.5 p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-xs text-left">
-                  {/* Bank Name */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-neutral-500 dark:text-neutral-400 text-[11px] font-medium">Ngân hàng:</span>
-                    <span className="font-bold text-black dark:text-white">
-                      {qrDetails?.bank?.shortName || qrDetails?.bank?.name}
-                    </span>
-                  </div>
-
-                  {/* Account Number */}
-                  {qrDetails?.accountNumber && (
-                    <div className="flex items-center justify-between pt-2 border-t border-neutral-200/60 dark:border-neutral-800">
-                      <span className="text-neutral-500 dark:text-neutral-400 text-[11px] font-medium">Số tài khoản:</span>
-                      <button
-                        type="button"
-                        onClick={() => copyToClipboard(qrDetails.accountNumber, 'Số tài khoản')}
-                        className="flex items-center gap-1.5 font-mono font-black text-xs text-black dark:text-white bg-neutral-200/70 dark:bg-neutral-800 px-2 py-0.5 rounded-md hover:opacity-80 cursor-pointer"
-                      >
-                        <span>{qrDetails.accountNumber}</span>
-                        <Icon icon={copiedField === 'Số tài khoản' ? 'solar:check-read-linear' : 'solar:copy-linear'} className="text-sm" />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Account Name */}
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200/60 dark:border-neutral-800">
-                    <span className="text-neutral-500 dark:text-neutral-400 text-[11px] font-medium">Chủ tài khoản:</span>
-                    <span className="font-bold text-black dark:text-white uppercase">
-                      GRITMODE STORE
-                    </span>
-                  </div>
-
-                  {/* Amount */}
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200/60 dark:border-neutral-800">
-                    <span className="text-neutral-500 dark:text-neutral-400 text-[11px] font-medium">Số tiền:</span>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(orderAmount, 'Số tiền')}
-                      className="flex items-center gap-1.5 font-display font-black text-sm text-black dark:text-white hover:opacity-75 cursor-pointer"
-                    >
-                      <span>{formatPriceVND(orderAmount)}</span>
-                      <Icon icon={copiedField === 'Số tiền' ? 'solar:check-read-linear' : 'solar:copy-linear'} className="text-sm text-neutral-400" />
-                    </button>
-                  </div>
-
-                  {/* Transfer Content */}
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200/60 dark:border-neutral-800">
-                    <span className="text-neutral-500 dark:text-neutral-400 text-[11px] font-medium">Nội dung chuyển khoản:</span>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(transferContent, 'Nội dung CK')}
-                      className="flex items-center gap-1.5 font-mono font-black text-xs text-black dark:text-white bg-neutral-200 dark:bg-neutral-800 px-2.5 py-1 rounded-lg hover:opacity-80 cursor-pointer"
-                    >
-                      <span>{transferContent}</span>
-                      <Icon icon={copiedField === 'Nội dung CK' ? 'solar:check-read-linear' : 'solar:copy-linear'} className="text-sm" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Live Polling Status Indicator */}
-                <div className="flex items-center justify-center gap-2 text-[11px] font-bold text-neutral-600 dark:text-neutral-400 pt-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                  <span>Hệ thống tự động xác nhận ngay sau khi chuyển khoản...</span>
-                </div>
-
-                <p className="text-[10px] text-neutral-400 leading-tight">
-                  Mở ứng dụng Ngân hàng (Vietcombank, MB, Techcombank, Momo, VNPay...) quét mã để thanh toán tự động không cần nhập thông tin.
-                </p>
+              /* Case C: PayOS Pending - Hosted Checkout */
+              <div className="space-y-3">
+                {payment?.payment_display?.qr_code ? (
+                  <PayOSPaymentCard
+                    payment={payment}
+                    remainingSeconds={remainingSeconds}
+                  />
+                ) : (
+                  <p className="rounded-2xl border border-rose-200 px-4 py-5 text-center text-xs text-rose-600 dark:border-rose-900/60 dark:text-rose-400">Giao diện thanh toán chưa sẵn sàng.</p>
+                )}
               </div>
             )
           ) : (

@@ -119,7 +119,7 @@ Gritmode cung cấp dịch vụ giao hàng tận nơi đến **tất cả 63 t�
         id: 'timeline',
         title: '3. Thời gian xử lý & Giao hàng dự kiến',
         content: `
-- **Thời gian xử lý đóng gói:** Đơn hàng được xử lý và bàn giao cho đơn vị vận chuyển trong vòng 24 giờ làm việc sau khi đặt hàng (hoặc sau khi thanh toán VietQR thành công).
+- **Thời gian xử lý đóng gói:** Đơn hàng được xử lý và bàn giao cho đơn vị vận chuyển trong vòng 24 giờ làm việc sau khi đặt hàng (hoặc sau khi thanh toán trực tuyến qua payOS thành công).
 - **Khu vực TPHCM & Các tỉnh/thành phố miền Nam:** 1-3 ngày làm việc
 - **Khu vực miền Trung & miền Bắc:** 3-5 ngày làm việc
 - **Lưu ý:** Thời gian giao hàng có thể kéo dài thêm 1-2 ngày trong các dịp Lễ Tết, thiên tai hoặc đợt Siêu Sale lớn
@@ -210,7 +210,7 @@ Gritmode hỗ trợ sửa chữa hoặc thay thế linh kiện miễn phí đố
     tableOfContents: [
       { id: 'methods', title: '1. Các phương thức thanh toán được hỗ trợ' },
       { id: 'cod', title: '2. Thanh toán tiền mặt khi nhận hàng (COD)' },
-      { id: 'payos', title: '3. Chuyển khoản VietQR tức thì (payOS / NAPAS247)' },
+      { id: 'payos', title: '3. Thanh toán trực tuyến qua payOS' },
       { id: 'security', title: '4. Bảo mật giao dịch & Xác nhận tự động' },
       { id: 'troubleshooting', title: '5. Xử lý sự cố giao dịch & Chuyển nhầm' },
     ],
@@ -221,7 +221,7 @@ Gritmode hỗ trợ sửa chữa hoặc thay thế linh kiện miễn phí đố
         content: `
 Gritmode hỗ trợ 02 phương thức thanh toán chính thức tại cổng thanh toán:
 1. **Thanh toán tiền mặt khi nhận hàng (COD - Cash on Delivery)**.
-2. **Chuyển khoản VietQR tự động qua cổng thanh toán payOS (Chuẩn NAPAS247)**.
+2. **Thanh toán trực tuyến qua trang hosted của payOS**.
 *(Lưu ý: Hệ thống hiện tại không yêu cầu nhập thông tin thẻ quốc tế trực tiếp nhằm bảo vệ tuyệt đối dữ liệu tài chính của khách hàng).*
         `,
       },
@@ -235,10 +235,10 @@ Gritmode hỗ trợ 02 phương thức thanh toán chính thức tại cổng th
       },
       {
         id: 'payos',
-        title: '3. Chuyển khoản VietQR tức thì (payOS / NAPAS247)',
+        title: '3. Thanh toán trực tuyến qua payOS',
         content: `
-- Sau khi bấm *"Đặt hàng ngay"*, hệ thống sẽ hiển thị mã **VietQR động** chứa chính xác số tiền và nội dung chuyển khoản \`ORDER<mã_đơn_hàng>\`.
-- Khách hàng mở ứng dụng ngân hàng di động (Vietcombank, MB, Techcombank, VPBank, ACB, Momo, VNPay...) và quét mã QR.
+- Sau khi bấm *"Đặt hàng ngay"*, hệ thống sẽ mở trang thanh toán hosted của **payOS** với chính xác số tiền và mã đơn hàng.
+- Khách hàng thực hiện thanh toán trực tiếp trên trang hosted của payOS bằng phương thức được hỗ trợ.
 - Hệ thống máy chủ tự động kết nối qua Webhook NAPAS247 và kích hoạt trạng thái **ĐÃ THANH TOÁN** ngay lập tức trong 2-5 giây mà không cần nhân viên đối soát thủ công.
         `,
       },
@@ -247,7 +247,7 @@ Gritmode hỗ trợ 02 phương thức thanh toán chính thức tại cổng th
         title: '4. Bảo mật giao dịch & Xác nhận tự động',
         content: `
 - Toàn bộ phiên giao dịch được mã hóa theo tiêu chuẩn an toàn **SSL 256-bit**.
-- Mã QR VietQR có hiệu lực thanh toán trong vòng **15 phút**. Sau thời gian này, nếu chưa hoàn tất, bạn có thể tạo lại mã mới trên trang xác nhận đơn hàng.
+- Liên kết thanh toán payOS có hiệu lực trong vòng **15 phút**. Sau thời gian này, nếu chưa hoàn tất, bạn có thể tạo lại liên kết mới trên trang xác nhận đơn hàng.
         `,
       },
       {
@@ -362,7 +362,7 @@ Khi truy cập và tiến hành đặt mua hàng trên website của **Gritmode�
         id: 'orders',
         title: '4. Xác lập đơn hàng & Hủy đơn',
         content: `
-- Đơn hàng chỉ được xác nhận chính thức sau khi hệ thống gửi thông báo tạo đơn thành công và tiếp nhận thanh toán (đối với VietQR) hoặc xác nhận thông tin giao hàng COD.
+- Đơn hàng chỉ được xác nhận chính thức sau khi hệ thống gửi thông báo tạo đơn thành công và tiếp nhận thanh toán (đối với payOS) hoặc xác nhận thông tin giao hàng COD.
 - Gritmode có quyền từ chối hoặc hủy đơn hàng trong trường hợp bất khả kháng như sản phẩm hết hàng lưu kho đột xuất, lỗi hiển thị giá sai lệch nghiêm trọng do sự cố kỹ thuật.
         `,
       },
