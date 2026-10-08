@@ -38,6 +38,27 @@ import {
 import { requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 
+const updateAdminOrderStatusCache = (queryClient, orderId, status) => {
+  queryClient.setQueriesData({ queryKey: ['admin-orders'] }, (cached) => {
+    if (!cached?.items) return cached;
+    return {
+      ...cached,
+      items: cached.items.map((item) => (
+        Number(item.order_id) === Number(orderId)
+          ? { ...item, status_order: status }
+          : item
+      )),
+    };
+  });
+
+  const ids = new Set([orderId, String(orderId), Number(orderId)]);
+  ids.forEach((id) => {
+    queryClient.setQueryData(['admin-order-detail', id], (cached) => (
+      cached ? { ...cached, status_order: status } : cached
+    ));
+  });
+};
+
 export const useAdminDashboardOverview = () => {
   return useQuery({
     queryKey: ['admin-dashboard-overview'],
@@ -99,7 +120,8 @@ export const useAdminOrders = (params = {}) => {
 
   const confirmMutation = useMutation({
     mutationFn: (orderId) => confirmAdminOrderApi(orderId),
-    onSuccess: () => {
+    onSuccess: (_res, orderId) => {
+      updateAdminOrderStatusCache(queryClient, orderId, 'confirmed');
       toast.success('Đã xác nhận đơn hàng thành công!');
       invalidateAdminOperationalQueries(queryClient);
     },
@@ -108,7 +130,8 @@ export const useAdminOrders = (params = {}) => {
 
   const processMutation = useMutation({
     mutationFn: (orderId) => processAdminOrderApi(orderId),
-    onSuccess: () => {
+    onSuccess: (_res, orderId) => {
+      updateAdminOrderStatusCache(queryClient, orderId, 'processing');
       toast.success('Đã chuyển đơn hàng sang trạng thái đang xử lý / chuẩn bị hàng!');
       invalidateAdminOperationalQueries(queryClient);
     },
@@ -117,7 +140,8 @@ export const useAdminOrders = (params = {}) => {
 
   const shipMutation = useMutation({
     mutationFn: (orderId) => shipAdminOrderApi(orderId),
-    onSuccess: () => {
+    onSuccess: (_res, orderId) => {
+      updateAdminOrderStatusCache(queryClient, orderId, 'shipping');
       toast.success('Đã bàn giao đơn hàng cho đơn vị vận chuyển!');
       invalidateAdminOperationalQueries(queryClient);
     },
@@ -126,7 +150,8 @@ export const useAdminOrders = (params = {}) => {
 
   const completeMutation = useMutation({
     mutationFn: (orderId) => completeAdminOrderApi(orderId),
-    onSuccess: () => {
+    onSuccess: (_res, orderId) => {
+      updateAdminOrderStatusCache(queryClient, orderId, 'completed');
       toast.success('Đã hoàn tất đơn hàng thành công!');
       invalidateAdminOperationalQueries(queryClient);
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
@@ -136,7 +161,8 @@ export const useAdminOrders = (params = {}) => {
 
   const cancelMutation = useMutation({
     mutationFn: ({ orderId, reason }) => cancelAdminOrderApi(orderId, reason),
-    onSuccess: () => {
+    onSuccess: (_res, { orderId }) => {
+      updateAdminOrderStatusCache(queryClient, orderId, 'cancelled');
       toast.success('Đã hủy đơn hàng thành công!');
       invalidateAdminOperationalQueries(queryClient);
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
