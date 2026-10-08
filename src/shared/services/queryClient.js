@@ -36,7 +36,7 @@ export function getQueryClient() {
 // Singleton reference for browser-side imports
 export const queryClient = typeof window !== 'undefined' ? getQueryClient() : makeQueryClient();
 
-const PUBLIC_QUERY_KEYS = new Set([
+export const PUBLIC_QUERY_KEYS = new Set([
   'products',
   'product-detail',
   'categories-public-tree',

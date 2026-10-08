@@ -43,16 +43,50 @@ export const cancelAdminOrderApi = (orderId, reason) => {
 };
 
 // 2.5 Admin Notifications
+// Keep the compact popover and the expanded view on the same first-page dataset.
+// The short memo window also prevents a second network wait when the user expands
+// the panel immediately after it has loaded.
+const ADMIN_NOTIFICATIONS_LIMIT = 100;
+const ADMIN_NOTIFICATIONS_CACHE_TTL = 5000;
+const adminNotificationsCache = new Map();
+
+const getAdminNotificationsCacheKey = (params = {}) => JSON.stringify({
+  page: Number(params.page) || 1,
+  unread_only: params.unread_only === true || params.unread_only === 'true',
+});
+
 export const getAdminNotificationsApi = (params = {}) => {
-  return api.get('/admin/notifications', { params });
+  const requestParams = {
+    ...params,
+    limit: ADMIN_NOTIFICATIONS_LIMIT,
+  };
+  const cacheKey = getAdminNotificationsCacheKey(requestParams);
+  const cached = adminNotificationsCache.get(cacheKey);
+  const now = Date.now();
+
+  if (cached && cached.expiresAt > now) {
+    return cached.promise;
+  }
+
+  const promise = api.get('/admin/notifications', { params: requestParams }).catch((error) => {
+    adminNotificationsCache.delete(cacheKey);
+    throw error;
+  });
+  adminNotificationsCache.set(cacheKey, {
+    promise,
+    expiresAt: now + ADMIN_NOTIFICATIONS_CACHE_TTL,
+  });
+  return promise;
 };
 
+const clearAdminNotificationsCache = () => adminNotificationsCache.clear();
+
 export const markAdminNotificationReadApi = (notificationId) => {
-  return api.patch(`/admin/notifications/${notificationId}/read`);
+  return api.patch(`/admin/notifications/${notificationId}/read`).finally(clearAdminNotificationsCache);
 };
 
 export const markAllAdminNotificationsReadApi = () => {
-  return api.patch('/admin/notifications/read-all');
+  return api.patch('/admin/notifications/read-all').finally(clearAdminNotificationsCache);
 };
 
 // 3. Products
