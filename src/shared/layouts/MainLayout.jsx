@@ -1,3 +1,4 @@
+/* global process */
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
@@ -14,6 +15,12 @@ import { useCollections } from '../../features/collections/hooks/useCollection';
 import { useProducts } from '../../features/products/hooks/useProducts';
 import { formatPriceVND } from '../../features/products/utils/product.utils';
 import { useBanners } from '../../features/landing/hooks/useBanners';
+
+const SOCIAL_LINKS = [
+  { href: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK_URL, icon: 'simple-icons:facebook', label: 'Gritmode Facebook Page' },
+  { href: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM_URL, icon: 'simple-icons:instagram', label: 'Gritmode Instagram Official' },
+  { href: process.env.NEXT_PUBLIC_SOCIAL_TIKTOK_URL, icon: 'simple-icons:tiktok', label: 'Gritmode TikTok Channel' },
+].filter((social) => social.href);
 
 export default function MainLayout({ children }) {
   const router = useRouter();
@@ -1041,42 +1048,18 @@ export default function MainLayout({ children }) {
                 Thương hiệu thời trang đường phố Việt Nam đại diện cho tinh thần và tiếng nói của thế hệ trẻ — nơi phong cách sống tự do, tư duy sáng tạo và cá tính độc bản được định hình từ những giá trị nghệ thuật cốt lõi.
               </p>
               <div className="flex items-center gap-3 pt-2 text-xl text-black dark:text-white">
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Gritmode Facebook Page"
-                  className="hover:opacity-60 transition-opacity"
-                >
-                  <Icon icon="simple-icons:facebook" />
-                </a>
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Gritmode Instagram Official"
-                  className="hover:opacity-60 transition-opacity"
-                >
-                  <Icon icon="simple-icons:instagram" />
-                </a>
-                <a
-                  href="https://tiktok.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Gritmode TikTok Channel"
-                  className="hover:opacity-60 transition-opacity"
-                >
-                  <Icon icon="simple-icons:tiktok" />
-                </a>
-                <a
-                  href="https://youtube.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Gritmode YouTube Channel"
-                  className="hover:opacity-60 transition-opacity"
-                >
-                  <Icon icon="simple-icons:youtube" />
-                </a>
+                {SOCIAL_LINKS.map((social) => (
+                  <a
+                    key={social.href}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={social.label}
+                    className="hover:opacity-60 transition-opacity"
+                  >
+                    <Icon icon={social.icon} />
+                  </a>
+                ))}
               </div>
             </div>
 

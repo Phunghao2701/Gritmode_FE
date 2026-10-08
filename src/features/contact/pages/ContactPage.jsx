@@ -1,3 +1,4 @@
+/* global process */
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -5,6 +6,12 @@ import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import InputField from '../../../shared/components/InputField';
 import { toast } from '../../../shared/utils/toast';
+
+const SOCIAL_CHANNELS = [
+  { name: 'Instagram', icon: 'solar:camera-linear', href: process.env.NEXT_PUBLIC_SOCIAL_INSTAGRAM_URL },
+  { name: 'Facebook', icon: 'solar:like-linear', href: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK_URL },
+  { name: 'TikTok', icon: 'solar:play-circle-linear', href: process.env.NEXT_PUBLIC_SOCIAL_TIKTOK_URL },
+].filter((social) => social.href);
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -174,13 +181,9 @@ export default function ContactPage() {
 
               {/* Social Channels */}
               <div className="pt-3 border-t border-neutral-200/60 dark:border-neutral-800 flex items-center gap-2">
-                {[
-                  { name: 'Instagram', icon: 'solar:camera-linear', href: 'https://instagram.com' },
-                  { name: 'Facebook', icon: 'solar:like-linear', href: 'https://facebook.com' },
-                  { name: 'TikTok', icon: 'solar:play-circle-linear', href: 'https://tiktok.com' },
-                ].map((soc, idx) => (
+                {SOCIAL_CHANNELS.map((soc) => (
                   <a
-                    key={idx}
+                    key={soc.href}
                     href={soc.href}
                     target="_blank"
                     rel="noopener noreferrer"
