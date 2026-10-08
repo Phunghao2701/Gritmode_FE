@@ -73,7 +73,9 @@ export const useAdminNotifications = ({ includeAll = false } = {}) => {
               queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
               return;
             }
-            if (event !== 'admin.notification.created') return;
+            const isNotificationCreated = event === 'admin.notification.created';
+            const isOrderUpdated = event === 'admin.order.updated';
+            if (!isNotificationCreated && !isOrderUpdated) return;
 
             const eventId = id || data?.notification_id || data?.id;
             if (eventId && seenEventIdsRef.current.has(String(eventId))) return;
@@ -86,6 +88,10 @@ export const useAdminNotifications = ({ includeAll = false } = {}) => {
             }
 
             setIsConnected(true);
+            if (isOrderUpdated) {
+              invalidateAdminOperationalQueries(queryClient);
+              return;
+            }
             queryClient.invalidateQueries({ queryKey: ['admin-notifications'] });
             invalidateAdminOperationalQueries(queryClient);
             toast.info(data?.title || 'Có thông báo quản trị mới');
