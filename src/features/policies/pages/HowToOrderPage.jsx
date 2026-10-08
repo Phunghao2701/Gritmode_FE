@@ -63,7 +63,7 @@ export default function HowToOrderPage() {
           {steps.map((s, idx) => (
             <div
               key={idx}
-              className="py-7 md:px-8 space-y-3 border-b md:border-b-0 md:border-r last:border-b-0 md:last:border-r-0 border-neutral-200 dark:border-neutral-800 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-950"
+              className={`py-7 md:px-8 space-y-3 border-b last:border-b-0 md:border-b-0 ${idx % 2 === 0 ? 'md:border-r' : ''} ${idx >= 2 ? 'md:border-t' : ''} border-neutral-200 dark:border-neutral-800 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-950`}
             >
               <div className="flex items-center justify-between">
                 <div className="w-10 h-10 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-base">
@@ -116,20 +116,20 @@ export default function HowToOrderPage() {
         </div>
 
         {/* CTA */}
-        <div className="py-8 sm:py-10 border-y border-neutral-200 dark:border-neutral-800 text-center space-y-4">
+        <div className="py-7 sm:py-8 border-y border-neutral-200 dark:border-neutral-800 text-center space-y-3">
           <h3 className="font-sans font-[550] text-xl sm:text-2xl uppercase tracking-widest">
             Bắt đầu mua sắm cùng Gritmode
           </h3>
           <p className="text-xs text-neutral-500 max-w-md mx-auto">
             Khám phá các thiết kế streetwear mới nhất của Gritmode.
           </p>
-          <div className="pt-2">
+          <div className="pt-1">
             <Link href="/products">
               <PrimaryButton
-                variant="secondary"
+                variant="primary"
                 className="px-8 py-3.5 text-xs font-[550] uppercase tracking-widest rounded-full"
               >
-                Khám phá ngay
+                Xem sản phẩm
               </PrimaryButton>
             </Link>
           </div>
