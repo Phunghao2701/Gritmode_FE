@@ -21,6 +21,32 @@ export const getMyOrderByIdApi = (orderId) => {
 };
 
 /**
+ * Lấy chi tiết đơn hàng từ signed link trong email (Guest)
+ * @param {number|string} orderId
+ * @param {string} token
+ */
+export const getSharedOrderByIdApi = (orderId, token) => {
+  return publicApi.get(`/orders/shared/${orderId}`, {
+    params: { token },
+  });
+};
+
+/**
+ * Tạo signed link tới chi tiết đơn hàng sau khi xác thực quyền truy cập
+ * @param {number|string} orderId
+ * @param {{email?: string, phone?: string}} guestInfo
+ */
+export const createOrderDetailLinkApi = (orderId, guestInfo = {}) => {
+  const headers = {};
+  if (guestInfo.email) headers['X-Guest-Email'] = guestInfo.email;
+  if (guestInfo.phone) headers['X-Guest-Phone'] = guestInfo.phone;
+
+  return api.post(`/orders/${orderId}/detail-link`, null, {
+    headers: Object.keys(headers).length ? headers : undefined,
+  });
+};
+
+/**
  * Hủy đơn hàng của người dùng hiện tại (Authenticated)
  * @param {number|string} orderId
  */

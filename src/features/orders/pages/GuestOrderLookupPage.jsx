@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import { useGuestOrderLookup, useGuestCancelOrder } from '../hooks/useOrders';
@@ -8,6 +9,8 @@ import { formatPriceVND } from '../../products/utils/product.utils';
 import { requireApiObject } from '../../../shared/services/responseContract';
 
 export default function GuestOrderLookupPage() {
+  const searchParams = useSearchParams();
+  const orderCodeParam = searchParams.get('orderCode') || searchParams.get('order_code') || '';
   const [formData, setFormData] = useState({
     order_code: '',
     email: '',
@@ -18,6 +21,16 @@ export default function GuestOrderLookupPage() {
 
   const lookupMutation = useGuestOrderLookup();
   const cancelMutation = useGuestCancelOrder();
+
+  useEffect(() => {
+    const normalizedOrderCode = orderCodeParam.trim().toUpperCase();
+    if (!normalizedOrderCode) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      order_code: normalizedOrderCode,
+    }));
+  }, [orderCodeParam]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

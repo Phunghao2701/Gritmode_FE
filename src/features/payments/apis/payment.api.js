@@ -8,8 +8,15 @@ import api from '../../../shared/services/api';
  * Lấy thông tin thanh toán hiện tại của đơn hàng (Polling payOS status)
  * @param {number|string} orderId
  */
-export const getOrderPaymentApi = (orderId) => {
-  return api.get(`/orders/${orderId}/payment`);
+export const getOrderPaymentApi = (orderId, guestInfo = {}, detailToken) => {
+  const headers = {};
+  if (guestInfo.email) headers['X-Guest-Email'] = guestInfo.email;
+  if (guestInfo.phone) headers['X-Guest-Phone'] = guestInfo.phone;
+  if (detailToken) headers['X-Order-Detail-Token'] = detailToken;
+
+  return api.get(`/orders/${orderId}/payment`, {
+    headers: Object.keys(headers).length ? headers : undefined,
+  });
 };
 
 /**

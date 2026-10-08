@@ -167,7 +167,7 @@ export const useAdminOrderDetail = (orderId) => {
   return useQuery({
     queryKey: ['admin-order-detail', orderId],
     staleTime: CACHE_STALE_TIME.orderDetail,
-    refetchOnMount: 'always',
+    refetchOnMount: false,
     refetchOnReconnect: true,
     queryFn: async () => {
       if (!orderId) return null;
