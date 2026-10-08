@@ -134,13 +134,14 @@ export default function AdminProductsPage() {
                       <th className="pb-3 font-black">Sản phẩm</th>
                       <th className="pb-3 font-black">Mô tả</th>
                       <th className="pb-3 font-black text-center">Khoảng giá</th>
+                      <th className="pb-3 font-black text-center" title="Tồn kho khả dụng sau khi trừ số lượng đang giữ">Tồn kho</th>
                       <th className="pb-3 font-black text-right">Hành động</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
                     {products.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="py-8 text-center text-neutral-400">
+                        <td colSpan={5} className="py-8 text-center text-neutral-400">
                           Không tìm thấy sản phẩm nào phù hợp.
                         </td>
                       </tr>
@@ -159,6 +160,12 @@ export default function AdminProductsPage() {
                         const status = p.status_product || 'draft';
                         const isDraft = status === 'draft';
                         const statusLabel = status === 'active' ? 'Đang bán' : 'Bản nháp';
+                        const quantityAvailable = Number(p.quantity_available);
+                        const stockTone = quantityAvailable <= 0
+                          ? 'text-rose-600 dark:text-rose-400'
+                          : quantityAvailable <= 5
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-emerald-600 dark:text-emerald-400';
 
                         return (
                           <tr key={productId} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
@@ -205,6 +212,12 @@ export default function AdminProductsPage() {
                               <div className={hasSale ? 'font-black text-red-600 dark:text-red-500' : 'font-black'}>
                                 {minPrice === maxPrice ? formatPriceVND(minPrice) : `${formatPriceVND(minPrice)} - ${formatPriceVND(maxPrice)}`}
                               </div>
+                            </td>
+                            <td className="py-4 text-center" title="Tồn kho khả dụng sau khi trừ số lượng đang giữ">
+                              <span className={`font-black tabular-nums ${stockTone}`}>
+                                {quantityAvailable}
+                              </span>
+                              <span className="ml-1 text-[10px] text-neutral-400">sp</span>
                             </td>
                             <td className="py-4 text-right">
                               <div className="flex items-center justify-end gap-2">
