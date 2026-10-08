@@ -1,7 +1,7 @@
 /* global process */
 'use client';
 
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense, useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -15,6 +15,10 @@ import { tokenService } from '@/features/auth/services/token.service';
 import { refreshTokenApi } from '@/features/auth/apis/auth.api';
 import { useAuthStore } from '@/shared/store/authStore';
 import { invalidateCriticalQueries } from '@/shared/services/cachePolicy';
+import {
+  restorePersistedQueryCache,
+  subscribeToPersistedQueryCache,
+} from '@/shared/services/queryPersistence';
 
 const googleClientId = process.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -89,6 +93,33 @@ function CacheLifecycle() {
   return null;
 }
 
+function CachePersistenceGate({ queryClient, children }) {
+  const [isRestored, setIsRestored] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    let unsubscribe = () => {};
+
+    restorePersistedQueryCache(queryClient).finally(() => {
+      if (!active) return;
+
+      unsubscribe = subscribeToPersistedQueryCache(queryClient);
+      setIsRestored(true);
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [queryClient]);
+
+  if (!isRestored) {
+    return <div className="min-h-screen bg-white dark:bg-black" aria-busy="true" />;
+  }
+
+  return children;
+}
+
 export default function Providers({ children }) {
   const queryClient = getQueryClient();
 
@@ -102,12 +133,14 @@ export default function Providers({ children }) {
           <AppToast />
           <AuthInit />
           <CacheLifecycle />
-          {children}
-          {ReactQueryDevtools && (
-            <Suspense fallback={null}>
-              <ReactQueryDevtools initialIsOpen={false} />
-            </Suspense>
-          )}
+          <CachePersistenceGate queryClient={queryClient}>
+            {children}
+            {ReactQueryDevtools && (
+              <Suspense fallback={null}>
+                <ReactQueryDevtools initialIsOpen={false} />
+              </Suspense>
+            )}
+          </CachePersistenceGate>
         </SmoothScrollProvider>
       </QueryClientProvider>
     </GoogleOAuthProvider>
