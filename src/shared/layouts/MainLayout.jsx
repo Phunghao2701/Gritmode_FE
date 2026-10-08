@@ -69,10 +69,53 @@ export default function MainLayout({ children }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [isClientMounted, setIsClientMounted] = useState(false);
+  const [cartAnimation, setCartAnimation] = useState(null);
 
   useEffect(() => {
     setIsClientMounted(true);
   }, []);
+
+  useEffect(() => {
+    const handleCartItemAdded = (event) => {
+      const cartTrigger = [...document.querySelectorAll('[data-cart-trigger="true"]')]
+        .find((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0;
+        });
+      if (!cartTrigger) return;
+
+      const targetRect = cartTrigger.getBoundingClientRect();
+      const source = event.detail?.sourceRect || {
+        left: window.innerWidth / 2 - 24,
+        top: window.innerHeight / 2 - 24,
+        width: 48,
+        height: 48,
+      };
+      const sourceCenterX = source.left + source.width / 2;
+      const sourceCenterY = source.top + source.height / 2;
+      const targetCenterX = targetRect.left + targetRect.width / 2;
+      const targetCenterY = targetRect.top + targetRect.height / 2;
+
+      setCartAnimation({
+        id: Date.now(),
+        image: event.detail?.image || '',
+        title: event.detail?.title || 'Sản phẩm',
+        left: sourceCenterX - 22,
+        top: sourceCenterY - 22,
+        deltaX: targetCenterX - sourceCenterX,
+        deltaY: targetCenterY - sourceCenterY,
+      });
+    };
+
+    window.addEventListener('gritmode:cart-item-added', handleCartItemAdded);
+    return () => window.removeEventListener('gritmode:cart-item-added', handleCartItemAdded);
+  }, []);
+
+  useEffect(() => {
+    if (!cartAnimation) return undefined;
+    const timer = window.setTimeout(() => setCartAnimation(null), 760);
+    return () => window.clearTimeout(timer);
+  }, [cartAnimation]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -401,6 +444,7 @@ export default function MainLayout({ children }) {
                   }`}
                 title="Giỏ hàng"
                 aria-label="Cart"
+                data-cart-trigger="true"
               >
                 <Icon icon="solar:bag-3-bold" className="text-base sm:text-lg" />
                 <span className="text-[11px] sm:text-xs font-black min-w-[12px] sm:min-w-[14px] text-center">
@@ -754,6 +798,7 @@ export default function MainLayout({ children }) {
                   }}
                   className="relative p-1.5 text-neutral-800 hover:text-black cursor-pointer text-lg"
                   aria-label="Giỏ hàng"
+                  data-cart-trigger="true"
                 >
                   <Icon icon="solar:bag-linear" />
                   {cartItemCount > 0 && (
@@ -981,6 +1026,27 @@ export default function MainLayout({ children }) {
         {children}
       </main>
 
+      {cartAnimation && (
+        <div
+          className="pointer-events-none fixed z-[80] size-11"
+          style={{
+            left: cartAnimation.left,
+            top: cartAnimation.top,
+            '--cart-fly-x': `${cartAnimation.deltaX}px`,
+            '--cart-fly-y': `${cartAnimation.deltaY}px`,
+          }}
+          aria-hidden="true"
+        >
+          <div className="cart-item-fly size-11 overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-[0_6px_18px_rgba(0,0,0,0.16)]">
+            {cartAnimation.image ? (
+              <img src={cartAnimation.image} alt="" className="size-full rounded-lg object-cover" />
+            ) : (
+              <Icon icon="solar:bag-3-bold" className="grid size-full place-items-center text-xl text-black" />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Slide-out Cart Drawer */}
       {isClientMounted && <CartDrawer />}
 
@@ -1154,29 +1220,23 @@ export default function MainLayout({ children }) {
                 PHƯƠNG THỨC THANH TOÁN
               </h4>
               <p className="text-xs text-neutral-500 leading-relaxed mb-3">
-                Thanh toán an toàn, bảo mật và tiện lợi qua 2 hình thức chính thức:
+                Thanh toán an toàn, bảo mật và tiện lợi qua 2 hình thức thanh toán:
               </p>
 
-              <div className="space-y-2">
-                {/* Hosted payOS Badge */}
-                <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-sm shrink-0">
-                    <Icon icon="solar:shield-check-bold" />
-                  </div>
-                  <div>
-                    <h5 className="font-[550] text-xs uppercase text-black dark:text-white">Hosted payOS</h5>
-                    <p className="text-[10px] text-neutral-400">Chuẩn NAPAS247 tự động 24/7</p>
+              <div className="space-y-1">
+                {/* VIETQR Badge */}
+                <div className="min-h-[64px] py-2 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 flex items-center">
+                  <div className="min-w-0 flex-1">
+                    <h5 className="font-[550] text-[13px] uppercase leading-tight text-black dark:text-white">VIETQR</h5>
+                    <p className="text-[11px] leading-4 text-neutral-500 dark:text-neutral-400">Chuẩn NAPAS247 tự động 24/7</p>
                   </div>
                 </div>
 
                 {/* COD Badge */}
-                <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-sm shrink-0">
-                    <Icon icon="solar:hand-money-bold" />
-                  </div>
-                  <div>
-                    <h5 className="font-[550] text-xs uppercase text-black dark:text-white">Tiền mặt (COD)</h5>
-                    <p className="text-[10px] text-neutral-400">Kiểm tra hàng khi nhận</p>
+                <div className="min-h-[64px] py-2 bg-white dark:bg-black flex items-center">
+                  <div className="min-w-0 flex-1">
+                    <h5 className="font-[550] text-[13px] uppercase leading-tight text-black dark:text-white">Tiền mặt (COD)</h5>
+                    <p className="text-[11px] leading-4 text-neutral-500 dark:text-neutral-400">Kiểm tra hàng khi nhận</p>
                   </div>
                 </div>
               </div>

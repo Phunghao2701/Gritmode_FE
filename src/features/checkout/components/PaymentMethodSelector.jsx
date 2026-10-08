@@ -15,8 +15,8 @@ export default function PaymentMethodSelector({
     },
     {
       id: 'payos',
-      title: 'Thanh toán trực tuyến qua payOS',
-      description: 'Mở trang thanh toán bảo mật do payOS cung cấp. Giao dịch được xác nhận tự động.',
+      title: 'Thanh toán qua VIETQR',
+      description: 'Mở trang thanh toán bảo mật. Giao dịch được xác nhận tự động.',
       icon: 'solar:shield-check-linear',
       badge: 'NAPAS247',
     },
@@ -32,10 +32,10 @@ export default function PaymentMethodSelector({
             key={m.id}
             htmlFor={`payment-method-${m.id}`}
             onClick={() => onSelectMethod(m.id)}
-            className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer flex items-start gap-4 ${
+            className={`p-4 sm:p-5 transition-colors cursor-pointer flex items-start gap-4 bg-white dark:bg-black ${
               isSelected
-                ? 'border-black dark:border-white bg-neutral-50 dark:bg-neutral-900 shadow-md ring-1 ring-black dark:ring-white'
-                : 'border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 bg-white dark:bg-black'
+                ? 'bg-neutral-50/70 dark:bg-neutral-950/70'
+                : 'hover:bg-neutral-50 dark:hover:bg-neutral-950'
             }`}
           >
             <input

@@ -82,10 +82,10 @@ export default function PaymentResultPage() {
             Giao dịch thành công
           </span>
           <h1 className="font-sans font-black text-3xl sm:text-4xl text-black dark:text-white uppercase tracking-tight">
-            Xác nhận thanh toán payOS
+            Xác nhận thanh toán VIETQR
           </h1>
           <p className="text-xs text-neutral-500 max-w-md mx-auto">
-            Đơn hàng #{orderId} đã được thanh toán thành công qua cổng payOS. Đơn hàng đang được chuyển sang bộ phận kho để đóng gói.
+            Đơn hàng #{orderId} đã được thanh toán thành công qua VIETQR. Đơn hàng đang được chuyển sang bộ phận kho để đóng gói.
           </p>
         </div>
       ) : (
@@ -98,11 +98,11 @@ export default function PaymentResultPage() {
             {isCancelledFlow ? 'Hủy phiên thanh toán' : 'Đang xử lý thanh toán'}
           </span>
           <h1 className="font-sans font-black text-3xl sm:text-4xl text-black dark:text-white uppercase tracking-tight">
-            {isCancelledFlow ? 'Bạn đã hủy phiên payOS' : 'Chờ xác nhận giao dịch'}
+            {isCancelledFlow ? 'Bạn đã hủy phiên VIETQR' : 'Chờ xác nhận giao dịch'}
           </h1>
           <p className="text-xs text-neutral-500 max-w-md mx-auto">
             {isCancelledFlow
-              ? 'Phiên thanh toán trực tuyến đã được hủy. Đơn hàng của bạn vẫn được lưu trữ, bạn có thể thực hiện thanh toán lại hoặc chọn phương thức COD.'
+              ? 'Phiên thanh toán VIETQR đã được hủy. Đơn hàng của bạn vẫn được lưu trữ, bạn có thể thực hiện thanh toán lại hoặc chọn phương thức COD.'
               : 'Hệ thống đang kết nối với ngân hàng để ghi nhận giao dịch của bạn. Vui lòng giữ trang hoặc kiểm tra lại sau.'}
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function PaymentResultPage() {
           </div>
           <div className="flex justify-between text-neutral-500">
             <span>Phương thức:</span>
-            <span className="font-bold text-black dark:text-white uppercase">payOS hosted</span>
+            <span className="font-bold text-black dark:text-white uppercase">VIETQR</span>
           </div>
           <div className="flex justify-between text-neutral-500">
             <span>Trạng thái thanh toán:</span>

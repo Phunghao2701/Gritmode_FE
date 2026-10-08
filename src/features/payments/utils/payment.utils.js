@@ -28,9 +28,9 @@ export const PAYMENT_METHODS = {
   },
   payos: {
     id: 'payos',
-    name: 'payOS',
-    title: 'Thanh toán trực tuyến qua payOS',
-    description: 'Mở trang thanh toán bảo mật do payOS cung cấp.',
+    name: 'VIETQR',
+    title: 'Thanh toán qua VIETQR',
+    description: 'Mở trang thanh toán bảo mật. Giao dịch được xác nhận tự động.',
     icon: 'solar:card-2-linear',
   },
 };

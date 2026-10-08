@@ -10,10 +10,12 @@ import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import {
   getAdminCategoriesApi,
   getAdminCollectionsApi,
+  getAdminProductMetaApi,
   getAdminProductByIdApi,
   createCategoryApi,
   updateCategoryApi,
   createAdminFullProductApi,
+  updateAdminProductApi,
   updateAdminFullProductApi,
   uploadAdminProductImagesApi,
 } from '../apis/admin.api';
@@ -91,6 +93,48 @@ const responseItems = (response) => {
 
 const STANDARD_SIZES = ['S', 'M', 'L', 'XL', '2XL', 'Free'];
 
+const buildProductStructureSignature = ({
+  form,
+  colorText,
+  sizes,
+  hiddenOptionValues,
+  defaultPrice,
+  defaultSalePercent,
+  defaultStock,
+  variants,
+  images,
+}) => JSON.stringify({
+  primary_category_id: String(form.primary_category_id || ''),
+  collection_ids: [...(form.collection_ids || [])].map(String).sort(),
+  colors: splitValues(colorText),
+  sizes: [...sizes].map(String).sort(),
+  hidden_option_values: Object.entries(hiddenOptionValues || {})
+    .filter(([, isHidden]) => Boolean(isHidden))
+    .sort(([a], [b]) => a.localeCompare(b)),
+  default_price: parsePriceNumber(defaultPrice),
+  default_sale_percent: String(defaultSalePercent || ''),
+  default_stock: String(defaultStock ?? ''),
+  variants: Object.entries(variants || {})
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, variant = {}]) => [key, {
+      product_variant_id: variant.product_variant_id || null,
+      sku: variant.sku || '',
+      price: variant.price || '',
+      sale_percent: variant.sale_percent || '',
+      sale_price: variant.sale_price || '',
+      sale_start_at: variant.sale_start_at || '',
+      sale_end_at: variant.sale_end_at || '',
+      stock: String(variant.stock ?? ''),
+      is_active: variant.is_active ?? true,
+    }]),
+  images: (images || []).map((image) => ({
+    product_image_id: image.product_image_id || null,
+    url_product_image: image.url_product_image || '',
+    is_thumbnail: Boolean(image.is_thumbnail),
+    position: Number(image.position || 0),
+  })),
+});
+
 export default function AdminProductEditPage() {
   const { id: productId } = useParams();
   const router = useRouter();
@@ -115,6 +159,7 @@ export default function AdminProductEditPage() {
   const [productStatus, setProductStatus] = useState('draft');
   const [loadingProduct, setLoadingProduct] = useState(isEditMode);
   const [submittingAction, setSubmittingAction] = useState(null); // 'draft' | 'publish' | null
+  const initialStructureSignatureRef = useRef(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
@@ -196,18 +241,23 @@ export default function AdminProductEditPage() {
     focusTarget?.focus({ preventScroll: true });
   };
 
-  // Fetch Categories & Collections references via 1 meta API
+  // Fetch Categories & Collections references through one cached metadata request.
   useEffect(() => {
     let mounted = true;
     const fetchRefs = async () => {
       try {
-        const [categoriesRes, collectionsRes] = await Promise.all([
-          getAdminCategoriesApi(),
-          getAdminCollectionsApi(),
-        ]);
+        const metaRes = await queryClient.fetchQuery({
+          queryKey: ['admin-products-meta'],
+          staleTime: 1000 * 60 * 10,
+          queryFn: getAdminProductMetaApi,
+        });
+        const meta = requireApiObject(metaRes, 'Metadata sản phẩm');
+        if (!Array.isArray(meta.categories) || !Array.isArray(meta.collections)) {
+          throw new Error('Metadata sản phẩm không hợp lệ');
+        }
         if (mounted) {
-          setCategories(organizeCategories(responseItems(categoriesRes)));
-          setCollections(responseItems(collectionsRes));
+          setCategories(organizeCategories(meta.categories));
+          setCollections(meta.collections);
         }
       } catch {
         if (mounted) setError('Không thể tải danh mục hoặc bộ sưu tập.');
@@ -215,7 +265,7 @@ export default function AdminProductEditPage() {
     };
     fetchRefs();
     return () => { mounted = false; };
-  }, []);
+  }, [queryClient]);
 
   // Fetch product detail if in edit mode
   useEffect(() => {
@@ -321,6 +371,8 @@ export default function AdminProductEditPage() {
 
         // Populate images
         setImages((p.images || []).map((img, idx) => ({
+          product_image_id: img.product_image_id,
+          product_option_value_id: img.product_option_value_id ?? null,
           url_product_image: img.url_product_image || img.url,
           is_thumbnail: img.is_thumbnail ?? idx === 0,
           position: img.position_product_image ?? idx,
@@ -353,6 +405,33 @@ export default function AdminProductEditPage() {
       return hasChange ? next : prev;
     });
   }, [combinations, form.name_product]);
+
+  useEffect(() => {
+    if (!isEditMode || loadingProduct || initialStructureSignatureRef.current !== null) return;
+    initialStructureSignatureRef.current = buildProductStructureSignature({
+      form,
+      colorText,
+      sizes,
+      hiddenOptionValues,
+      defaultPrice,
+      defaultSalePercent,
+      defaultStock,
+      variants,
+      images,
+    });
+  }, [
+    isEditMode,
+    loadingProduct,
+    form,
+    colorText,
+    sizes,
+    hiddenOptionValues,
+    defaultPrice,
+    defaultSalePercent,
+    defaultStock,
+    variants,
+    images,
+  ]);
 
   const handleImageUpload = async (e) => {
     const rawFiles = Array.from(e.target.files || []);
@@ -547,15 +626,40 @@ export default function AdminProductEditPage() {
       images: images
         .filter((img) => !img.isUploading && img.url_product_image)
         .map((img, idx) => ({
+          ...(img.product_image_id ? { product_image_id: img.product_image_id } : {}),
           url_product_image: img.url_product_image,
           is_thumbnail: Boolean(img.is_thumbnail),
           position_product_image: idx,
         })),
     };
 
+    const currentStructureSignature = buildProductStructureSignature({
+      form,
+      colorText,
+      sizes,
+      hiddenOptionValues,
+      defaultPrice,
+      defaultSalePercent,
+      defaultStock,
+      variants,
+      images,
+    });
+    const canUseFastUpdate = Boolean(
+      isEditMode
+      && !publishNow
+      && initialStructureSignatureRef.current
+      && initialStructureSignatureRef.current === currentStructureSignature,
+    );
+
     try {
       setSubmittingAction(publishNow ? 'publish' : 'draft');
-      if (isEditMode) {
+      if (canUseFastUpdate) {
+        await updateAdminProductApi(productId, {
+          name_product: form.name_product.trim(),
+          description: form.description || '',
+        });
+        toast.success('Cập nhật sản phẩm thành công!');
+      } else if (isEditMode) {
         const updatePayload = {
           ...payload,
           ...(publishNow ? { status_product: 'active' } : {}),
@@ -570,22 +674,17 @@ export default function AdminProductEditPage() {
         await createAdminFullProductApi(createPayload);
         toast.success(publishNow ? 'Đăng bán sản phẩm thành công!' : 'Tạo nháp sản phẩm thành công!');
       }
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['admin-products'] }),
-        queryClient.invalidateQueries({ queryKey: ['products'] }),
-        queryClient.invalidateQueries({ queryKey: ['product-detail'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-inventory'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-categories'] }),
-        queryClient.invalidateQueries({ queryKey: ['admin-collections'] }),
-      ]);
-      broadcastQueryInvalidation([
+      const invalidationKeys = [
         ['admin-products'],
         ['products'],
         ['product-detail'],
-        ['admin-inventory'],
-        ['admin-categories'],
-        ['admin-collections'],
-      ]);
+        ...(canUseFastUpdate ? [] : [['admin-inventory']]),
+      ];
+      await Promise.all(invalidationKeys.map((queryKey) => queryClient.invalidateQueries({
+        queryKey,
+        refetchType: 'none',
+      })));
+      broadcastQueryInvalidation(invalidationKeys);
       router.push('/admin/products');
     } catch (err) {
       const missing = err.response?.data?.errors?.missing;

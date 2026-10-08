@@ -1,5 +1,4 @@
 import { dehydrate, hydrate } from '@tanstack/react-query';
-import { PUBLIC_QUERY_KEYS } from './queryClient';
 
 // Public catalog data may be reused between visits, but it is always revalidated by React Query.
 const DB_NAME = 'gritmode-query-cache';
@@ -8,13 +7,23 @@ const STORE_NAME = 'persisted-client';
 const RECORD_KEY = 'public-query-cache';
 
 export const PUBLIC_QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24 * 7;
-export const PUBLIC_QUERY_CACHE_BUSTER = 'gritmode-public-query-cache-v1';
+export const PUBLIC_QUERY_CACHE_BUSTER = 'gritmode-public-query-cache-v3';
+
+// Only low-volatility public content is safe to restore between visits.
+// Products stay network-backed because their price and inventory can change at any time.
+const PERSISTED_QUERY_KEYS = new Set([
+  'categories-public-tree',
+  'category-detail',
+  'collections-public-list',
+  'collection-detail',
+  'banners',
+]);
 
 const isBrowser = () => typeof window !== 'undefined' && Boolean(window.indexedDB);
 
 const shouldPersistQuery = (query) => (
   query?.state?.status === 'success'
-    && PUBLIC_QUERY_KEYS.has(query.queryKey?.[0])
+    && PERSISTED_QUERY_KEYS.has(query.queryKey?.[0])
 );
 
 const openDatabase = () => new Promise((resolve, reject) => {

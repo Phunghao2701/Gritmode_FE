@@ -175,22 +175,39 @@ export default function OrderDetailModal({
                   ? Object.values(item.option_values).map((v) => `${v}`).join(' / ')
                   : item.option_values || item.variant_title || '');
                 const itemPrice = Number(item.price_order_item ?? item.price ?? item.unit_price ?? 0);
+                const originalItemPrice = Number(item.original_price_order_item ?? item.original_price ?? itemPrice);
                 const itemQty = Number(item.quantity_order_item ?? item.quantity ?? 1);
                 const itemTotal = Number(item.total_order_item || (itemPrice * itemQty));
+                const originalItemTotal = originalItemPrice * itemQty;
+                const isOnSale = originalItemPrice > itemPrice;
                 const sku = item.sku_order_item || item.sku || '';
 
                 return (
                   <div key={item.order_item_id || idx} className="py-2.5 flex items-center justify-between gap-4 text-xs">
                     <div>
-                      <h5 className="font-bold text-black dark:text-white uppercase text-xs">
-                        {item.name_product_order_item || item.name_product || item.title || 'SẢN PHẨM'}
+                      <h5 className="flex items-center gap-2 font-bold text-black dark:text-white uppercase text-xs">
+                        <span className="min-w-0 truncate">
+                          {item.name_product_order_item || item.name_product || item.title || 'SẢN PHẨM'}
+                        </span>
+                        {isOnSale && (
+                          <span className="shrink-0 rounded-full bg-rose-50 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
+                            SALE
+                          </span>
+                        )}
                       </h5>
                       <p className="text-neutral-400 text-[10px] uppercase font-mono mt-0.5">
                         {sku ? `SKU: ${sku} • ` : ''}{optValues ? `${optValues} • ` : ''}SL: X{itemQty}
                       </p>
                     </div>
-                    <span className="font-bold text-black dark:text-white shrink-0 text-xs tabular-nums">
-                      {formatPriceVND(itemTotal)}
+                    <span className="flex shrink-0 flex-col items-end gap-0.5 text-xs tabular-nums">
+                      {isOnSale && (
+                        <span className="text-[10px] font-medium text-neutral-400 line-through">
+                          {formatPriceVND(originalItemTotal)}
+                        </span>
+                      )}
+                      <span className={`font-bold ${isOnSale ? 'text-rose-600 dark:text-rose-300' : 'text-black dark:text-white'}`}>
+                        {formatPriceVND(itemTotal)}
+                      </span>
                     </span>
                   </div>
                 );

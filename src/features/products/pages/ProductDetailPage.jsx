@@ -23,6 +23,10 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { addItem } = useCartStore();
 
+  useEffect(() => {
+    router.prefetch('/checkout');
+  }, [router]);
+
   const {
     product,
     isLoadingProduct,
@@ -201,7 +205,7 @@ export default function ProductDetailPage() {
     .filter((p) => String(p.product_id || p.id) !== String(currentProductId))
     .slice(0, 4);
 
-  const handleAddToCart = async (shouldRedirect = false) => {
+  const handleAddToCart = async (shouldRedirect = false, triggerEvent) => {
     if (!isAllOptionsSelected) {
       toast.error('Vui lòng chọn đầy đủ các phân loại sản phẩm.');
       return;
@@ -224,18 +228,26 @@ export default function ProductDetailPage() {
       variantId: selectedVariant.product_variant_id,
       product_variant_id: selectedVariant.product_variant_id,
       title: product.name_product,
-      price: selectedVariant.price,
+      price: displayPrice,
+      original_price: originalPrice,
       quantity_available: availableStock,
       image: currentImage?.url_product_image || '',
       quantity: selectedQuantity,
       variant: variantLabel,
+      animate: !shouldRedirect,
+      sourceRect: !shouldRedirect && triggerEvent?.currentTarget?.getBoundingClientRect
+        ? (() => {
+          const rect = triggerEvent.currentTarget.getBoundingClientRect();
+          return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+        })()
+        : null,
     };
 
     if (shouldRedirect) {
       const res = await addItem(payload);
       if (res?.success) router.push('/checkout');
     } else {
-      // Non-blocking: optimistic store update triggers drawer instantly (< 50ms)
+      // Non-blocking: optimistic store update gives immediate feedback without opening the drawer.
       addItem(payload);
     }
   };
@@ -419,7 +431,7 @@ export default function ProductDetailPage() {
               {/* Add to Cart */}
               <button
                 type="button"
-                onClick={() => handleAddToCart(false)}
+                onClick={(event) => handleAddToCart(false, event)}
                 disabled={!isAvailable}
                 className="flex-1 py-4 px-6 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 text-xs font-[550] uppercase tracking-widest flex items-center justify-center gap-2 border border-neutral-300 dark:border-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
               >
@@ -432,6 +444,8 @@ export default function ProductDetailPage() {
             <button
               type="button"
               onClick={() => handleAddToCart(true)}
+              onMouseEnter={() => router.prefetch('/checkout')}
+              onFocus={() => router.prefetch('/checkout')}
               disabled={!isAvailable}
               className="w-full py-4 px-6 rounded-2xl bg-black text-white dark:bg-white dark:text-black hover:opacity-85 text-xs font-[550] uppercase tracking-widest shadow-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
             >

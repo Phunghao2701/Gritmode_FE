@@ -37,7 +37,7 @@ export default function PayOSModal({
               Thanh toán trực tuyến
             </span>
             <h3 className="font-display font-black text-lg text-black dark:text-white uppercase tracking-tight">
-              Thanh toán qua PayOS
+              Thanh toán qua VIETQR
             </h3>
           </div>
           <button
@@ -84,7 +84,7 @@ export default function PayOSModal({
                 Liên kết thanh toán đã hết hạn
               </h4>
               <p className="text-xs text-neutral-500">
-                Liên kết thanh toán PayOS đã hết hạn. Bạn có thể tạo liên kết mới để tiếp tục.
+                Liên kết thanh toán VIETQR đã hết hạn. Bạn có thể tạo liên kết mới để tiếp tục.
               </p>
             </div>
             <PrimaryButton
@@ -92,7 +92,7 @@ export default function PayOSModal({
               isLoading={createPayOSMutation.isPending}
               className="w-full justify-center py-3.5 uppercase tracking-widest text-xs font-black rounded-2xl shadow-lg"
             >
-              Tạo lại liên kết PayOS
+              Tạo lại liên kết VIETQR
             </PrimaryButton>
           </div>
         ) : isFailed ? (
@@ -118,7 +118,7 @@ export default function PayOSModal({
             </PrimaryButton>
           </div>
         ) : (
-          /* State 4: Pending / Hosted PayOS */
+  /* State 4: Pending / VIETQR */
           <div className="space-y-4">
             <PayOSPaymentCard
               payment={payment}
