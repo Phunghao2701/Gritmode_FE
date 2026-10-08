@@ -1048,7 +1048,7 @@ export default function AdminProductEditPage() {
                       <span className="text-center">Tồn kho</span>
                       <span className="text-center">Đang giữ</span>
                       <span className="text-center">Có thể bán</span>
-                      <span className="text-right">Cập nhật</span>
+                      <span className="text-center">Cập nhật</span>
                     </div>
 
                     {combinations.map(({ color, size, key }) => {
@@ -1073,7 +1073,7 @@ export default function AdminProductEditPage() {
                           <span className={`text-center text-xs font-black ${available > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
                             {Math.max(0, available)}
                           </span>
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-center gap-1.5">
                             {isEditingInventory ? (
                               <>
                                 <input
@@ -1094,7 +1094,7 @@ export default function AdminProductEditPage() {
                                   }}
                                   aria-label={`Tồn kho ${color} ${size}`}
                                   aria-invalid={hasInvalidStock}
-                                  className={`ml-auto w-20 rounded-lg border bg-white px-2.5 py-2 text-right text-xs font-bold outline-none transition-colors dark:bg-neutral-950 ${hasInvalidStock ? 'border-rose-500 text-rose-600' : 'border-neutral-200 focus:border-black dark:border-neutral-700 dark:focus:border-white'}`}
+                                  className={`w-20 rounded-lg border bg-white px-2.5 py-2 text-right text-xs font-bold outline-none transition-colors dark:bg-neutral-950 ${hasInvalidStock ? 'border-rose-500 text-rose-600' : 'border-neutral-200 focus:border-black dark:border-neutral-700 dark:focus:border-white'}`}
                                 />
                                 <button
                                   type="button"
