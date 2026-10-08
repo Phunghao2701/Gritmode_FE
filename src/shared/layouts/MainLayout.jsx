@@ -1129,22 +1129,36 @@ export default function MainLayout({ children }) {
               </div>
             </div>
 
-            {/* Column 2: Hệ thống Store */}
-            <div>
-              <h4 className="text-xs font-[550] uppercase tracking-widest text-black dark:text-white mb-4">
-                HỆ THỐNG CỬA HÀNG
-              </h4>
-              <ul className="space-y-3 text-xs text-neutral-500">
-                <li className="space-y-0.5">
-                  <strong className="text-black dark:text-white font-[550] block">• Gritmode Online Store:</strong>
-                  <span className="text-[11px] leading-relaxed block">Based in HCM City</span>
-                  <span className="text-[10px] text-neutral-400 block">09:30 – 22:00 (Hàng ngày)</span>
-                </li>
-                <li className="pt-1 border-t border-neutral-100 dark:border-neutral-900 font-[550] text-black dark:text-white font-sans">
-                  Hotline: 0326 747 206
-                </li>
-              </ul>
-            </div>
+              {/* Column 2: Hệ thống Store */}
+              <div>
+                <h4 className="text-xs font-[550] uppercase tracking-widest text-black dark:text-white mb-4">
+                  HỆ THỐNG CỬA HÀNG
+                </h4>
+                <div className="space-y-3 text-xs text-neutral-500">
+                  <div className="space-y-1.5 border-b border-neutral-200 dark:border-neutral-800 pb-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <strong className="text-black dark:text-white font-[550]">
+                        Gritmode Online Store
+                      </strong>
+                      <span className="shrink-0 rounded-full bg-black px-2 py-0.5 text-[9px] font-[550] uppercase tracking-wider text-white dark:bg-white dark:text-black">
+                        TP. HCM
+                      </span>
+                    </div>
+                    <span className="text-[11px] leading-relaxed block">
+                      Mua sắm trực tuyến toàn quốc.
+                    </span>
+                    <span className="text-[10px] text-neutral-400 block">
+                      09:30 – 22:00 (Hàng ngày)
+                    </span>
+                  </div>
+                  <a
+                    href="tel:0326747206"
+                    className="block font-[550] text-black dark:text-white hover:underline"
+                  >
+                    Hotline: 0326 747 206
+                  </a>
+                </div>
+              </div>
 
             {/* Column 3: Hỗ trợ mua hàng */}
             <div>
