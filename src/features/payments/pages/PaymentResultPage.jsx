@@ -121,7 +121,7 @@ export default function PaymentResultPage() {
           </div>
           <div className="flex justify-between text-neutral-500">
             <span>Phương thức:</span>
-            <span className="font-bold text-black dark:text-white uppercase">payOS (VietQR)</span>
+            <span className="font-bold text-black dark:text-white uppercase">payOS hosted</span>
           </div>
           <div className="flex justify-between text-neutral-500">
             <span>Trạng thái thanh toán:</span>

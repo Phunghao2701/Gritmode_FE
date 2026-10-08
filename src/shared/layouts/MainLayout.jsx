@@ -1158,13 +1158,13 @@ export default function MainLayout({ children }) {
               </p>
 
               <div className="space-y-2">
-                {/* VietQR / payOS Badge */}
+                {/* Hosted payOS Badge */}
                 <div className="p-3 rounded-2xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-sm shrink-0">
-                    <Icon icon="solar:qr-code-bold" />
+                    <Icon icon="solar:shield-check-bold" />
                   </div>
                   <div>
-                    <h5 className="font-[550] text-xs uppercase text-black dark:text-white">VietQR / payOS</h5>
+                    <h5 className="font-[550] text-xs uppercase text-black dark:text-white">Hosted payOS</h5>
                     <p className="text-[10px] text-neutral-400">Chuẩn NAPAS247 tự động 24/7</p>
                   </div>
                 </div>
