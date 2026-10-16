@@ -45,6 +45,12 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="vi" className={`${plusJakartaSans.variable} ${jetBrainsMono.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//res.cloudinary.com" />
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//images.unsplash.com" />
+      </head>
       <body className="font-sans antialiased min-h-screen bg-white text-neutral-950 dark:bg-neutral-950 dark:text-neutral-50">
         <Providers>{children}</Providers>
       </body>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { formatPriceVND } from '../../products/utils/product.utils';
+import { formatPriceVND, getSizedProductImageUrl } from '../../products/utils/product.utils';
 import { validateVoucherApi } from '../../vouchers/apis/voucher.api';
 import { toast } from '../../../shared/utils/toast';
 import Icon from '../../../shared/components/Icon';
@@ -68,7 +68,7 @@ export default function OrderSummaryCard({
                 <div className="w-14 h-14 rounded-xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 p-1 flex items-center justify-center shrink-0">
                   {item.image ? (
                     <img
-                      src={item.image}
+                      src={getSizedProductImageUrl(item.image, 160, { quality: 'eco' })}
                       alt={item.title}
                       className="w-full h-full object-contain"
                     />

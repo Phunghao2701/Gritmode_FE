@@ -6,7 +6,7 @@ import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
-import { formatPriceVND } from '../../products/utils/product.utils';
+import { formatPriceVND, getSizedProductImageUrl } from '../../products/utils/product.utils';
 import { publishAdminProductApi } from '../apis/admin.api';
 import { toast } from '../../../shared/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -173,7 +173,11 @@ export default function AdminProductsPage() {
                               <div className="flex items-center gap-3">
                                 {p.thumbnail || p.images?.[0]?.url_product_image || (typeof p.images?.[0] === 'string' ? p.images[0] : null) ? (
                                   <img
-                                    src={p.thumbnail || p.images?.[0]?.url_product_image || p.images?.[0]}
+                                    src={getSizedProductImageUrl(
+                                      p.thumbnail || p.images?.[0]?.url_product_image || p.images?.[0],
+                                      160,
+                                      { quality: 'eco' },
+                                    )}
                                     alt={name}
                                     className="w-12 h-14 object-contain rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-950 p-1 shrink-0"
                                   />

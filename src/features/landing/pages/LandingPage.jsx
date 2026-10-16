@@ -10,6 +10,7 @@ import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 import ErrorState from '../../../shared/components/ErrorState';
 import Icon from '../../../shared/components/Icon';
+import { getSizedProductImageUrl } from '../../products/utils/product.utils';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -87,12 +88,13 @@ export default function LandingPage() {
                   aria-hidden={!isActive}
                 >
                   <Image
-                    src={slide.image}
+                    src={getSizedProductImageUrl(slide.image, 1920)}
                     alt={heroSettings?.title || 'Gritmode Hero'}
                     fill
                     priority={index === 0}
                     loading={index === 0 ? 'eager' : 'lazy'}
                     quality={90}
+                    unoptimized={typeof slide.image === 'string' && (slide.image.includes('cloudinary.com') || slide.image.includes('images.unsplash.com'))}
                     sizes="100vw"
                     className="object-cover object-center sm:object-[center_15%]"
                   />
