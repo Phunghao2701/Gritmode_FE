@@ -17,6 +17,7 @@ import { uploadBannerImageApi } from '../apis/adminBannerApi';
 import { toast } from '../../../shared/utils/toast';
 import AdminPageHeader from '../components/AdminPageHeader';
 import ImageCropModal from '../../../shared/components/media/ImageCropModal';
+import { getSizedProductImageUrl } from '../../products/utils/product.utils';
 
 export default function AdminBannersPage() {
   const { data, isLoading, isError, refetch } = useAdminHero();
@@ -353,7 +354,7 @@ export default function AdminBannersPage() {
                     {/* Ảnh 16:9 */}
                     <div className="relative aspect-video w-full bg-neutral-900 overflow-hidden select-none">
                       <Image
-                        src={slide.image_url}
+                        src={getSizedProductImageUrl(slide.image_url, 640)}
                         alt={`Slide ${idx + 1}`}
                         fill
                         sizes="(max-width: 768px) 100vw, 400px"

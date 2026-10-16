@@ -28,6 +28,7 @@ import { createCollectionApi } from '../../collections/apis/collection.api';
 import { unwrapApiData, requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 import ImageCropModal from '../../../shared/components/media/ImageCropModal';
+import { getSizedProductImageUrl } from '../../products/utils/product.utils';
 
 const splitValues = (value) => [...new Set(value.split(',').map((item) => item.trim().toUpperCase()).filter(Boolean))];
 const combinationKey = (color, size) => `${color}\u0000${size}`;
@@ -1588,7 +1589,7 @@ export default function AdminProductEditPage() {
                     }`}
                   >
                     <img
-                      src={img.url_product_image}
+                      src={getSizedProductImageUrl(img.url_product_image, 240, { quality: 'eco' })}
                       alt={`img-${i}`}
                       className={`w-full h-full object-cover transition-opacity duration-300 ${
                         img.isUploading ? 'opacity-40 filter blur-[1px]' : 'opacity-100'

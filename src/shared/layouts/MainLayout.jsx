@@ -12,7 +12,7 @@ import CartDrawer from '../../features/cart/components/CartDrawer';
 import { useCategories } from '../../features/categories/hooks/useCategory';
 import { useCollections } from '../../features/collections/hooks/useCollection';
 import { useProducts } from '../../features/products/hooks/useProducts';
-import { formatPriceVND } from '../../features/products/utils/product.utils';
+import { formatPriceVND, getSizedProductImageUrl } from '../../features/products/utils/product.utils';
 import { useBanners } from '../../features/landing/hooks/useBanners';
 
 const SOCIAL_LINKS = [
@@ -667,7 +667,7 @@ export default function MainLayout({ children }) {
                           <div className="w-16 h-20 rounded-xl overflow-hidden bg-neutral-900 border border-white/10 shrink-0 relative flex items-center justify-center">
                             {imageUrl ? (
                               <img
-                                src={imageUrl}
+                                src={getSizedProductImageUrl(imageUrl, 160, { quality: 'eco' })}
                                 alt={productName}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
