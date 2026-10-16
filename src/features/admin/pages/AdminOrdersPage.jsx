@@ -6,10 +6,7 @@ import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
 import OrderDetailModal from '../components/OrderDetailModal';
-import {
-  getOrderStatusInfo,
-  getPaymentStatusInfo,
-} from '../../orders/utils/order.utils';
+import { getOrderStatusInfo } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import AdminPageHeader from '../components/AdminPageHeader';
 
@@ -82,14 +79,14 @@ export default function AdminOrdersPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
       <AdminPageHeader
-        eyebrow="Vận hành bán hàng"
+        eyebrow="Danh sách đơn hàng"
         title={`Quản lý đơn hàng (${total})`}
         description="Xử lý trạng thái đơn, thanh toán và các yêu cầu giao hàng."
       />
 
       {/* Filter and Search Bar */}
       <div className="space-y-3">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
           <div className="relative w-full md:w-96">
             <Icon icon="solar:magnifer-linear" className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 text-lg" />
             <input
@@ -100,11 +97,11 @@ export default function AdminOrdersPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-11 pr-4 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+              className="w-full pl-11 pr-4 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 font-sans text-xs font-normal text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
             />
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center md:col-start-2 md:w-auto md:justify-self-end">
             {/* Payment Method Filter */}
             <select
               value={paymentMethodFilter}
@@ -112,11 +109,11 @@ export default function AdminOrdersPage() {
                 setPaymentMethodFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs font-bold text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
+              className="px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 font-sans text-xs font-[550] text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
             >
               <option value="">Phương thức: Tất cả</option>
               <option value="cod">COD (Tiền mặt)</option>
-              <option value="payos">payOS hosted</option>
+              <option value="payos">VIETQR</option>
             </select>
 
             {/* Payment Status Filter */}
@@ -126,7 +123,7 @@ export default function AdminOrdersPage() {
                 setPaymentStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs font-bold text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
+              className="px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 font-sans text-xs font-[550] text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
             >
               <option value="">Thanh toán: Tất cả</option>
               <option value="pending">Chờ thanh toán</option>
@@ -144,9 +141,9 @@ export default function AdminOrdersPage() {
               key={tab.value}
               type="button"
               onClick={() => handleTabChange(tab.value)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full font-sans text-xs font-[550] uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
                 statusFilter === tab.value
-                  ? 'bg-black text-white dark:bg-white dark:text-black font-black shadow-sm'
+                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-sm'
                   : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:text-black dark:hover:text-white'
               }`}
             >
@@ -170,13 +167,13 @@ export default function AdminOrdersPage() {
               <table className="w-full text-left text-xs">
                 <thead className="uppercase text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                   <tr>
-                    <th className="pb-3 font-black">Mã đơn</th>
-                    <th className="pb-3 font-black">Khách hàng / SĐT</th>
-                    <th className="pb-3 font-black">Ngày đặt</th>
-                    <th className="pb-3 font-black">Tổng tiền</th>
-                    <th className="pb-3 font-black">Thanh toán</th>
-                    <th className="pb-3 font-black text-center">Trạng thái</th>
-                    <th className="pb-3 font-black text-right">Thao tác</th>
+                    <th className="pb-3 font-sans font-[550]">Mã đơn</th>
+                    <th className="pb-3 font-sans font-[550]">Khách hàng / SĐT</th>
+                    <th className="pb-3 font-sans font-[550]">Ngày đặt</th>
+                    <th className="pb-3 font-sans font-[550]">Tổng tiền</th>
+                    <th className="pb-3 font-sans font-[550]">Thanh toán</th>
+                    <th className="pb-3 font-sans font-[550] text-center">Trạng thái</th>
+                    <th className="pb-3 font-sans font-[550] text-right">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
@@ -191,7 +188,18 @@ export default function AdminOrdersPage() {
                       const orderId = ord.order_id || ord.id;
                       const orderStatus = getOrderStatusInfo(ord.status_order);
                       const paymentMethod = ord.payment_method || ord.payment?.payment_method || null;
-                      const paymentStatus = getPaymentStatusInfo(ord.status_payment || ord.payment?.status_payment);
+                      const normalizedStatus = String(ord.status_order || '').toLowerCase();
+                      const canProcess = ['pending', 'confirmed', 'processing', 'shipping'].includes(normalizedStatus);
+                      const createdAt = ord.created_at ? new Date(ord.created_at) : null;
+                      const formattedCreatedAt = createdAt && !Number.isNaN(createdAt.getTime())
+                        ? createdAt.toLocaleString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : '—';
 
                       return (
                         <tr
@@ -200,31 +208,31 @@ export default function AdminOrdersPage() {
                           className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors cursor-pointer"
                         >
                           <td className="py-4">
-                            <span className="font-mono font-black text-black dark:text-white uppercase">
+                            <span className="font-sans font-[550] text-black dark:text-white uppercase">
                               {ord.order_code || ord.code_order || `#ORD-${orderId}`}
                             </span>
                           </td>
                           <td className="py-4">
-                            <p className="font-bold text-black dark:text-white line-clamp-1">
+                            <p className="font-sans font-[550] text-black dark:text-white line-clamp-1">
                               {ord.receiver_name_order_address || ord.shipping_name || ord.user_name || ord.email_order || 'Khách hàng'}
                             </p>
-                            <p className="text-neutral-400 font-mono text-[11px]">
+                            <p className="font-sans text-[11px] text-neutral-400">
                               {ord.phone_order_address || ord.phone_order || ord.shipping_phone || 'N/A'}
                             </p>
                           </td>
-                          <td className="py-4 text-neutral-400">
-                            {new Date(ord.created_at || Date.now()).toLocaleDateString('vi-VN')}
+                          <td className="py-4 font-sans text-neutral-400">
+                            {formattedCreatedAt}
                           </td>
-                          <td className="py-4 font-black text-black dark:text-white">
+                          <td className="py-4 font-sans font-[550] text-black dark:text-white">
                             {formatPriceVND(ord.total_order ?? ord.finalAmount ?? ord.totalAmount ?? 0)}
                           </td>
                           <td className="py-4">
-                            <span className={`inline-block text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${paymentStatus.color}`}>
-                              {paymentMethod === 'payos' ? 'CHUYỂN KHOẢN' : paymentMethod === 'cod' ? 'COD' : 'CHƯA XÁC ĐỊNH'} • {paymentStatus.label}
+                            <span className="inline-block font-sans text-[10px] font-[550] uppercase px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-50 text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                              {paymentMethod === 'payos' ? 'VIETQR' : paymentMethod === 'cod' ? 'COD' : 'CHƯA XÁC ĐỊNH'}
                             </span>
                           </td>
                           <td className="py-4 text-center">
-                            <span className={`inline-block text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${orderStatus.color}`}>
+                            <span className={`inline-block font-sans text-[10px] font-[550] uppercase px-2.5 py-0.5 rounded-full border ${orderStatus.color}`}>
                               {orderStatus.label}
                             </span>
                           </td>
@@ -232,10 +240,10 @@ export default function AdminOrdersPage() {
                             <button
                               type="button"
                               onClick={() => setSelectedOrder(ord)}
-                              className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black font-bold text-[11px] text-neutral-700 dark:text-neutral-300 transition-all cursor-pointer inline-flex items-center gap-1"
+                              className="px-3 py-1.5 rounded-xl bg-neutral-100 dark:bg-neutral-800 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black font-sans font-[550] text-[11px] text-neutral-700 dark:text-neutral-300 transition-all cursor-pointer inline-flex items-center gap-1"
                             >
                               <Icon icon="solar:eye-linear" />
-                              <span>Xử lý</span>
+                              <span>{canProcess ? 'Xử lý' : 'Xem chi tiết'}</span>
                             </button>
                           </td>
                         </tr>

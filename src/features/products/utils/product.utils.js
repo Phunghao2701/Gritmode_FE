@@ -38,6 +38,21 @@ export const getProductImageSrcSet = (source, widths = [320, 640, 960]) => (
   widths.map((width) => `${getSizedProductImageUrl(source, width)} ${width}w`).join(', ')
 );
 
+export const getProductImagePlaceholderUrl = (source) => {
+  if (!source) return null;
+  if (source.includes('/image/upload/')) {
+    return source.replace('/image/upload/', '/image/upload/f_auto,q_auto:low,w_32,e_blur:1000,c_limit/');
+  }
+  if (source.includes('images.unsplash.com')) {
+    const url = new URL(source);
+    url.searchParams.set('auto', 'format');
+    url.searchParams.set('w', '32');
+    url.searchParams.set('blur', '20');
+    return url.toString();
+  }
+  return null;
+};
+
 /**
  * Resolves the matching ProductVariant from selected option value IDs.
  * Does not depend on the order of selected options.

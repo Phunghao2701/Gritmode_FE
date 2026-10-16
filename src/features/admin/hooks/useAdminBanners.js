@@ -4,6 +4,10 @@ import {
   updateHeroContentApi,
   addHeroImageApi,
   toggleImageStatusApi,
+  updateHeroImageApi,
+  cropHeroImageApi,
+  updateHeroImageOrderApi,
+  reorderHeroImagesApi,
   deleteHeroImageApi,
 } from '../apis/adminBannerApi';
 import { toast } from '../../../shared/utils/toast';
@@ -86,6 +90,65 @@ export const useToggleImageStatus = () => {
     onSuccess: () => {
       toast.success('Đã cập nhật trạng thái ảnh');
     },
+  });
+};
+
+export const useUpdateHeroImage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateHeroImageApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+      toast.success('Đã cập nhật crop ảnh banner');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || err.message || 'Lỗi cập nhật ảnh banner'),
+  });
+};
+
+export const useCropHeroImage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: cropHeroImageApi,
+    onSuccess: (updatedSlide) => {
+      queryClient.setQueryData(ADMIN_HERO_QUERY_KEY, (old) => {
+        if (!old || !Array.isArray(old.slides)) return old;
+        return {
+          ...old,
+          slides: old.slides.map((slide) => slide.banner_id === updatedSlide.banner_id
+            ? { ...slide, ...updatedSlide }
+            : slide),
+        };
+      });
+      queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY, refetchType: 'none' });
+      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY, refetchType: 'none' });
+      toast.success('Đã lưu ảnh crop banner');
+    },
+    onError: (err) => toast.error(err.response?.data?.message || err.message || 'Lỗi cập nhật ảnh banner'),
+  });
+};
+
+export const useUpdateHeroImageOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateHeroImageOrderApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+    },
+    onError: (err) => toast.error(err.response?.data?.message || err.message || 'Lỗi cập nhật thứ tự banner'),
+  });
+};
+
+export const useReorderHeroImages = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: reorderHeroImagesApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+    },
+    onError: (err) => toast.error(err.response?.data?.message || err.message || 'Lỗi cập nhật thứ tự banner'),
   });
 };
 

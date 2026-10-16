@@ -73,7 +73,7 @@ export default function AdminCategoriesPage() {
   const childCount = categories.filter((category) => category.parent_category_id).length;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
+    <div className="mx-auto max-w-7xl space-y-6 pb-12 font-sans font-[550] animate-fade-in">
       <AdminPageHeader
         eyebrow="Sản phẩm & Kho"
         title="Quản lý danh mục"
@@ -95,9 +95,9 @@ export default function AdminCategoriesPage() {
           ['Danh mục con', childCount],
           ['Lượt gắn sản phẩm', totalProducts],
         ].map(([label, value]) => (
-          <div key={label} className="rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800/60">
-            <div className="tabular-nums text-xl font-black text-black dark:text-white">{value}</div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">{label}</div>
+            <div key={label} className="rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800/60">
+            <div className="tabular-nums font-sans text-xl font-[550] text-black dark:text-white">{value}</div>
+            <div className="font-sans text-[10px] font-[550] uppercase tracking-wider text-neutral-400">{label}</div>
           </div>
         ))}
       </div>
@@ -109,7 +109,7 @@ export default function AdminCategoriesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Tìm kiếm danh mục..."
-          className="h-11 w-full rounded-2xl border border-neutral-200 bg-white pl-11 pr-4 text-xs font-medium outline-none transition-all focus:border-black focus:ring-2 focus:ring-black/5 dark:border-neutral-800 dark:bg-neutral-900 dark:focus:border-white"
+          className="h-11 w-full rounded-full border border-neutral-200 bg-white pl-11 pr-4 font-sans text-xs font-normal outline-none transition-all placeholder:text-neutral-400 focus:border-black focus:ring-2 focus:ring-black/5 dark:border-neutral-800 dark:bg-neutral-900 dark:focus:border-white"
         />
       </div>
 
@@ -117,13 +117,13 @@ export default function AdminCategoriesPage() {
       {isLoading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((n) => (
-            <LoadingSkeleton key={n} height="90px" className="rounded-3xl" />
+            <LoadingSkeleton key={n} height="90px" className="rounded-2xl" />
           ))}
         </div>
       ) : visibleTree.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-neutral-300 bg-white p-12 text-center dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center dark:border-neutral-700 dark:bg-neutral-900">
           <Icon icon="solar:folder-open-linear" className="mx-auto mb-3 text-4xl text-neutral-300" />
-          <p className="font-bold text-sm text-neutral-500">Không tìm thấy danh mục phù hợp.</p>
+          <p className="font-sans text-sm font-[550] text-neutral-500">Không tìm thấy danh mục phù hợp.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -134,7 +134,7 @@ export default function AdminCategoriesPage() {
             return (
               <section
                 key={rootId}
-                className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+                className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
               >
                 {/* Header / Parent Row */}
                 <header className={`flex flex-wrap items-center gap-3 px-6 py-5 bg-neutral-50 dark:bg-neutral-800/50 ${
@@ -151,11 +151,11 @@ export default function AdminCategoriesPage() {
                       className={`shrink-0 text-base transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                     />
                     <div>
-                      <p className="text-[10px] uppercase font-black text-neutral-400">Nhóm cha</p>
-                      <h2 className="font-display font-black text-lg uppercase text-black dark:text-white">
+                      <p className="font-sans text-[10px] font-[550] uppercase text-neutral-400">Nhóm cha</p>
+                      <h2 className="font-sans text-lg font-[550] uppercase text-black dark:text-white">
                         {root.name_category}
                       </h2>
-                      <p className="text-xs text-neutral-400">
+                      <p className="font-normal text-xs text-neutral-400">
                         /{root.slug_category} · {root.children.length} danh mục con
                       </p>
                     </div>
@@ -187,7 +187,7 @@ export default function AdminCategoriesPage() {
                     <button
                       type="button"
                       onClick={() => router.push(`/admin/categories/create?parentId=${rootId}`)}
-                      className="rounded-full border border-black dark:border-white px-4 py-2 text-xs font-black uppercase text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors ml-1 cursor-pointer"
+                      className="ml-1 cursor-pointer rounded-full border border-black px-4 py-2 font-sans text-xs font-[550] uppercase text-black transition-colors hover:bg-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black"
                     >
                       + Thêm danh mục con
                     </button>
@@ -201,7 +201,7 @@ export default function AdminCategoriesPage() {
                       <button
                         type="button"
                         onClick={() => router.push(`/admin/categories/create?parentId=${rootId}`)}
-                        className="flex min-h-20 w-full items-center justify-center gap-2 text-xs font-bold text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-black dark:hover:bg-neutral-800/50 dark:hover:text-white cursor-pointer"
+                        className="flex min-h-20 w-full cursor-pointer items-center justify-center gap-2 font-sans text-xs font-[550] text-neutral-400 transition-colors hover:bg-neutral-50 hover:text-black dark:hover:bg-neutral-800/50 dark:hover:text-white"
                       >
                         <Icon icon="solar:add-circle-linear" /> Thêm danh mục con đầu tiên
                       </button>
@@ -217,15 +217,15 @@ export default function AdminCategoriesPage() {
                             <div className="flex min-w-0 items-center gap-3 pl-2 sm:pl-6">
                               <span className="h-px w-5 shrink-0 bg-neutral-300 dark:bg-neutral-700" />
                               <div className="min-w-0">
-                                <h3 className="truncate text-sm font-black text-black dark:text-white">
+                                <h3 className="truncate font-sans text-sm font-[550] text-black dark:text-white">
                                   {child.name_category}
                                 </h3>
-                                <p className="mt-0.5 text-xs text-neutral-400">/{child.slug_category}</p>
+                                <p className="mt-0.5 font-normal text-xs text-neutral-400">/{child.slug_category}</p>
                               </div>
                             </div>
 
                             <div className="flex items-center justify-between gap-4 pl-10 sm:pl-0">
-                              <span className="tabular-nums text-xs font-black text-neutral-600 dark:text-neutral-300">
+                              <span className="tabular-nums font-sans text-xs font-[550] text-neutral-600 dark:text-neutral-300">
                                 {child.product_count || 0} sản phẩm
                               </span>
 
@@ -266,35 +266,35 @@ export default function AdminCategoriesPage() {
       {/* Delete Confirmation Modal */}
       {deletingCategory && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-scale-in">
+          <div className="w-full max-w-md space-y-5 rounded-2xl border border-neutral-200 bg-white p-6 shadow-md dark:border-neutral-800 dark:bg-neutral-900 animate-scale-in">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
                 <Icon icon="solar:trash-bin-trash-bold" className="text-xl" />
               </div>
               <div>
-                <h3 className="font-display font-black text-lg uppercase text-black dark:text-white">
+                <h3 className="font-sans text-lg font-[550] uppercase text-black dark:text-white">
                   Xóa danh mục
                 </h3>
-                <p className="text-xs text-neutral-400">Thao tác này sẽ xóa hoàn toàn khỏi hệ thống</p>
+                <p className="font-normal text-xs text-neutral-400">Thao tác này sẽ xóa hoàn toàn khỏi hệ thống</p>
               </div>
             </div>
 
-            <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
-              Bạn có chắc chắn muốn xóa danh mục <span className="font-black text-black dark:text-white">"{deletingCategory.name_category}"</span>?
+            <p className="font-normal text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">
+              Bạn có chắc chắn muốn xóa danh mục <span className="font-sans font-[550] text-black dark:text-white">"{deletingCategory.name_category}"</span>?
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setDeletingCategory(null)}
-                className="px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-800 text-xs font-bold text-neutral-600 dark:text-neutral-400 cursor-pointer"
+                className="cursor-pointer rounded-xl border border-neutral-200 px-4 py-2 font-sans text-xs font-[550] text-neutral-600 dark:border-neutral-800 dark:text-neutral-400"
               >
                 Hủy bỏ
               </button>
               <button
                 type="button"
                 onClick={handleDeleteConfirm}
-                className="px-5 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
+                className="cursor-pointer rounded-xl bg-rose-600 px-5 py-2 font-sans text-xs font-[550] uppercase tracking-wider text-white transition-colors hover:bg-rose-700"
               >
                 Xác nhận xóa
               </button>

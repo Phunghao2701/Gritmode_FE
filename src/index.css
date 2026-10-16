@@ -1,4 +1,6 @@
 /* Lenis smooth scroll — disable native scroll-behavior to avoid conflict */
+@import 'react-image-crop/dist/ReactCrop.css';
+
 html.lenis,
 html.lenis body {
   height: auto;
@@ -177,5 +179,44 @@ html.lenis body {
 @media (hover: none) and (pointer: coarse), (max-width: 1024px) {
   * {
     -webkit-tap-highlight-color: transparent !important;
+  }
+}
+
+/* Product/collection/banner crop editor refinements. */
+.gritmode-crop {
+  display: block;
+  max-width: 100%;
+  --rc-focus-color: #111;
+}
+
+.gritmode-crop .ReactCrop__child-wrapper {
+  max-width: 100%;
+}
+
+.gritmode-crop .ReactCrop__crop-selection {
+  border: 0;
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.32);
+}
+
+/* Keep all eight handles visible even when aspect is locked. */
+.gritmode-crop.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-n,
+.gritmode-crop.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-e,
+.gritmode-crop.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-s,
+.gritmode-crop.ReactCrop--fixed-aspect .ReactCrop__drag-handle.ord-w {
+  display: block;
+}
+
+.gritmode-crop .ReactCrop__drag-handle {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #111;
+  background: #fff;
+  border-radius: 999px;
+}
+
+@media (max-width: 640px) {
+  .gritmode-crop .ReactCrop__drag-handle {
+    width: 18px;
+    height: 18px;
   }
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getProductImageSrcSet, getSizedProductImageUrl } from './product.utils.js';
+import { getProductImagePlaceholderUrl, getProductImageSrcSet, getSizedProductImageUrl } from './product.utils.js';
 
 test('product image URLs request only the rendered size', () => {
   const cloudinary = 'https://res.cloudinary.com/demo/image/upload/v1/products/shirt.webp';
@@ -9,4 +9,13 @@ test('product image URLs request only the rendered size', () => {
   assert.match(getSizedProductImageUrl(cloudinary, 640), /f_auto,q_auto:good,w_640,c_limit/);
   assert.equal(new URL(getSizedProductImageUrl(unsplash, 320)).searchParams.get('w'), '320');
   assert.match(getProductImageSrcSet(cloudinary, [320, 640]), /320w, .*640w$/);
+});
+
+test('product image placeholders stay bounded and CDN-backed', () => {
+  const cloudinary = 'https://res.cloudinary.com/demo/image/upload/v1/products/shirt.webp';
+  const placeholder = getProductImagePlaceholderUrl(cloudinary);
+
+  assert.match(placeholder, /w_32/);
+  assert.match(placeholder, /e_blur:1000/);
+  assert.equal(getProductImagePlaceholderUrl('https://cdn.test/original.webp'), null);
 });

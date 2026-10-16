@@ -75,23 +75,23 @@ export default function CategoryFormModal({ category, categories = [], initialPa
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="category-modal-title" className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
-          <h3 id="category-modal-title" className="font-display font-black text-lg uppercase tracking-tight text-black dark:text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 font-sans font-[550] backdrop-blur-sm animate-fade-in">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="category-modal-title" className="w-full max-w-md max-h-[calc(100dvh-2rem)] space-y-6 overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-6 shadow-md dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
+        <div className="flex items-start justify-between gap-4 border-b border-neutral-100 pb-4 dark:border-neutral-800">
+          <h3 id="category-modal-title" className="font-sans text-lg font-[550] uppercase tracking-tight text-black dark:text-white">
             {category ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}
           </h3>
           <button
             type="button"
             aria-label="Đóng"
             onClick={onClose}
-            className="p-1 text-neutral-400 hover:text-black dark:hover:text-white text-xl cursor-pointer"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-lg text-neutral-400 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
           >
-            <Icon icon="solar:close-circle-linear" />
+            <Icon icon="solar:close-linear" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="space-y-4 font-sans text-xs">
           <InputField
             name="name_category"
             label="Tên danh mục"
@@ -102,12 +102,12 @@ export default function CategoryFormModal({ category, categories = [], initialPa
           />
 
           <div className="space-y-1.5">
-            <label className="font-bold uppercase tracking-wider text-neutral-500 block">Danh mục cha</label>
+            <label className="block font-sans text-xs font-[550] uppercase tracking-wider text-neutral-500">Danh mục cha</label>
             <select
               name="parent_category_id"
               value={formData.parent_category_id}
               onChange={(e) => setFormData({ ...formData, parent_category_id: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800 text-black dark:text-white font-medium focus:outline-none"
+              className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 font-sans text-xs font-[550] text-black focus:outline-none dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
             >
               <option value="">Không có — danh mục gốc</option>
               {parentChoices.map((item) => (
@@ -116,7 +116,7 @@ export default function CategoryFormModal({ category, categories = [], initialPa
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-neutral-400">Chỉ danh mục gốc có thể được chọn làm danh mục cha.</p>
+            <p className="font-normal text-[11px] text-neutral-400">Chỉ danh mục gốc có thể được chọn làm danh mục cha.</p>
           </div>
 
           <InputField
@@ -130,11 +130,11 @@ export default function CategoryFormModal({ category, categories = [], initialPa
             helperText={!formData.parent_category_id ? 'Chọn danh mục gốc để thiết lập thứ tự hiển thị.' : undefined}
           />
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="flex items-center justify-end gap-3 border-t border-neutral-100 pt-4 dark:border-neutral-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-bold hover:border-neutral-400 dark:hover:border-neutral-500 transition-all cursor-pointer"
+              className="rounded-xl border border-neutral-300 px-4 py-2.5 font-sans text-xs font-[550] text-neutral-600 transition-all hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-neutral-500"
             >
               Hủy
             </button>
