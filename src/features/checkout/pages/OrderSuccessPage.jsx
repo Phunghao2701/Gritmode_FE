@@ -8,7 +8,7 @@ import { useOrderPayment, useCreatePayOSPayment, usePaymentCountdown } from '../
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
-import { formatPriceVND } from '../../products/utils/product.utils';
+import { formatPriceVND, getSizedProductImageUrl } from '../../products/utils/product.utils';
 import { useAuthStore } from '@/shared/store/authStore';
 import ErrorState from '../../../shared/components/ErrorState';
 import { requireApiObject } from '../../../shared/services/responseContract';
@@ -239,7 +239,7 @@ export default function OrderSuccessPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       {item.image_product ? (
                         <img
-                          src={item.image_product}
+                          src={getSizedProductImageUrl(item.image_product, 160, { quality: 'eco' })}
                           alt={item.name_product_order_item || item.name_product}
                           className="w-12 h-16 object-contain rounded-xl border border-neutral-200 dark:border-neutral-800 shrink-0 bg-neutral-100 dark:bg-neutral-950 p-0.5"
                         />

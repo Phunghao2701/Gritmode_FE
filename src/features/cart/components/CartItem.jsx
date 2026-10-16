@@ -1,6 +1,6 @@
 import React from 'react';
 import Icon from '../../../shared/components/Icon';
-import { formatPriceVND } from '../../products/utils/product.utils';
+import { formatPriceVND, getSizedProductImageUrl } from '../../products/utils/product.utils';
 
 export default function CartItem({
   item,
@@ -51,7 +51,7 @@ export default function CartItem({
       <div className="relative w-24 h-28 border border-neutral-200 dark:border-neutral-800 shrink-0 bg-white dark:bg-neutral-900 flex items-center justify-center p-1">
         {item.image ? (
           <img
-            src={item.image}
+            src={getSizedProductImageUrl(item.image, 160, { quality: 'eco' })}
             alt={item.title}
             className="w-full h-full object-contain"
           />

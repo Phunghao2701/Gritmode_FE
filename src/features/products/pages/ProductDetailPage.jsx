@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -75,18 +75,23 @@ export default function ProductDetailPage() {
   const [openAccordion, setOpenAccordion] = useState('details');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxImageIndex, setLightboxImageIndex] = useState(null);
+  const [loadedLightboxImageIndex, setLoadedLightboxImageIndex] = useState(null);
   const [isZoomed, setIsZoomed] = useState(false);
   const [imagePan, setImagePan] = useState({ x: 0, y: 0 });
   const [isPanningImage, setIsPanningImage] = useState(false);
   const imagePanStartRef = useRef(null);
   const imagePanMovedRef = useRef(false);
+  const preloadedLightboxUrlsRef = useRef(new Set());
 
   // Touch swipe gesture support for mobile / touch devices
   const [touchStartX, setTouchStartX] = useState(null);
   const [touchEndX, setTouchEndX] = useState(null);
   const minSwipeDistance = 40;
 
-  const galleryImages = (displayImages && displayImages.length > 0) ? displayImages : (product?.images || []);
+  const galleryImages = useMemo(
+    () => (displayImages && displayImages.length > 0 ? displayImages : (product?.images || [])),
+    [displayImages, product?.images],
+  );
   const currentImage = galleryImages[selectedImageIndex] || galleryImages[0] || null;
   const [loadedImageKey, setLoadedImageKey] = useState(null);
   const currentImageKey = currentImage?.product_image_id || currentImage?.url_product_image || null;
@@ -108,6 +113,25 @@ export default function ProductDetailPage() {
   const activeLightboxImageIndex = lightboxImageIndex ?? selectedImageIndex;
   const lightboxImage = galleryImages[activeLightboxImageIndex] || currentImage;
 
+  const preloadLightboxImage = useCallback((image, width = 1600) => {
+    if (typeof window === 'undefined' || !image?.url_product_image) return;
+    const imageUrl = getSizedProductImageUrl(image.url_product_image, width);
+    if (preloadedLightboxUrlsRef.current.has(imageUrl)) return;
+    preloadedLightboxUrlsRef.current.add(imageUrl);
+    const preload = new window.Image();
+    preload.decoding = 'async';
+    preload.fetchPriority = 'low';
+    preload.src = imageUrl;
+  }, []);
+
+  const preloadAdjacentLightboxImages = useCallback((index) => {
+    if (galleryImages.length <= 1) return;
+    const previousIndex = index > 0 ? index - 1 : galleryImages.length - 1;
+    const nextIndex = index < galleryImages.length - 1 ? index + 1 : 0;
+    preloadLightboxImage(galleryImages[previousIndex]);
+    preloadLightboxImage(galleryImages[nextIndex]);
+  }, [galleryImages, preloadLightboxImage]);
+
   const openLightbox = () => {
     if (!currentImage?.url_product_image) return;
     setLightboxImageIndex(selectedImageIndex);
@@ -124,19 +148,31 @@ export default function ProductDetailPage() {
 
   const handlePrevLightboxImage = useCallback(() => {
     if (isZoomed || galleryImages.length <= 1) return;
-    setLightboxImageIndex((prev) => {
-      const currentIndex = prev ?? selectedImageIndex;
-      return currentIndex > 0 ? currentIndex - 1 : galleryImages.length - 1;
-    });
-  }, [galleryImages.length, isZoomed, selectedImageIndex]);
+    const currentIndex = lightboxImageIndex ?? selectedImageIndex;
+    const nextIndex = currentIndex > 0 ? currentIndex - 1 : galleryImages.length - 1;
+    preloadLightboxImage(galleryImages[nextIndex]);
+    setLightboxImageIndex(nextIndex);
+  }, [galleryImages, isZoomed, lightboxImageIndex, preloadLightboxImage, selectedImageIndex]);
 
   const handleNextLightboxImage = useCallback(() => {
     if (isZoomed || galleryImages.length <= 1) return;
-    setLightboxImageIndex((prev) => {
-      const currentIndex = prev ?? selectedImageIndex;
-      return currentIndex < galleryImages.length - 1 ? currentIndex + 1 : 0;
-    });
-  }, [galleryImages.length, isZoomed, selectedImageIndex]);
+    const currentIndex = lightboxImageIndex ?? selectedImageIndex;
+    const nextIndex = currentIndex < galleryImages.length - 1 ? currentIndex + 1 : 0;
+    preloadLightboxImage(galleryImages[nextIndex]);
+    setLightboxImageIndex(nextIndex);
+  }, [galleryImages, isZoomed, lightboxImageIndex, preloadLightboxImage, selectedImageIndex]);
+
+  useEffect(() => {
+    if (!isLightboxOpen) return undefined;
+    const timer = window.setTimeout(() => preloadAdjacentLightboxImages(activeLightboxImageIndex), 80);
+    return () => window.clearTimeout(timer);
+  }, [activeLightboxImageIndex, isLightboxOpen, preloadAdjacentLightboxImages]);
+
+  useEffect(() => {
+    setLoadedLightboxImageIndex(null);
+    setIsZoomed(false);
+    setImagePan({ x: 0, y: 0 });
+  }, [activeLightboxImageIndex]);
 
   const handleImagePanStart = (e) => {
     if (!isZoomed) return;
@@ -392,7 +428,11 @@ export default function ProductDetailPage() {
                     }`}
                 >
                   <img
-                    src={getSizedProductImageUrl(img.url_product_image, selectedImageIndex === idx ? 960 : 160)}
+                    src={getSizedProductImageUrl(
+                      img.url_product_image,
+                      selectedImageIndex === idx ? 960 : 160,
+                      selectedImageIndex === idx ? undefined : { quality: 'eco' },
+                    )}
                     srcSet={selectedImageIndex === idx
                       ? getProductImageSrcSet(img.url_product_image, [640, 960, 1280, 1600])
                       : undefined}
@@ -717,8 +757,14 @@ export default function ProductDetailPage() {
                 setImagePan({ x: 0, y: 0 });
                 setIsZoomed(e.deltaY < 0);
               }}
-              className={`h-[calc(100vh-140px)] max-w-[95vw] transition-all duration-300 flex items-center justify-center select-none overflow-hidden ${isZoomed ? 'cursor-grab active:cursor-grabbing touch-none' : 'cursor-zoom-in'}`}
+              className={`relative h-[calc(100vh-140px)] max-w-[95vw] transition-all duration-300 flex items-center justify-center select-none overflow-hidden ${isZoomed ? 'cursor-grab active:cursor-grabbing touch-none' : 'cursor-zoom-in'}`}
             >
+              <img
+                src={getSizedProductImageUrl(lightboxImage.url_product_image, 160, { quality: 'eco' })}
+                alt=""
+                aria-hidden="true"
+                className={`absolute inset-0 w-full h-full object-contain blur-[2px] scale-[1.01] transition-opacity duration-200 ${loadedLightboxImageIndex === activeLightboxImageIndex ? 'opacity-0' : 'opacity-100'}`}
+              />
               <img
                 key={activeLightboxImageIndex}
                 src={getSizedProductImageUrl(lightboxImage.url_product_image, 1600)}
@@ -736,8 +782,9 @@ export default function ProductDetailPage() {
                   setImagePan({ x: 0, y: 0 });
                   setIsZoomed((prev) => !prev);
                 }}
+                onLoad={() => setLoadedLightboxImageIndex(activeLightboxImageIndex)}
                 style={{ transform: `translate3d(${imagePan.x}px, ${imagePan.y}px, 0) scale(${isZoomed ? 1.5 : 1})` }}
-                className={`w-auto max-w-full h-full object-contain ${isPanningImage ? '' : 'transition-transform duration-300'} ${isZoomed ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-in'}`}
+                className={`relative w-auto max-w-full h-full object-contain transition-opacity duration-200 ${loadedLightboxImageIndex === activeLightboxImageIndex ? 'opacity-100' : 'opacity-0'} ${isPanningImage ? '' : 'transition-transform duration-300'} ${isZoomed ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-in'}`}
               />
             </div>
           </div>
@@ -764,7 +811,7 @@ export default function ProductDetailPage() {
                       }`}
                   >
                     <img
-                    src={getSizedProductImageUrl(img.url_product_image, activeLightboxImageIndex === idx ? 1600 : 160)}
+                      src={getSizedProductImageUrl(img.url_product_image, 160, { quality: 'eco' })}
                       alt=""
                       className="w-full h-full object-cover"
                       loading={activeLightboxImageIndex === idx ? "eager" : "lazy"}

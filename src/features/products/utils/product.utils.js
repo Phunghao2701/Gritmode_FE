@@ -20,15 +20,17 @@ export const slugifyProductName = (name = '') => String(name)
   .replace(/[^a-z0-9]+/g, '-')
   .replace(/^-+|-+$/g, '');
 
-export const getSizedProductImageUrl = (source, width) => {
-  if (!source || !width) return source;
+export const getSizedProductImageUrl = (source, width, { quality = 'good' } = {}) => {
+  if (typeof source !== 'string' || !source || !width) return source;
+  const normalizedQuality = quality === 'eco' ? 'eco' : 'good';
   if (source.includes('/image/upload/')) {
-    return source.replace('/image/upload/', `/image/upload/f_auto,q_auto:good,w_${width},c_limit/`);
+    return source.replace('/image/upload/', `/image/upload/f_auto,q_auto:${normalizedQuality},w_${width},c_limit/`);
   }
   if (source.includes('images.unsplash.com')) {
     const url = new URL(source);
     url.searchParams.set('auto', 'format');
     url.searchParams.set('w', String(width));
+    if (normalizedQuality === 'eco') url.searchParams.set('q', '70');
     return url.toString();
   }
   return source;
