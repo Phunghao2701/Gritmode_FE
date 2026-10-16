@@ -18,6 +18,7 @@ import {
   updateAdminProductApi,
   updateAdminFullProductApi,
   uploadAdminProductImagesApi,
+  updateProductImageApi,
 } from '../apis/admin.api';
 import { generateSkuSuggestion } from '../utils/productVariants';
 import CategoryFormModal from '../components/CategoryFormModal';
@@ -157,6 +158,7 @@ export default function AdminProductEditPage() {
   const [editingInventoryKey, setEditingInventoryKey] = useState(null);
   const [images, setImages] = useState([]);
   const [cropEditor, setCropEditor] = useState(null);
+  const [deletingImage, setDeletingImage] = useState(null);
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
   const [productStatus, setProductStatus] = useState('draft');
@@ -482,6 +484,17 @@ export default function AdminProductEditPage() {
       const uploaded = requireApiArray(response, 'Ảnh sản phẩm tải lên');
       const asset = uploaded[0];
       if (!asset?.url || !asset.media_asset_id) throw new Error('Upload không trả về asset hợp lệ');
+
+      // A recrop of an existing image is a real edit, not only a local preview.
+      // Attach the new staged asset to the existing product_image row so the
+      // next admin edit and the storefront read the same persisted image.
+      if (isEdit) {
+        await updateProductImageApi(targetId, {
+          media_asset_id: asset.media_asset_id,
+          url_product_image: asset.url,
+        });
+      }
+
       setImages((prev) => {
         const nextItem = {
           ...(isEdit ? cropEditor.image : {}),
@@ -500,6 +513,17 @@ export default function AdminProductEditPage() {
         };
         return isEdit ? prev.map((img) => img.product_image_id === targetId ? nextItem : img) : prev.map((img) => img.__tempId === tempId ? nextItem : img);
       });
+      if (isEdit) {
+        const invalidationKeys = [
+          ['admin-products'],
+          ['admin-product-detail'],
+          ['products'],
+          ['product-detail'],
+        ];
+        await Promise.all(invalidationKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
+        broadcastQueryInvalidation(invalidationKeys);
+        toast.success('Đã lưu ảnh crop thành công!');
+      }
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       const nextFile = cropEditor.queue?.[0];
       setCropEditor(nextFile ? { mode: 'upload', file: nextFile, queue: cropEditor.queue.slice(1) } : null);
@@ -597,6 +621,18 @@ export default function AdminProductEditPage() {
       const next = prev.filter((_, i) => i !== index);
       return next.map((img, i) => ({ ...img, is_thumbnail: i === 0, position: i }));
     });
+  };
+
+  const handleRequestRemoveImage = (index) => {
+    const image = images[index];
+    if (!image) return;
+    setDeletingImage({ index, image });
+  };
+
+  const handleConfirmRemoveImage = () => {
+    if (!deletingImage) return;
+    handleRemoveImage(deletingImage.index);
+    setDeletingImage(null);
   };
 
   const refreshCategories = async () => {
@@ -1578,8 +1614,9 @@ export default function AdminProductEditPage() {
                         )}
                         <button
                           type="button"
-                          onClick={() => handleRemoveImage(i)}
+                          onClick={() => handleRequestRemoveImage(i)}
                           title="Xóa ảnh"
+                          aria-label={`Xác nhận xóa ảnh ${i + 1}`}
                           className="p-1.5 bg-rose-500 text-white rounded-full hover:scale-110 transition-transform cursor-pointer"
                         >
                           <Icon icon="solar:trash-bin-trash-linear" className="text-xs" />
@@ -1615,6 +1652,55 @@ export default function AdminProductEditPage() {
           onCancel={handleCropCancel}
           onSave={handleCropSave}
         />
+      )}
+
+      {deletingImage && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur-[2px]"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setDeletingImage(null);
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-product-image-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="mb-5 flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
+                <Icon icon="solar:trash-bin-trash-linear" />
+              </div>
+              <div>
+                <h2 id="delete-product-image-title" className="text-base font-semibold text-neutral-950 dark:text-white">
+                  Xóa ảnh sản phẩm?
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-neutral-500 dark:text-neutral-400">
+                  Ảnh sẽ được xóa khỏi sản phẩm khi bạn bấm Lưu thay đổi.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletingImage(null)}
+                autoFocus
+                className="rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmRemoveImage}
+                className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2 dark:focus:ring-offset-neutral-900"
+              >
+                Xóa ảnh
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Floating Save Footer on mobile/desktop */}

@@ -431,7 +431,7 @@ export default function AdminBannersPage() {
                       <button
                         type="button"
                         onClick={() => setDeletingImage(slide)}
-                        className="px-2.5 py-1 rounded-lg text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+                          className="flex cursor-pointer items-center gap-1 rounded-lg px-2.5 py-1 font-sans text-xs font-[550] text-red-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
                         title="Xóa ảnh"
                       >
                         <Icon icon="solar:trash-bin-trash-bold" className="w-3.5 h-3.5" />

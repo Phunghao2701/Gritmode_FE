@@ -4,7 +4,9 @@ import { getProductDetailApi } from '@/features/products/apis/product.api';
 import ProductDetailPage from '@/features/products/pages/ProductDetailPage';
 import { requireApiObject } from '@/shared/services/responseContract';
 
-export const revalidate = 60;
+// Product media and inventory are mutable admin data. Do not serve an ISR
+// snapshot after an image crop has been saved.
+export const revalidate = 0;
 
 export default async function ProductPage({ params }) {
   const { id } = await params;

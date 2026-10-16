@@ -7,8 +7,8 @@ test.describe('admin image crop CRUD', () => {
     await page.goto('/admin/products/create');
     await imageCrud.openCrop().setInputFiles('tests/fixtures/portrait.svg');
     await expect(imageCrud.cropDialog()).toBeVisible();
-    await imageCrud.cropDialog().getByRole('button', { name: /zoom in/i }).click();
-    await imageCrud.cropDialog().getByRole('button', { name: /reset crop/i }).click();
+    await imageCrud.cropDialog().getByRole('button', { name: /tăng zoom|zoom in/i }).click();
+    await imageCrud.cropDialog().getByRole('button', { name: /reset crop|reset/i }).click();
     await imageCrud.cancelCrop().click();
     await expect(imageCrud.cropDialog()).toHaveCount(0);
   });

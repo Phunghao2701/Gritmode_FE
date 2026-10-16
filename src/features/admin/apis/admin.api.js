@@ -148,6 +148,7 @@ export const deleteProductVariantApi = (variantId) => api.delete(`/admin/product
 export const createProductImageApi = (productId, data) => {
   return api.post(`/admin/products/${productId}/images`, data);
 };
+export const updateProductImageApi = (imageId, data) => api.patch(`/admin/product-images/${imageId}`, data);
 export const deleteProductImageApi = (imageId) => api.delete(`/admin/product-images/${imageId}`);
 
 export const assignProductCategoryApi = (productId, data) => {

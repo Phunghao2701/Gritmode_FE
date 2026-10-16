@@ -1,6 +1,7 @@
 'use client';
 
 import { createPortal } from 'react-dom';
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import {
   useCallback,
   useEffect,
@@ -9,169 +10,153 @@ import {
   useRef,
   useState,
 } from 'react';
-import Icon from '../Icon';
-import PrimaryButton from '../Button/PrimaryButton';
 import { getImageProfile } from '../../config/imageProfiles';
 import {
-  clampCropOffset,
   createCroppedImageBlob,
   createImageFile,
   createObjectUrl,
-  getCropAreaPixels,
   getCroppedImageFileName,
-  getCropMetrics,
-  normalizeCropState,
   revokeObjectUrl,
 } from '../../utils/imageCrop';
 
-const FOCUSABLE_SELECTOR = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'area[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  'iframe',
+  'object',
+  'embed',
+  '[contenteditable]',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
-const getFocusableElements = (container) => (
-  container ? [...container.querySelectorAll(FOCUSABLE_SELECTOR)] : []
-);
+const BASE_CROP_WIDTH = 82;
 
-const useElementSize = (elementRef) => {
-  const [size, setSize] = useState({ width: 0, height: 0 });
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-  useEffect(() => {
-    const element = elementRef.current;
-    if (!element) return undefined;
-
-    const measure = () => {
-      const rect = element.getBoundingClientRect();
-      setSize({ width: rect.width, height: rect.height });
-    };
-
-    measure();
-    if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', measure);
-      return () => window.removeEventListener('resize', measure);
-    }
-
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [elementRef]);
-
-  return size;
+const toFinite = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
 };
 
-const toPreviewImageStyle = (imageMeta, viewportSize, crop) => {
-  if (!imageMeta || viewportSize.width <= 0 || viewportSize.height <= 0) {
-    return { opacity: 0 };
-  }
-
-  const metrics = getCropMetrics({
-    ...crop,
-    imageWidth: imageMeta.width,
-    imageHeight: imageMeta.height,
-    viewportWidth: viewportSize.width,
-    viewportHeight: viewportSize.height,
-  });
+const normalizePercentCrop = (crop = {}) => {
+  const width = clamp(toFinite(crop.width, 0), 1, 100);
+  const height = clamp(toFinite(crop.height, 0), 1, 100);
 
   return {
-    position: 'absolute',
-    left: `calc(50% + ${metrics.offsetX}px)`,
-    top: `calc(50% + ${metrics.offsetY}px)`,
-    width: `${metrics.renderedWidth}px`,
-    height: `${metrics.renderedHeight}px`,
-    maxWidth: 'none',
-    transform: 'translate(-50%, -50%)',
-    opacity: 1,
+    unit: '%',
+    x: clamp(toFinite(crop.x), 0, 100 - width),
+    y: clamp(toFinite(crop.y), 0, 100 - height),
+    width,
+    height,
   };
 };
 
-export default function ImageCropModal({
+const cropToPixels = (crop, imageMeta) => {
+  if (!crop || !imageMeta?.width || !imageMeta?.height) return null;
+
+  const normalized = normalizePercentCrop(crop);
+  const x = Math.round((normalized.x / 100) * imageMeta.width);
+  const y = Math.round((normalized.y / 100) * imageMeta.height);
+  const width = Math.round((normalized.width / 100) * imageMeta.width);
+  const height = Math.round((normalized.height / 100) * imageMeta.height);
+
+  return {
+    x: clamp(x, 0, imageMeta.width - 1),
+    y: clamp(y, 0, imageMeta.height - 1),
+    width: clamp(width, 1, imageMeta.width - x),
+    height: clamp(height, 1, imageMeta.height - y),
+  };
+};
+
+const createZoomCrop = (imageMeta, aspect, zoom = 1) => {
+  if (!imageMeta?.width || !imageMeta?.height || !aspect) return undefined;
+
+  const width = Math.min(96, BASE_CROP_WIDTH / Math.max(toFinite(zoom, 1), 1));
+  const crop = makeAspectCrop(
+    { unit: '%', width },
+    aspect,
+    imageMeta.width,
+    imageMeta.height,
+  );
+
+  return normalizePercentCrop(centerCrop(crop, imageMeta.width, imageMeta.height));
+};
+
+const getPreviewImageStyle = (crop) => {
+  if (!crop?.width || !crop?.height) return undefined;
+
+  return {
+    position: 'absolute',
+    top: `-${(crop.y / crop.height) * 100}%`,
+    left: `-${(crop.x / crop.width) * 100}%`,
+    width: `${10000 / crop.width}%`,
+    maxWidth: 'none',
+    height: 'auto',
+  };
+};
+
+const getSourceInput = ({ source, image, file }) => source ?? image ?? file;
+
+const ImageCropModal = ({
   open = true,
   source,
   image,
   file,
   profile = 'product',
+  title = 'Chỉnh crop ảnh',
+  saveLabel = 'Lưu ảnh',
+  cancelLabel = 'Hủy',
   initialCrop,
-  isSaving = false,
   onCancel,
   onSave,
-  title,
-  saveLabel = 'Save crop',
-  cancelLabel = 'Cancel',
-}) {
-  const profileConfig = useMemo(() => getImageProfile(profile), [profile]);
-  const sourceInput = source ?? image ?? file;
-  const titleId = useId();
-  const descriptionId = useId();
+}) => {
   const dialogRef = useRef(null);
-  const closeButtonRef = useRef(null);
-  const viewportRef = useRef(null);
-  const previewRef = useRef(null);
-  const previousFocusRef = useRef(null);
-  const sourceUrlRef = useRef('');
-  const onCancelRef = useRef(onCancel);
-  const onSaveRef = useRef(onSave);
-  const isBusyRef = useRef(false);
-  const minZoom = profileConfig?.minZoom || 1;
-  const maxZoom = profileConfig?.maxZoom || 3.5;
-  const zoomStep = profileConfig?.zoomStep || 0.05;
-  const initialZoom = initialCrop?.zoom;
-  const initialOffsetX = initialCrop?.offsetX;
-  const initialOffsetY = initialCrop?.offsetY;
-  const initialCropState = useMemo(
-    () => normalizeCropState({
-      zoom: initialZoom,
-      offsetX: initialOffsetX,
-      offsetY: initialOffsetY,
-    }, { minZoom, maxZoom }),
-    [initialOffsetX, initialOffsetY, initialZoom, maxZoom, minZoom],
+  const imageRef = useRef(null);
+  const sourceInput = useMemo(
+    () => getSourceInput({ source, image, file }),
+    [file, image, source],
   );
+  const profileConfig = getImageProfile(profile);
+  const titleId = useId();
+
   const [sourceUrl, setSourceUrl] = useState('');
   const [imageMeta, setImageMeta] = useState(null);
+  const [crop, setCrop] = useState();
+  const [completedPercentCrop, setCompletedPercentCrop] = useState();
+  const [zoom, setZoom] = useState(initialCrop?.zoom || profileConfig?.minZoom || 1);
   const [imageError, setImageError] = useState('');
-  const [isImageLoading, setIsImageLoading] = useState(true);
-  const [isExporting, setIsExporting] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragState, setDragState] = useState(null);
-  const [crop, setCrop] = useState(initialCropState);
-  const viewportSize = useElementSize(viewportRef);
-  const previewSize = useElementSize(previewRef);
-
-  const isBusy = isSaving || isExporting;
-
-  useEffect(() => {
-    isBusyRef.current = isBusy;
-  }, [isBusy]);
-
-  useEffect(() => {
-    onCancelRef.current = onCancel;
-  }, [onCancel]);
-
-  useEffect(() => {
-    onSaveRef.current = onSave;
-  }, [onSave]);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return undefined;
 
-    previousFocusRef.current = document.activeElement;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const focusTimer = window.setTimeout(() => {
-      closeButtonRef.current?.focus({ preventScroll: true });
-    }, 0);
+    const previousActiveElement = document.activeElement;
+    const dialog = dialogRef.current;
+    dialog?.focus();
 
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && !isSaving) {
         event.preventDefault();
-        if (!isBusyRef.current) onCancelRef.current?.();
+        onCancel?.();
         return;
       }
 
-      if (event.key !== 'Tab') return;
-      const focusable = getFocusableElements(dialogRef.current);
-      if (!focusable.length) return;
+      if (event.key !== 'Tab' || !dialog) return;
+
+      const focusable = [...dialog.querySelectorAll(FOCUSABLE_SELECTOR)];
+      if (!focusable.length) {
+        event.preventDefault();
+        return;
+      }
 
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
+
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -182,455 +167,358 @@ export default function ImageCropModal({
     };
 
     document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+
     return () => {
-      window.clearTimeout(focusTimer);
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
-      previousFocusRef.current?.focus?.({ preventScroll: true });
+      document.body.style.overflow = '';
+      previousActiveElement?.focus?.();
     };
-  }, [open]);
+  }, [isSaving, onCancel, open]);
 
   useEffect(() => {
     if (!open) return undefined;
 
     setImageMeta(null);
+    setCrop(undefined);
+    setCompletedPercentCrop(undefined);
+    setZoom(initialCrop?.zoom || profileConfig?.minZoom || 1);
     setImageError('');
     setSaveError('');
-    setIsImageLoading(true);
-    setCrop(initialCropState);
+
+    if (!sourceInput) {
+      setSourceUrl('');
+      setImageError('Không có ảnh để chỉnh sửa.');
+      return undefined;
+    }
 
     let nextUrl = '';
+
     try {
-      nextUrl = sourceInput ? createObjectUrl(sourceInput) : '';
-      sourceUrlRef.current = nextUrl;
+      nextUrl = createObjectUrl(sourceInput);
       setSourceUrl(nextUrl);
-      if (!nextUrl) {
-        setIsImageLoading(false);
-        setImageError('Choose an image to start cropping.');
-      }
     } catch (error) {
-      setIsImageLoading(false);
-      setImageError(error.message || 'The image preview could not be created.');
+      setSourceUrl('');
+      setImageError(error instanceof Error ? error.message : 'Không thể đọc ảnh.');
     }
 
     return () => {
       revokeObjectUrl(nextUrl);
-      if (sourceUrlRef.current === nextUrl) sourceUrlRef.current = '';
     };
-  }, [initialCropState, maxZoom, open, sourceInput]);
+  }, [initialCrop?.zoom, open, profileConfig?.minZoom, sourceInput]);
 
-  useEffect(() => {
-    if (!imageMeta || !viewportSize.width || !viewportSize.height) return;
-    setCrop((previous) => ({
-      ...previous,
-      ...clampCropOffset({
-        ...previous,
-        imageWidth: imageMeta.width,
-        imageHeight: imageMeta.height,
-        viewportWidth: viewportSize.width,
-        viewportHeight: viewportSize.height,
-      }),
-    }));
-  }, [imageMeta, viewportSize.width, viewportSize.height]);
-
-  const updateCrop = useCallback((updater) => {
-    setCrop((previous) => {
-      const next = typeof updater === 'function' ? updater(previous) : updater;
-      const normalized = normalizeCropState(next, { minZoom, maxZoom });
-      if (!imageMeta || !viewportSize.width || !viewportSize.height) return normalized;
-      return {
-        ...normalized,
-        ...clampCropOffset({
-          ...normalized,
-          imageWidth: imageMeta.width,
-          imageHeight: imageMeta.height,
-          viewportWidth: viewportSize.width,
-          viewportHeight: viewportSize.height,
-        }),
-      };
-    });
-    setSaveError('');
-  }, [imageMeta, maxZoom, minZoom, viewportSize.height, viewportSize.width]);
-
-  const updateZoom = (nextZoom) => {
-    updateCrop((previous) => ({
-      ...previous,
-      zoom: nextZoom,
-    }));
-  };
-
-  const nudgePan = (deltaX, deltaY) => {
-    const step = Math.max(viewportSize.width * 0.05, 12);
-    updateCrop((previous) => ({
-      ...previous,
-      offsetX: previous.offsetX + deltaX * step,
-      offsetY: previous.offsetY + deltaY * step,
-    }));
-  };
-
-  const resetCrop = () => updateCrop(initialCropState);
-
-  const handlePointerDown = (event) => {
-    if (isBusy || !imageMeta || event.button !== 0) return;
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    setIsDragging(true);
-    setDragState({
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      offsetX: crop.offsetX,
-      offsetY: crop.offsetY,
-    });
-  };
-
-  const handlePointerMove = (event) => {
-    if (!dragState || dragState.pointerId !== event.pointerId) return;
-    updateCrop({
-      ...crop,
-      offsetX: dragState.offsetX + event.clientX - dragState.startX,
-      offsetY: dragState.offsetY + event.clientY - dragState.startY,
-    });
-  };
-
-  const finishPointerDrag = (event) => {
-    if (dragState?.pointerId !== event.pointerId) return;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
-    setDragState(null);
-    setIsDragging(false);
-  };
-
-  const handleViewportKeyDown = (event) => {
-    const panKeys = {
-      ArrowLeft: [-1, 0],
-      ArrowRight: [1, 0],
-      ArrowUp: [0, -1],
-      ArrowDown: [0, 1],
+  const handleImageLoad = useCallback((event) => {
+    const imageElement = event.currentTarget;
+    const nextMeta = {
+      width: imageElement.naturalWidth,
+      height: imageElement.naturalHeight,
     };
-    if (panKeys[event.key]) {
-      event.preventDefault();
-      nudgePan(...panKeys[event.key]);
+
+    if (!nextMeta.width || !nextMeta.height) {
+      setImageError('Không thể đọc kích thước ảnh.');
       return;
     }
-    if (event.key === '+' || event.key === '=') {
-      event.preventDefault();
-      updateZoom(crop.zoom + zoomStep);
-    } else if (event.key === '-' || event.key === '_') {
-      event.preventDefault();
-      updateZoom(crop.zoom - zoomStep);
-    } else if (event.key === '0') {
-      event.preventDefault();
-      resetCrop();
-    }
-  };
 
-  const handleWheel = (event) => {
-    if (isBusy) return;
-    event.preventDefault();
-    updateZoom(crop.zoom + (event.deltaY > 0 ? -zoomStep : zoomStep));
-  };
+    imageRef.current = imageElement;
+    setImageMeta(nextMeta);
 
-  const handleImageLoad = (event) => {
-    setImageMeta({
-      width: event.currentTarget.naturalWidth,
-      height: event.currentTarget.naturalHeight,
-    });
+    const restoredCrop = initialCrop?.percentCrop;
+    const nextCrop = restoredCrop
+      ? normalizePercentCrop(restoredCrop)
+      : createZoomCrop(nextMeta, profileConfig?.ratio, zoom);
+
+    setCrop(nextCrop);
+    setCompletedPercentCrop(nextCrop);
     setImageError('');
-    setIsImageLoading(false);
-  };
+  }, [initialCrop?.percentCrop, profileConfig?.ratio, zoom]);
 
-  const handleImageError = () => {
-    setImageMeta(null);
-    setIsImageLoading(false);
-    setImageError('This image could not be loaded. Choose another file or try again.');
-  };
+  const handleCropChange = useCallback((_, percentCrop) => {
+    const nextCrop = normalizePercentCrop(percentCrop);
+    setCrop(nextCrop);
+    setCompletedPercentCrop(nextCrop);
+    setSaveError('');
+  }, []);
 
-  const handleSave = async () => {
-    if (!profileConfig || !sourceUrl || !imageMeta || !onSaveRef.current || isBusy) return;
-    setIsExporting(true);
+  const handleCropComplete = useCallback((_, percentCrop) => {
+    const nextCrop = normalizePercentCrop(percentCrop);
+    setCompletedPercentCrop(nextCrop);
+  }, []);
+
+  const handleZoomChange = useCallback((event) => {
+    const nextZoom = clamp(
+      toFinite(event.target.value, profileConfig?.minZoom || 1),
+      profileConfig?.minZoom || 1,
+      profileConfig?.maxZoom || 3.5,
+    );
+
+    setZoom(nextZoom);
+
+    if (!imageMeta || !profileConfig?.ratio) return;
+
+    const nextCrop = createZoomCrop(imageMeta, profileConfig.ratio, nextZoom);
+    setCrop(nextCrop);
+    setCompletedPercentCrop(nextCrop);
+    setSaveError('');
+  }, [imageMeta, profileConfig]);
+
+  const handleReset = useCallback(() => {
+    const resetZoom = profileConfig?.minZoom || 1;
+    setZoom(resetZoom);
+
+    if (!imageMeta || !profileConfig?.ratio) return;
+
+    const resetCrop = createZoomCrop(imageMeta, profileConfig.ratio, resetZoom);
+    setCrop(resetCrop);
+    setCompletedPercentCrop(resetCrop);
+    setSaveError('');
+  }, [imageMeta, profileConfig]);
+
+  const handleZoomButton = useCallback((delta) => {
+    const currentZoom = toFinite(zoom, profileConfig?.minZoom || 1);
+    const step = profileConfig?.zoomStep || 0.05;
+    const nextZoom = clamp(
+      Number((currentZoom + delta * step).toFixed(2)),
+      profileConfig?.minZoom || 1,
+      profileConfig?.maxZoom || 3.5,
+    );
+
+    setZoom(nextZoom);
+
+    if (!imageMeta || !profileConfig?.ratio) return;
+
+    const nextCrop = createZoomCrop(imageMeta, profileConfig.ratio, nextZoom);
+    setCrop(nextCrop);
+    setCompletedPercentCrop(nextCrop);
+    setSaveError('');
+  }, [imageMeta, profileConfig, zoom]);
+
+  const handleSave = useCallback(async () => {
+    if (isSaving || !sourceUrl || !imageMeta || !profileConfig || !onSave) return;
+
+    const nextCrop = completedPercentCrop || crop;
+    const areaPixels = cropToPixels(nextCrop, imageMeta);
+
+    if (!areaPixels?.width || !areaPixels?.height) {
+      setSaveError('Crop chưa sẵn sàng. Vui lòng đợi ảnh tải xong.');
+      return;
+    }
+
+    setIsSaving(true);
     setSaveError('');
 
     try {
-      const cropForExport = {
-        ...crop,
-        imageWidth: imageMeta.width,
-        imageHeight: imageMeta.height,
-        viewportWidth: viewportSize.width,
-        viewportHeight: viewportSize.height,
-      };
-      const areaPixels = getCropAreaPixels(cropForExport);
-      const blob = await createCroppedImageBlob(sourceUrl, cropForExport, profileConfig);
-      const file = createImageFile(blob, getCroppedImageFileName(sourceInput, profileConfig));
-      await onSaveRef.current({
-        file,
+      const blob = await createCroppedImageBlob(
+        sourceUrl,
+        { areaPixels },
+        profileConfig,
+      );
+      const fileName = getCroppedImageFileName(sourceInput, profileConfig.key);
+      const croppedFile = createImageFile(blob, fileName);
+
+      await onSave({
+        file: croppedFile,
         blob,
         profile: profileConfig.key,
         profileConfig,
         areaPixels,
         crop: {
-          zoom: crop.zoom,
-          offsetX: crop.offsetX,
-          offsetY: crop.offsetY,
+          zoom,
+          offsetX: 0,
+          offsetY: 0,
+          percentCrop: nextCrop,
         },
       });
     } catch (error) {
-      setSaveError(error.message || 'The crop could not be saved. Try again.');
+      setSaveError(error instanceof Error ? error.message : 'Không thể lưu ảnh.');
     } finally {
-      setIsExporting(false);
+      setIsSaving(false);
     }
-  };
+  }, [completedPercentCrop, crop, imageMeta, isSaving, onSave, profileConfig, sourceInput, sourceUrl, zoom]);
 
   if (!open || typeof document === 'undefined') return null;
 
-  if (!profileConfig) {
-    return createPortal(
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
-        <div role="alert" className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 text-sm text-black shadow-2xl dark:border-neutral-800 dark:bg-neutral-900 dark:text-white">
-          Unknown image crop profile.
-        </div>
-      </div>,
-      document.body,
-    );
-  }
+  const activeCrop = completedPercentCrop || crop;
+  const previewImageStyle = getPreviewImageStyle(activeCrop);
+  const zoomMin = profileConfig?.minZoom || 1;
+  const zoomMax = profileConfig?.maxZoom || 3.5;
+  const zoomStep = profileConfig?.zoomStep || 0.05;
 
-  const dialogTitle = title || `Crop ${profileConfig.label.toLowerCase()}`;
-  const imageStyle = toPreviewImageStyle(imageMeta, viewportSize, crop);
-  const previewImageStyle = toPreviewImageStyle(imageMeta, previewSize, crop);
-
-  const modalContent = (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/80 p-3 backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black/70 p-3 font-sans font-[550] backdrop-blur-sm sm:p-6"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget && !isBusy) onCancelRef.current?.();
+        if (event.target === event.currentTarget && !isSaving) onCancel?.();
       }}
     >
       <div
         ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={descriptionId}
-        aria-busy={isBusy}
-        data-lenis-prevent
-        className="my-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl flex-col overflow-y-auto overscroll-contain rounded-[28px] border border-neutral-200 bg-white text-black shadow-2xl dark:border-neutral-800 dark:bg-neutral-950 dark:text-white sm:max-h-[calc(100dvh-3rem)]"
+        aria-modal="true"
+        className="my-auto flex h-[calc(100dvh-1.5rem)] max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-md outline-none sm:h-[calc(100dvh-3rem)] sm:max-h-[calc(100dvh-3rem)]"
+        role="dialog"
+        tabIndex={-1}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-neutral-100 px-5 py-4 dark:border-neutral-800 sm:px-7">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-black/10 px-5 py-5 sm:px-8">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">Media editor</p>
-            <h2 id={titleId} className="mt-1 font-display text-lg font-black uppercase tracking-tight sm:text-xl">
-              {dialogTitle}
+            <p className="font-sans text-[11px] font-[550] uppercase tracking-[0.2em] text-black/45">Media editor</p>
+            <h2 id={titleId} className="mt-1 font-sans text-2xl font-[550] uppercase tracking-tight text-black sm:text-3xl">
+              {title}
             </h2>
-            <p id={descriptionId} className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-              Drag to reposition, use the controls to zoom, then save the {profileConfig.widthRatio}:{profileConfig.heightRatio} crop.
+            <p className="mt-2 font-sans text-sm font-normal leading-6 text-black/55">
+              Kéo trong khung để di chuyển, kéo 8 nút để đổi vùng crop theo đúng tỉ lệ.
             </p>
           </div>
           <button
-            ref={closeButtonRef}
+            aria-label="Đóng trình chỉnh sửa ảnh"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-black/20 font-sans text-lg font-normal text-black/60 transition hover:border-black hover:text-black disabled:opacity-40"
+            disabled={isSaving}
+            onClick={onCancel}
             type="button"
-            aria-label={cancelLabel}
-            onClick={() => !isBusy && onCancelRef.current?.()}
-            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl text-xl text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-neutral-900 dark:hover:text-white dark:focus-visible:ring-white"
-            disabled={isBusy}
           >
-            <Icon icon="solar:close-circle-linear" aria-hidden="true" />
+            ×
           </button>
         </header>
 
-        <div className="grid min-h-0 gap-6 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_250px]">
-          <section className="min-w-0">
-            <div
-              ref={viewportRef}
-              role="group"
-              tabIndex={0}
-              aria-label="Crop area. Use arrow keys to move the image, plus and minus to zoom, or press 0 to reset."
-              className={`relative mx-auto w-full max-w-[560px] overflow-hidden rounded-2xl border-2 border-black bg-neutral-950 shadow-inner outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 dark:border-white dark:focus-visible:ring-white ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-              style={{ aspectRatio: profileConfig.aspectRatio, touchAction: 'none' }}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={finishPointerDrag}
-              onPointerCancel={finishPointerDrag}
-              onKeyDown={handleViewportKeyDown}
-              onWheel={handleWheel}
-            >
-              {sourceUrl && (
-                <img
-                  src={sourceUrl}
-                  alt={`${profileConfig.label} crop preview`}
-                  crossOrigin="anonymous"
-                  draggable="false"
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                  className="select-none object-cover"
-                  style={imageStyle}
-                />
-              )}
-              <div className="pointer-events-none absolute inset-0 border border-white/80 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.35)]" aria-hidden="true" />
-              {isImageLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-bold uppercase tracking-widest text-white" role="status">
-                  Loading image…
-                </div>
-              )}
-              {imageError && !isImageLoading && (
-                <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-xs font-medium text-white" role="alert">
-                  {imageError}
-                </div>
-              )}
-            </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              <span>Drag to reposition · wheel to zoom</span>
-              <span>{profileConfig.widthRatio}:{profileConfig.heightRatio} · {profileConfig.outputWidth}×{profileConfig.outputHeight}</span>
-            </div>
-          </section>
-
-          <aside className="space-y-5 lg:border-l lg:border-neutral-100 lg:pl-6 lg:dark:border-neutral-800">
-            <div>
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <h3 className="text-xs font-black uppercase tracking-widest">Live preview</h3>
-                <span className="text-[10px] font-bold text-neutral-400">{Math.round(crop.zoom * 100)}%</span>
-              </div>
-              <div
-                ref={previewRef}
-                className="relative mx-auto w-full max-w-[170px] overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900"
-                style={{ aspectRatio: profileConfig.aspectRatio }}
-              >
-                {sourceUrl && (
-                  <img
-                    src={sourceUrl}
-                    alt=""
-                    aria-hidden="true"
-                    crossOrigin="anonymous"
-                    draggable="false"
-                    className="select-none object-cover"
-                    style={previewImageStyle}
-                  />
+        <div
+          data-lenis-prevent
+          className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-8 sm:py-7"
+        >
+          <div className="grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1fr)_290px] lg:items-start">
+            <section className="min-w-0">
+              <div className="flex min-h-[280px] items-center justify-center overflow-hidden rounded-2xl bg-[#151515] p-3 sm:p-5">
+                {sourceUrl && !imageError ? (
+                  <ReactCrop
+                    aspect={profileConfig?.ratio}
+                    className="gritmode-crop"
+                    crop={crop}
+                    keepSelection
+                    onChange={handleCropChange}
+                    onComplete={handleCropComplete}
+                    ruleOfThirds
+                  >
+                    <img
+                      ref={imageRef}
+                      alt="Ảnh đang chỉnh crop"
+                      className="block max-w-full object-contain"
+                      onError={() => setImageError('Không thể tải ảnh để chỉnh sửa.')}
+                      onLoad={handleImageLoad}
+                      src={sourceUrl}
+                      style={{ maxHeight: 'min(58dvh, 680px)' }}
+                    />
+                  </ReactCrop>
+                ) : (
+                  <div className="flex min-h-[240px] items-center justify-center px-6 text-center text-sm text-white/70">
+                    {imageError || 'Đang tải ảnh…'}
+                  </div>
                 )}
-                <div className="pointer-events-none absolute inset-0 border border-black/20 dark:border-white/20" aria-hidden="true" />
               </div>
-            </div>
 
-            <div className="space-y-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
-              <label htmlFor={`${titleId}-zoom`} className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-                <span>Zoom</span>
-                <span>{Math.round(crop.zoom * 100)}%</span>
-              </label>
-              <input
-                id={`${titleId}-zoom`}
-                type="range"
-                min={minZoom}
-                max={maxZoom}
-                step={zoomStep}
-                value={crop.zoom}
-                onChange={(event) => updateZoom(Number(event.target.value))}
-                disabled={!imageMeta || isBusy}
-                aria-label="Zoom crop image"
-                className="h-2 w-full cursor-pointer accent-black disabled:cursor-not-allowed disabled:opacity-40 dark:accent-white"
-              />
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  aria-label="Zoom out"
-                  onClick={() => updateZoom(crop.zoom - zoomStep)}
-                  disabled={!imageMeta || isBusy || crop.zoom <= minZoom}
-                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-neutral-200 bg-white text-lg transition-colors hover:border-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-35 dark:border-neutral-700 dark:bg-neutral-950 dark:hover:border-white dark:focus-visible:ring-white"
-                >
-                  <Icon icon="solar:minus-circle-linear" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Zoom in"
-                  onClick={() => updateZoom(crop.zoom + zoomStep)}
-                  disabled={!imageMeta || isBusy || crop.zoom >= maxZoom}
-                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-neutral-200 bg-white text-lg transition-colors hover:border-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-35 dark:border-neutral-700 dark:bg-neutral-950 dark:hover:border-white dark:focus-visible:ring-white"
-                >
-                  <Icon icon="solar:add-circle-linear" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Reset crop"
-                  onClick={resetCrop}
-                  disabled={!imageMeta || isBusy}
-                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 text-[10px] font-black uppercase tracking-wider transition-colors hover:border-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-35 dark:border-neutral-700 dark:bg-neutral-950 dark:hover:border-white dark:focus-visible:ring-white"
-                >
-                  <Icon icon="solar:restart-linear" aria-hidden="true" />
-                  Reset
-                </button>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 font-sans text-xs font-normal text-black/55">
+                <span>
+                  Tỉ lệ {profileConfig?.widthRatio}:{profileConfig?.heightRatio}
+                </span>
+                <span>
+                  Kích thước xuất {profileConfig?.outputWidth} × {profileConfig?.outputHeight}px
+                </span>
               </div>
-            </div>
+            </section>
 
-            <div className="space-y-2">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Move image</h3>
-              <div className="grid grid-cols-3 gap-2" role="group" aria-label="Move image controls">
-                <span aria-hidden="true" />
-                <button
-                  type="button"
-                  aria-label="Move image up"
-                  onClick={() => nudgePan(0, -1)}
-                  disabled={!imageMeta || isBusy}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 text-lg transition-colors hover:border-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-35 dark:border-neutral-700 dark:hover:border-white dark:focus-visible:ring-white"
+            <aside className="min-w-0 space-y-5 lg:pr-1">
+              <section>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="font-sans text-sm font-[550] uppercase tracking-[0.14em] text-black">Live preview</h3>
+                  <span className="font-sans text-xs font-normal text-black/45">{Math.round(zoom * 100)}%</span>
+                </div>
+                <div
+                  className="relative mx-auto aspect-[var(--crop-preview-ratio)] w-full max-w-[230px] overflow-hidden rounded-2xl border border-black/10 bg-[#f1f1f1]"
+                  style={{ '--crop-preview-ratio': profileConfig?.aspectRatio }}
                 >
-                  <Icon icon="solar:alt-arrow-up-linear" aria-hidden="true" />
-                </button>
-                <span aria-hidden="true" />
-                <button
-                  type="button"
-                  aria-label="Move image left"
-                  onClick={() => nudgePan(-1, 0)}
-                  disabled={!imageMeta || isBusy}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 text-lg transition-colors hover:border-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-35 dark:border-neutral-700 dark:hover:border-white dark:focus-visible:ring-white"
-                >
-                  <Icon icon="solar:alt-arrow-left-linear" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Move image down"
-                  onClick={() => nudgePan(0, 1)}
-                  disabled={!imageMeta || isBusy}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 text-lg transition-colors hover:border-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-35 dark:border-neutral-700 dark:hover:border-white dark:focus-visible:ring-white"
-                >
-                  <Icon icon="solar:alt-arrow-down-linear" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Move image right"
-                  onClick={() => nudgePan(1, 0)}
-                  disabled={!imageMeta || isBusy}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 text-lg transition-colors hover:border-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-35 dark:border-neutral-700 dark:hover:border-white dark:focus-visible:ring-white"
-                >
-                  <Icon icon="solar:alt-arrow-right-linear" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </aside>
+                  {sourceUrl && previewImageStyle ? (
+                    <img alt="Xem trước ảnh sau khi crop" src={sourceUrl} style={previewImageStyle} />
+                  ) : (
+                    <div className="grid h-full place-items-center px-4 text-center text-xs text-black/40">Chưa có preview</div>
+                  )}
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-black/10 p-4">
+                <div className="flex items-center justify-between font-sans text-sm font-[550] uppercase tracking-[0.12em]">
+                  <span>Zoom</span>
+                  <span className="font-normal text-black/50">{zoom.toFixed(2)}×</span>
+                </div>
+                <input
+                  aria-label="Phóng to ảnh"
+                  className="mt-4 w-full accent-black"
+                  max={zoomMax}
+                  min={zoomMin}
+                  onChange={handleZoomChange}
+                  step={zoomStep}
+                  type="range"
+                  value={zoom}
+                />
+                <div className="mt-3 flex gap-2">
+                  <button
+                    aria-label="Giảm zoom"
+                    className="h-10 w-10 rounded-xl border border-black/15 font-sans text-lg font-[550] transition hover:border-black disabled:opacity-40"
+                    disabled={zoom <= zoomMin || isSaving}
+                    onClick={() => handleZoomButton(-1)}
+                    type="button"
+                  >
+                    −
+                  </button>
+                  <button
+                    aria-label="Tăng zoom / Zoom in"
+                    className="h-10 w-10 rounded-xl border border-black/15 font-sans text-lg font-[550] transition hover:border-black disabled:opacity-40"
+                    disabled={zoom >= zoomMax || isSaving}
+                    onClick={() => handleZoomButton(1)}
+                    type="button"
+                  >
+                    +
+                  </button>
+                  <button
+                    className="flex-1 rounded-xl border border-black/15 px-3 font-sans text-xs font-[550] uppercase tracking-[0.12em] transition hover:border-black disabled:opacity-40"
+                    aria-label="Reset crop"
+                    disabled={isSaving}
+                    onClick={handleReset}
+                    type="button"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </section>
+
+              <p className="font-sans text-xs font-normal leading-5 text-black/50">
+                Vùng crop luôn khóa theo tỉ lệ của {profileConfig?.label?.toLowerCase() || 'ảnh'} để ảnh hiển thị đồng nhất trên storefront.
+              </p>
+            </aside>
+          </div>
         </div>
 
-        {(saveError || imageError) && !isImageLoading && (
-          <p className="mx-5 mb-2 rounded-xl border border-neutral-300 bg-neutral-50 px-3 py-2 text-xs font-medium text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 sm:mx-7" role="alert">
-            {saveError || imageError}
-          </p>
-        )}
-
-        <footer className="flex flex-col-reverse gap-3 border-t border-neutral-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-7 dark:border-neutral-800">
+        <footer className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-black/10 bg-white/95 px-5 py-4 backdrop-blur sm:px-8">
+          {saveError ? <p className="mr-auto font-sans text-sm font-normal text-red-600">{saveError}</p> : null}
           <button
+            aria-label="Hủy cancel"
+            className="rounded-xl border border-black/15 px-5 py-3 font-sans text-sm font-[550] uppercase tracking-[0.12em] transition hover:border-black disabled:opacity-40"
+            disabled={isSaving}
+            onClick={onCancel}
             type="button"
-            onClick={() => !isBusy && onCancelRef.current?.()}
-            disabled={isBusy}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-300 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-neutral-700 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:cursor-not-allowed disabled:opacity-40 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
           >
             {cancelLabel}
           </button>
-          <PrimaryButton
-            type="button"
+          <button
+            aria-label="Lưu ảnh / Save crop"
+            className="rounded-xl bg-black px-6 py-3 font-sans text-sm font-[550] uppercase tracking-[0.12em] text-white transition hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={isSaving || !activeCrop || !imageMeta}
             onClick={handleSave}
-            disabled={!imageMeta || !viewportSize.width || !viewportSize.height || Boolean(imageError) || isBusy}
-            isLoading={isExporting || isSaving}
-            icon="solar:check-circle-linear"
-            className="min-h-11 rounded-xl px-5"
+            type="button"
           >
-            {saveLabel}
-          </PrimaryButton>
+            {isSaving ? 'Đang lưu…' : saveLabel}
+          </button>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
+};
 
-  return createPortal(modalContent, document.body);
-}
+export default ImageCropModal;
