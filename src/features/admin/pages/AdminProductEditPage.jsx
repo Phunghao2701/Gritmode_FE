@@ -462,100 +462,126 @@ export default function AdminProductEditPage() {
 
   const handleCropSave = async ({ file }) => {
     if (!cropEditor) return;
-    const isEdit = cropEditor.mode === 'edit';
-    const targetId = cropEditor.image?.product_image_id;
+
+    const editor = cropEditor;
+    const isEdit = editor.mode === 'edit';
+    const targetId = editor.image?.product_image_id;
     const tempId = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const previewUrl = isEdit ? null : URL.createObjectURL(file);
-    if (!isEdit) {
-      setImages((prev) => [...prev, {
-        __tempId: tempId,
-        url_product_image: previewUrl,
-        isUploading: true,
-        progress: 5,
-        is_thumbnail: images.length === 0,
-        position: images.length,
-      }]);
-    }
-    try {
-      if (isEdit) {
-        const response = await cropProductImageApi(targetId, file, (progressEvent) => {
-          const percent = progressEvent.total ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total)) : 60;
+    const previewUrl = URL.createObjectURL(file);
+    const nextFile = editor.queue?.[0];
+    const nextEditor = nextFile
+      ? { mode: 'upload', file: nextFile, queue: editor.queue.slice(1) }
+      : null;
+    const invalidationKeys = [
+      ['admin-products'],
+      ['admin-product-detail'],
+      ['products'],
+      ['product-detail'],
+    ];
+
+    if (isEdit) {
+      const previousImage = editor.image;
+
+      // Show the crop immediately. The request continues after the modal closes.
+      setImages((prev) => prev.map((img) => img.product_image_id === targetId
+        ? { ...img, url_product_image: previewUrl, isUploading: true, progress: 5 }
+        : img));
+      setCropEditor(null);
+
+      void (async () => {
+        try {
+          const response = await cropProductImageApi(targetId, file, (progressEvent) => {
+            const percent = progressEvent.total
+              ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total))
+              : 60;
+            setImages((prev) => prev.map((img) => img.product_image_id === targetId
+              ? { ...img, progress: percent, isUploading: true }
+              : img));
+          });
+          const updatedImage = requireApiObject(response, 'Ảnh sản phẩm crop');
+          const persistedUrl = updatedImage.url_product_image || updatedImage.url;
+          if (!persistedUrl) throw new Error('Crop không trả về URL ảnh hợp lệ');
+
           setImages((prev) => prev.map((img) => img.product_image_id === targetId
-            ? { ...img, progress: percent, isUploading: true }
+            ? { ...img, ...updatedImage, url_product_image: persistedUrl, isUploading: false, progress: 100 }
+            : img));
+          invalidationKeys.forEach((queryKey) => {
+            void queryClient.invalidateQueries({ queryKey, refetchType: 'none' });
+          });
+          broadcastQueryInvalidation(invalidationKeys);
+          toast.success('Đã lưu ảnh crop thành công!');
+        } catch (error) {
+          setImages((prev) => prev.map((img) => img.product_image_id === targetId
+            ? { ...previousImage, isUploading: false, progress: 0 }
+            : img));
+          toast.error(error.response?.data?.message || `Không thể lưu ảnh: ${file.name}`);
+        } finally {
+          URL.revokeObjectURL(previewUrl);
+        }
+      })();
+      return;
+    }
+
+    setImages((prev) => [...prev, {
+      __tempId: tempId,
+      url_product_image: previewUrl,
+      isUploading: true,
+      progress: 5,
+      is_thumbnail: images.length === 0,
+      position: images.length,
+    }]);
+    setCropEditor(nextEditor);
+
+    void (async () => {
+      try {
+        const response = await uploadAdminProductImagesApi([file], 'product', (progressEvent) => {
+          const percent = progressEvent.total
+            ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total))
+            : 60;
+          setImages((prev) => prev.map((img) => img.__tempId === tempId
+            ? { ...img, progress: percent }
             : img));
         });
-        const updatedImage = requireApiObject(response, 'Ảnh sản phẩm crop');
-        setImages((prev) => prev.map((img) => img.product_image_id === targetId
-          ? { ...img, ...updatedImage, __tempId: img.__tempId, isUploading: false, progress: 100 }
-          : img));
-        const invalidationKeys = [
-          ['admin-products'],
-          ['admin-product-detail'],
-          ['products'],
-          ['product-detail'],
-        ];
-        invalidationKeys.forEach((queryKey) => {
-          void queryClient.invalidateQueries({ queryKey, refetchType: 'none' });
-        });
-        broadcastQueryInvalidation(invalidationKeys);
-        toast.success('Đã lưu ảnh crop thành công!');
-        setCropEditor(null);
-        return;
-      }
-      const response = await uploadAdminProductImagesApi([file], 'product', (progressEvent) => {
-        const percent = progressEvent.total ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total)) : 60;
-        if (!isEdit) setImages((prev) => prev.map((img) => img.__tempId === tempId ? { ...img, progress: percent } : img));
-      });
-      const uploaded = requireApiArray(response, 'Ảnh sản phẩm tải lên');
-      const asset = uploaded[0];
-      if (!asset?.url || !asset.media_asset_id) throw new Error('Upload không trả về asset hợp lệ');
+        const uploaded = requireApiArray(response, 'Ảnh sản phẩm tải lên');
+        const asset = uploaded[0];
+        if (!asset?.url || !asset.media_asset_id) throw new Error('Upload không trả về asset hợp lệ');
 
-      setImages((prev) => {
-        const nextItem = {
-          ...(isEdit ? cropEditor.image : {}),
-          __tempId: isEdit ? cropEditor.image.__tempId : tempId,
-          url_product_image: asset.url,
-          media_asset_id: asset.media_asset_id,
-          cloudinary_public_id: asset.cloudinary_public_id,
-          cloudinary_source_public_id: asset.cloudinary_source_public_id,
-          cloudinary_source_url: asset.cloudinary_source_url,
-          crop_profile: asset.crop_profile,
-          image_width: asset.image_width,
-          image_height: asset.image_height,
-          image_format: asset.image_format,
-          isUploading: false,
-          progress: 100,
-        };
-        return isEdit ? prev.map((img) => img.product_image_id === targetId ? nextItem : img) : prev.map((img) => img.__tempId === tempId ? nextItem : img);
-      });
-      if (isEdit) {
-        const invalidationKeys = [
-          ['admin-products'],
-          ['admin-product-detail'],
-          ['products'],
-          ['product-detail'],
-        ];
-        await Promise.all(invalidationKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
-        broadcastQueryInvalidation(invalidationKeys);
-        toast.success('Đã lưu ảnh crop thành công!');
+        setImages((prev) => prev.map((img) => img.__tempId === tempId
+          ? {
+            ...img,
+            url_product_image: asset.url,
+            media_asset_id: asset.media_asset_id,
+            cloudinary_public_id: asset.cloudinary_public_id,
+            cloudinary_source_public_id: asset.cloudinary_source_public_id,
+            cloudinary_source_url: asset.cloudinary_source_url,
+            crop_profile: asset.crop_profile,
+            image_width: asset.image_width,
+            image_height: asset.image_height,
+            image_format: asset.image_format,
+            isUploading: false,
+            progress: 100,
+          }
+          : img));
+        toast.success('Đã tải ảnh lên thành công!');
+      } catch (error) {
+        setImages((prev) => prev.filter((img) => img.__tempId !== tempId));
+        toast.error(error.response?.data?.message || `Không thể tải lên ảnh: ${file.name}`);
+      } finally {
+        URL.revokeObjectURL(previewUrl);
       }
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      const nextFile = cropEditor.queue?.[0];
-      setCropEditor(nextFile ? { mode: 'upload', file: nextFile, queue: cropEditor.queue.slice(1) } : null);
-    } catch (error) {
-      toast.error(error.response?.data?.message || `Không thể tải lên ảnh: ${file.name}`);
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      if (!isEdit) setImages((prev) => prev.filter((img) => img.__tempId !== tempId));
-      setCropEditor(null);
-    }
+    })();
   };
 
-  const handleEditImage = (index) => setCropEditor({
-    mode: 'edit',
-    image: images[index],
-    source: images[index].cloudinary_source_url || images[index].url_product_image,
-    queue: [],
-  });
+  const handleEditImage = (index) => {
+    const image = images[index];
+    if (!image || image.isUploading) return;
+    setCropEditor({
+      mode: 'edit',
+      image,
+      source: image.cloudinary_source_url || image.url_product_image,
+      queue: [],
+    });
+  };
 
   const handleLegacyImageUpload = async (e) => {
     const rawFiles = Array.from(e.target.files || []);

@@ -689,7 +689,9 @@ export default function ProductDetailPage() {
                 src={getSizedProductImageUrl(currentImage.url_product_image, 1600)}
                 alt={product.name_product}
                 draggable="false"
+                loading="eager"
                 decoding="async"
+                fetchPriority="high"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (imagePanMovedRef.current) {
