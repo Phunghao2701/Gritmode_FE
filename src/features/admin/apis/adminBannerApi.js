@@ -38,6 +38,15 @@ export const updateHeroImageApi = async ({ id, ...payload }) => {
   return requireApiObject(response, 'Ảnh banner');
 };
 
+export const cropHeroImageApi = async ({ id, file }) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const response = await api.post(`/admin/banners/images/${id}/crop`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return requireApiObject(response, 'Ảnh banner');
+};
+
 export const updateHeroImageOrderApi = async ({ id, sort_order }) => {
   const response = await api.patch(`/admin/banners/images/${id}/order`, { sort_order });
   return requireApiObject(response, 'Thứ tự banner');

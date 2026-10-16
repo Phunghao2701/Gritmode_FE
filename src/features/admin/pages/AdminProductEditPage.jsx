@@ -18,7 +18,7 @@ import {
   updateAdminProductApi,
   updateAdminFullProductApi,
   uploadAdminProductImagesApi,
-  updateProductImageApi,
+  cropProductImageApi,
 } from '../apis/admin.api';
 import { generateSkuSuggestion } from '../utils/productVariants';
 import CategoryFormModal from '../components/CategoryFormModal';
@@ -477,6 +477,31 @@ export default function AdminProductEditPage() {
       }]);
     }
     try {
+      if (isEdit) {
+        const response = await cropProductImageApi(targetId, file, (progressEvent) => {
+          const percent = progressEvent.total ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total)) : 60;
+          setImages((prev) => prev.map((img) => img.product_image_id === targetId
+            ? { ...img, progress: percent, isUploading: true }
+            : img));
+        });
+        const updatedImage = requireApiObject(response, 'Ảnh sản phẩm crop');
+        setImages((prev) => prev.map((img) => img.product_image_id === targetId
+          ? { ...img, ...updatedImage, __tempId: img.__tempId, isUploading: false, progress: 100 }
+          : img));
+        const invalidationKeys = [
+          ['admin-products'],
+          ['admin-product-detail'],
+          ['products'],
+          ['product-detail'],
+        ];
+        invalidationKeys.forEach((queryKey) => {
+          void queryClient.invalidateQueries({ queryKey, refetchType: 'none' });
+        });
+        broadcastQueryInvalidation(invalidationKeys);
+        toast.success('Đã lưu ảnh crop thành công!');
+        setCropEditor(null);
+        return;
+      }
       const response = await uploadAdminProductImagesApi([file], 'product', (progressEvent) => {
         const percent = progressEvent.total ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total)) : 60;
         if (!isEdit) setImages((prev) => prev.map((img) => img.__tempId === tempId ? { ...img, progress: percent } : img));
@@ -484,16 +509,6 @@ export default function AdminProductEditPage() {
       const uploaded = requireApiArray(response, 'Ảnh sản phẩm tải lên');
       const asset = uploaded[0];
       if (!asset?.url || !asset.media_asset_id) throw new Error('Upload không trả về asset hợp lệ');
-
-      // A recrop of an existing image is a real edit, not only a local preview.
-      // Attach the new staged asset to the existing product_image row so the
-      // next admin edit and the storefront read the same persisted image.
-      if (isEdit) {
-        await updateProductImageApi(targetId, {
-          media_asset_id: asset.media_asset_id,
-          url_product_image: asset.url,
-        });
-      }
 
       setImages((prev) => {
         const nextItem = {

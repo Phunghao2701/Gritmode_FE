@@ -354,23 +354,23 @@ const ImageCropModal = ({
         ref={dialogRef}
         aria-labelledby={titleId}
         aria-modal="true"
-        className="my-auto flex h-[calc(100dvh-1.5rem)] max-h-[calc(100dvh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-md outline-none sm:h-[calc(100dvh-3rem)] sm:max-h-[calc(100dvh-3rem)]"
+        className="my-auto flex h-[calc(100dvh-1.5rem)] max-h-[calc(100dvh-1.5rem)] w-full max-w-7xl flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-md outline-none sm:h-[calc(100dvh-3rem)] sm:max-h-[calc(100dvh-3rem)]"
         role="dialog"
         tabIndex={-1}
       >
-        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-black/10 px-5 py-5 sm:px-8">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-black/10 px-6 py-5 sm:px-8 sm:py-6">
           <div>
             <p className="font-sans text-[11px] font-[550] uppercase tracking-[0.2em] text-black/45">Media editor</p>
-            <h2 id={titleId} className="mt-1 font-sans text-2xl font-[550] uppercase tracking-tight text-black sm:text-3xl">
+            <h2 id={titleId} className="mt-1 font-sans text-2xl font-[550] uppercase tracking-[-0.02em] text-black sm:text-[2rem]">
               {title}
             </h2>
-            <p className="mt-2 font-sans text-sm font-normal leading-6 text-black/55">
+            <p className="mt-2 max-w-2xl font-sans text-xs font-normal leading-5 text-black/55 sm:text-sm">
               Kéo trong khung để di chuyển, kéo 8 nút để đổi vùng crop theo đúng tỉ lệ.
             </p>
           </div>
           <button
             aria-label="Đóng trình chỉnh sửa ảnh"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-black/20 font-sans text-lg font-normal text-black/60 transition hover:border-black hover:text-black disabled:opacity-40"
+            className="grid size-10 shrink-0 place-items-center rounded-xl border border-black/15 font-sans text-lg font-normal text-black/60 transition hover:border-black hover:text-black disabled:opacity-40"
             disabled={isSaving}
             onClick={onCancel}
             type="button"
@@ -381,11 +381,18 @@ const ImageCropModal = ({
 
         <div
           data-lenis-prevent
-          className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-8 sm:py-7"
+          className="scrollbar-none min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-6 sm:px-8 sm:py-7"
         >
-          <div className="grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1fr)_290px] lg:items-start">
+          <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
             <section className="min-w-0">
-              <div className="flex min-h-[280px] items-center justify-center overflow-hidden rounded-2xl bg-[#151515] p-3 sm:p-5">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <span className="font-sans text-sm font-[550] text-black">Vùng cắt</span>
+                <span className="rounded-full bg-neutral-100 px-3 py-1 font-sans text-[11px] font-[550] uppercase tracking-[0.12em] text-black/55">
+                  {profileConfig?.widthRatio}:{profileConfig?.heightRatio}
+                </span>
+              </div>
+
+              <div className="flex min-h-[280px] items-center justify-center overflow-hidden rounded-xl bg-neutral-950 p-3 sm:min-h-[360px] sm:p-6">
                 {sourceUrl && !imageError ? (
                   <ReactCrop
                     aspect={profileConfig?.ratio}
@@ -413,18 +420,22 @@ const ImageCropModal = ({
                 )}
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 font-sans text-xs font-normal text-black/55">
-                <span>
-                  Tỉ lệ {profileConfig?.widthRatio}:{profileConfig?.heightRatio}
-                </span>
-                <span>
-                  Kích thước xuất {profileConfig?.outputWidth} × {profileConfig?.outputHeight}px
-                </span>
+              <div className="mt-4 grid grid-cols-2 divide-x divide-black/10 border-y border-black/10">
+                <div className="py-3 pr-4">
+                  <span className="block font-sans text-[10px] font-[550] uppercase tracking-[0.12em] text-black/45">Kích thước xuất</span>
+                  <span className="mt-1 block font-sans text-sm font-[550] text-black">
+                    {profileConfig?.outputWidth} × {profileConfig?.outputHeight}px
+                  </span>
+                </div>
+                <div className="py-3 pl-4">
+                  <span className="block font-sans text-[10px] font-[550] uppercase tracking-[0.12em] text-black/45">Định dạng</span>
+                  <span className="mt-1 block font-sans text-sm font-[550] text-black">Ảnh đã tối ưu</span>
+                </div>
               </div>
             </section>
 
-            <aside className="min-w-0 space-y-5 lg:pr-1">
-              <section>
+            <aside className="min-w-0 space-y-4 lg:pr-1">
+              <section className="rounded-2xl border border-black/10 p-4 sm:p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="font-sans text-sm font-[550] uppercase tracking-[0.14em] text-black">Live preview</h3>
                   <span className="font-sans text-xs font-normal text-black/45">{Math.round(zoom * 100)}%</span>
@@ -439,51 +450,51 @@ const ImageCropModal = ({
                     <div className="grid h-full place-items-center px-4 text-center text-xs text-black/40">Chưa có preview</div>
                   )}
                 </div>
-              </section>
 
-              <section className="rounded-2xl border border-black/10 p-4">
-                <div className="flex items-center justify-between font-sans text-sm font-[550] uppercase tracking-[0.12em]">
+                <div className="mt-6 border-t border-black/10 pt-5">
+                  <div className="flex items-center justify-between font-sans text-sm font-[550] uppercase tracking-[0.12em]">
                   <span>Zoom</span>
                   <span className="font-normal text-black/50">{zoom.toFixed(2)}×</span>
-                </div>
-                <input
-                  aria-label="Phóng to ảnh"
-                  className="mt-4 w-full accent-black"
-                  max={zoomMax}
-                  min={zoomMin}
-                  onChange={handleZoomChange}
-                  step={zoomStep}
-                  type="range"
-                  value={zoom}
-                />
-                <div className="mt-3 flex gap-2">
-                  <button
-                    aria-label="Giảm zoom"
-                    className="h-10 w-10 rounded-xl border border-black/15 font-sans text-lg font-[550] transition hover:border-black disabled:opacity-40"
-                    disabled={zoom <= zoomMin || isSaving}
-                    onClick={() => handleZoomButton(-1)}
-                    type="button"
-                  >
-                    −
-                  </button>
-                  <button
-                    aria-label="Tăng zoom / Zoom in"
-                    className="h-10 w-10 rounded-xl border border-black/15 font-sans text-lg font-[550] transition hover:border-black disabled:opacity-40"
-                    disabled={zoom >= zoomMax || isSaving}
-                    onClick={() => handleZoomButton(1)}
-                    type="button"
-                  >
-                    +
-                  </button>
-                  <button
-                    className="flex-1 rounded-xl border border-black/15 px-3 font-sans text-xs font-[550] uppercase tracking-[0.12em] transition hover:border-black disabled:opacity-40"
-                    aria-label="Reset crop"
-                    disabled={isSaving}
-                    onClick={handleReset}
-                    type="button"
-                  >
-                    Reset
-                  </button>
+                  </div>
+                  <input
+                    aria-label="Phóng to ảnh"
+                    className="mt-4 w-full accent-black"
+                    max={zoomMax}
+                    min={zoomMin}
+                    onChange={handleZoomChange}
+                    step={zoomStep}
+                    type="range"
+                    value={zoom}
+                  />
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      aria-label="Giảm zoom"
+                      className="h-10 w-10 rounded-xl border border-black/15 font-sans text-lg font-[550] transition hover:border-black disabled:opacity-40"
+                      disabled={zoom <= zoomMin || isSaving}
+                      onClick={() => handleZoomButton(-1)}
+                      type="button"
+                    >
+                      −
+                    </button>
+                    <button
+                      aria-label="Tăng zoom / Zoom in"
+                      className="h-10 w-10 rounded-xl border border-black/15 font-sans text-lg font-[550] transition hover:border-black disabled:opacity-40"
+                      disabled={zoom >= zoomMax || isSaving}
+                      onClick={() => handleZoomButton(1)}
+                      type="button"
+                    >
+                      +
+                    </button>
+                    <button
+                      className="flex-1 rounded-xl border border-black/15 px-3 font-sans text-xs font-[550] uppercase tracking-[0.12em] transition hover:border-black disabled:opacity-40"
+                      aria-label="Đặt lại crop"
+                      disabled={isSaving}
+                      onClick={handleReset}
+                      type="button"
+                    >
+                      Đặt lại
+                    </button>
+                  </div>
                 </div>
               </section>
 

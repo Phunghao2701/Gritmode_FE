@@ -149,6 +149,14 @@ export const createProductImageApi = (productId, data) => {
   return api.post(`/admin/products/${productId}/images`, data);
 };
 export const updateProductImageApi = (imageId, data) => api.patch(`/admin/product-images/${imageId}`, data);
+export const cropProductImageApi = (imageId, file, onUploadProgress) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  return api.post(`/admin/product-images/${imageId}/crop`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress,
+  });
+};
 export const deleteProductImageApi = (imageId) => api.delete(`/admin/product-images/${imageId}`);
 
 export const assignProductCategoryApi = (productId, data) => {
