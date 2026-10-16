@@ -15,7 +15,7 @@ import { toast } from '../../../shared/utils/toast';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 import ErrorState from '../../../shared/components/ErrorState';
-import { formatPriceVND, getProductImagePlaceholderUrl, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
+import { formatPriceVND, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -74,6 +74,7 @@ export default function ProductDetailPage() {
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState('details');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxImageIndex, setLightboxImageIndex] = useState(null);
   const [isZoomed, setIsZoomed] = useState(false);
   const [imagePan, setImagePan] = useState({ x: 0, y: 0 });
   const [isPanningImage, setIsPanningImage] = useState(false);
@@ -89,7 +90,6 @@ export default function ProductDetailPage() {
   const currentImage = galleryImages[selectedImageIndex] || galleryImages[0] || null;
   const [loadedImageKey, setLoadedImageKey] = useState(null);
   const currentImageKey = currentImage?.product_image_id || currentImage?.url_product_image || null;
-  const currentPlaceholder = getProductImagePlaceholderUrl(currentImage?.url_product_image);
 
   useEffect(() => {
     setLoadedImageKey(null);
@@ -104,6 +104,39 @@ export default function ProductDetailPage() {
     if (isZoomed || galleryImages.length <= 1) return;
     setSelectedImageIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
   }, [galleryImages.length, isZoomed, setSelectedImageIndex]);
+
+  const activeLightboxImageIndex = lightboxImageIndex ?? selectedImageIndex;
+  const lightboxImage = galleryImages[activeLightboxImageIndex] || currentImage;
+
+  const openLightbox = () => {
+    if (!currentImage?.url_product_image) return;
+    setLightboxImageIndex(selectedImageIndex);
+    setIsLightboxOpen(true);
+  };
+
+  const closeLightbox = useCallback(() => {
+    if (lightboxImageIndex !== null) {
+      setSelectedImageIndex(lightboxImageIndex);
+    }
+    setLightboxImageIndex(null);
+    setIsLightboxOpen(false);
+  }, [lightboxImageIndex, setSelectedImageIndex]);
+
+  const handlePrevLightboxImage = useCallback(() => {
+    if (isZoomed || galleryImages.length <= 1) return;
+    setLightboxImageIndex((prev) => {
+      const currentIndex = prev ?? selectedImageIndex;
+      return currentIndex > 0 ? currentIndex - 1 : galleryImages.length - 1;
+    });
+  }, [galleryImages.length, isZoomed, selectedImageIndex]);
+
+  const handleNextLightboxImage = useCallback(() => {
+    if (isZoomed || galleryImages.length <= 1) return;
+    setLightboxImageIndex((prev) => {
+      const currentIndex = prev ?? selectedImageIndex;
+      return currentIndex < galleryImages.length - 1 ? currentIndex + 1 : 0;
+    });
+  }, [galleryImages.length, isZoomed, selectedImageIndex]);
 
   const handleImagePanStart = (e) => {
     if (!isZoomed) return;
@@ -135,16 +168,16 @@ export default function ProductDetailPage() {
     }
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        setIsLightboxOpen(false);
+        closeLightbox();
       } else if (e.key === 'ArrowLeft') {
-        handlePrevImage();
+        handlePrevLightboxImage();
       } else if (e.key === 'ArrowRight') {
-        handleNextImage();
+        handleNextLightboxImage();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLightboxOpen, handleNextImage, handlePrevImage]);
+  }, [closeLightbox, handleNextLightboxImage, handlePrevLightboxImage, isLightboxOpen]);
 
   const handleTouchStart = (e) => {
     setTouchEndX(null);
@@ -282,17 +315,15 @@ export default function ProductDetailPage() {
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onClick={() => currentImage?.url_product_image && setIsLightboxOpen(true)}
+            onClick={openLightbox}
             className="group relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm flex items-center justify-center select-none cursor-pointer"
           >
             {currentImage?.url_product_image ? (
               <div className="relative w-full h-full">
-                {currentPlaceholder && (
-                  <img
-                    src={currentPlaceholder}
-                    alt=""
+                {loadedImageKey !== currentImageKey && (
+                  <div
                     aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-cover object-top scale-105 blur-sm"
+                    className="absolute inset-0 animate-pulse bg-neutral-200 dark:bg-neutral-800"
                   />
                 )}
                 <img
@@ -304,7 +335,7 @@ export default function ProductDetailPage() {
                   decoding="async"
                   fetchPriority="high"
                   onLoad={() => setLoadedImageKey(currentImageKey)}
-                  className={`relative w-full h-full object-cover object-top transition-opacity duration-300 pointer-events-none ${!currentPlaceholder || loadedImageKey === currentImageKey ? 'opacity-100' : 'opacity-0'}`}
+                  className={`relative w-full h-full object-cover object-top transition-opacity duration-300 pointer-events-none ${loadedImageKey === currentImageKey ? 'opacity-100' : 'opacity-0'}`}
                 />
               </div>
             ) : (
@@ -361,10 +392,14 @@ export default function ProductDetailPage() {
                     }`}
                 >
                   <img
-                    src={getSizedProductImageUrl(img.url_product_image, 160)}
+                    src={getSizedProductImageUrl(img.url_product_image, selectedImageIndex === idx ? 960 : 160)}
+                    srcSet={selectedImageIndex === idx
+                      ? getProductImageSrcSet(img.url_product_image, [640, 960, 1280, 1600])
+                      : undefined}
+                    sizes={selectedImageIndex === idx ? "(min-width: 1024px) 58vw, 100vw" : undefined}
                     alt={`${product.name_product} - ${idx}`}
                     className="w-full h-full object-cover"
-                    loading="lazy"
+                    loading={selectedImageIndex === idx ? "eager" : "lazy"}
                     decoding="async"
                   />
                 </button>
@@ -590,10 +625,10 @@ export default function ProductDetailPage() {
       )}
 
       {/* High-Resolution DirtyCoins Style Image Lightbox Modal */}
-      {isLightboxOpen && currentImage?.url_product_image && createPortal(
+      {isLightboxOpen && lightboxImage?.url_product_image && createPortal(
         <div
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-fade-in select-none cursor-pointer"
-          onClick={() => setIsLightboxOpen(false)}
+          onClick={closeLightbox}
         >
           {/* 1. Top Control Bar */}
           <div
@@ -605,7 +640,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 disabled={isZoomed}
-                onClick={handlePrevImage}
+                onClick={handlePrevLightboxImage}
                 className="p-2 text-white/75 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
                 title="Ảnh trước (Mũi tên trái)"
               >
@@ -614,7 +649,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 disabled={isZoomed}
-                onClick={handleNextImage}
+                onClick={handleNextLightboxImage}
                 className="p-2 text-white/75 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
                 title="Ảnh tiếp theo (Mũi tên phải)"
               >
@@ -655,7 +690,7 @@ export default function ProductDetailPage() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsLightboxOpen(false);
+                  closeLightbox();
                 }}
                 className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
                 title="Đóng (ESC)"
@@ -671,7 +706,7 @@ export default function ProductDetailPage() {
           {/* 2. Center Image Canvas */}
           <div
             className="flex-1 w-full flex items-center justify-center py-2 overflow-hidden cursor-pointer"
-            onClick={() => setIsLightboxOpen(false)}
+            onClick={closeLightbox}
           >
             <div
               onPointerDown={handleImagePanStart}
@@ -685,8 +720,8 @@ export default function ProductDetailPage() {
               className={`h-[calc(100vh-140px)] max-w-[95vw] transition-all duration-300 flex items-center justify-center select-none overflow-hidden ${isZoomed ? 'cursor-grab active:cursor-grabbing touch-none' : 'cursor-zoom-in'}`}
             >
               <img
-                key={selectedImageIndex}
-                src={getSizedProductImageUrl(currentImage.url_product_image, 1600)}
+                key={activeLightboxImageIndex}
+                src={getSizedProductImageUrl(lightboxImage.url_product_image, 1600)}
                 alt={product.name_product}
                 draggable="false"
                 loading="eager"
@@ -721,18 +756,18 @@ export default function ProductDetailPage() {
                     disabled={isZoomed}
                     onClick={() => {
                       if (isZoomed) return;
-                      setSelectedImageIndex(idx);
+                      setLightboxImageIndex(idx);
                     }}
-                    className={`w-14 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer ${selectedImageIndex === idx
+                    className={`w-14 h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer ${(lightboxImageIndex ?? selectedImageIndex) === idx
                         ? 'border-white opacity-100 scale-105 shadow-md'
                         : 'border-transparent opacity-40 hover:opacity-80'
                       }`}
                   >
                     <img
-                      src={getSizedProductImageUrl(img.url_product_image, 160)}
+                    src={getSizedProductImageUrl(img.url_product_image, activeLightboxImageIndex === idx ? 1600 : 160)}
                       alt=""
                       className="w-full h-full object-cover"
-                      loading="lazy"
+                      loading={activeLightboxImageIndex === idx ? "eager" : "lazy"}
                       decoding="async"
                     />
                   </button>
