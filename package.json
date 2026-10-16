@@ -7,8 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test:perf": "node tests/performance-smoke.mjs"
+    "lint": "eslint src",
+    "test:perf": "node tests/performance-smoke.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",

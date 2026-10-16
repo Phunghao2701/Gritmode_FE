@@ -66,7 +66,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl space-y-6 font-sans font-[550]">
       <AdminPageHeader
         eyebrow="Khách hàng & Hệ thống"
         title={`Quản lý người dùng (${total})`}
@@ -86,7 +86,7 @@ export default function AdminUsersPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-11 pr-4 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+              className="w-full rounded-full border border-neutral-200 bg-white py-2.5 pl-11 pr-4 font-sans text-xs font-normal text-black transition-colors placeholder:text-neutral-400 focus:border-black focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:border-white"
             />
           </div>
 
@@ -98,7 +98,7 @@ export default function AdminUsersPage() {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs font-bold text-neutral-700 dark:text-neutral-300 focus:outline-none cursor-pointer"
+              className="cursor-pointer rounded-xl border border-neutral-200 bg-white px-3.5 py-2 font-sans text-xs font-[550] text-neutral-700 focus:outline-none dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300"
             >
               <option value="">Trạng thái: Tất cả</option>
               <option value="active">Đang hoạt động</option>
@@ -118,9 +118,9 @@ export default function AdminUsersPage() {
                 setRoleFilter(tab.value);
                 setPage(1);
               }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              className={`cursor-pointer whitespace-nowrap rounded-full px-3.5 py-1.5 font-sans text-xs font-[550] uppercase tracking-wider transition-all ${
                 roleFilter === tab.value
-                  ? 'bg-black text-white dark:bg-white dark:text-black font-black shadow-sm'
+                  ? 'bg-black text-white shadow-sm dark:bg-white dark:text-black'
                   : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:text-black dark:hover:text-white'
               }`}
             >
@@ -141,21 +141,21 @@ export default function AdminUsersPage() {
         ) : (
           <div className="space-y-4">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left font-sans text-xs">
                 <thead className="uppercase text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                   <tr>
-                    <th className="pb-3 font-black">Người dùng</th>
-                    <th className="pb-3 font-black">Số điện thoại</th>
-                    <th className="pb-3 font-black text-center">Vai trò</th>
-                    <th className="pb-3 font-black text-center">Trạng thái</th>
-                    <th className="pb-3 font-black">Ngày tham gia</th>
-                    <th className="pb-3 font-black text-right">Thao tác</th>
+                    <th className="pb-3 font-sans font-[550]">Người dùng</th>
+                    <th className="pb-3 font-sans font-[550]">Số điện thoại</th>
+                    <th className="pb-3 text-center font-sans font-[550]">Vai trò</th>
+                    <th className="pb-3 text-center font-sans font-[550]">Trạng thái</th>
+                    <th className="pb-3 font-sans font-[550]">Ngày tham gia</th>
+                    <th className="pb-3 text-right font-sans font-[550]">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
                   {users.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-neutral-400">
+                      <td colSpan={6} className="py-8 text-center font-normal text-neutral-400">
                         Không tìm thấy tài khoản người dùng nào.
                       </td>
                     </tr>
@@ -170,29 +170,29 @@ export default function AdminUsersPage() {
                         <tr key={usr.user_id} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
                           <td className="py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center font-black text-xs text-black dark:text-white shrink-0">
+                              <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100 font-sans text-xs font-[550] text-black dark:border-neutral-700 dark:bg-neutral-800 dark:text-white">
                                 {usr.full_name?.charAt(0) || usr.email?.charAt(0)?.toUpperCase() || 'U'}
                               </div>
                               <div>
-                                <h4 className="font-bold text-black dark:text-white line-clamp-1">
+                                <h4 className="line-clamp-1 font-sans font-[550] text-black dark:text-white">
                                   {usr.full_name || 'Chưa đặt tên'} {isSelf && <span className="text-[9px] text-neutral-400 font-normal">(Bạn)</span>}
                                 </h4>
-                                <p className="text-[10px] text-neutral-400 font-mono">{usr.email}</p>
+                                <p className="font-sans text-[10px] font-[550] text-neutral-400">{usr.email}</p>
                               </div>
                             </div>
                           </td>
 
-                          <td className="py-4 font-mono text-neutral-500">
+                          <td className="py-4 font-sans font-[550] text-neutral-500">
                             {usr.phone || 'Chưa cập nhật'}
                           </td>
 
                           <td className="py-4 text-center">
                             {usr.role === 'admin' ? (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-400 uppercase tracking-wider">
+                              <span className="rounded-full bg-purple-100 px-2.5 py-1 font-sans text-[10px] font-[550] uppercase tracking-wider text-purple-700 dark:bg-purple-950/60 dark:text-purple-400">
                                 Admin
                               </span>
                             ) : (
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 uppercase tracking-wider">
+                              <span className="rounded-full bg-neutral-100 px-2.5 py-1 font-sans text-[10px] font-[550] uppercase tracking-wider text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
                                 Khách hàng
                               </span>
                             )}
@@ -200,26 +200,26 @@ export default function AdminUsersPage() {
 
                           <td className="py-4 text-center">
                             {isActive && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                <span className="inline-flex items-center gap-1 font-sans text-[10px] font-[550] text-emerald-600 dark:text-emerald-400">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                 Hoạt động
                               </span>
                             )}
                             {isInactive && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-neutral-500">
+                                <span className="inline-flex items-center gap-1 font-sans text-[10px] font-[550] text-neutral-500">
                                 <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
                                 Không hoạt động
                               </span>
                             )}
                             {isBlocked && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400">
+                                <span className="inline-flex items-center gap-1 font-sans text-[10px] font-[550] text-rose-600 dark:text-rose-400">
                                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                                 Đã khóa
                               </span>
                             )}
                           </td>
 
-                          <td className="py-4 text-neutral-400 text-[10px] font-mono">
+                          <td className="py-4 font-sans text-[10px] font-[550] text-neutral-400">
                             {new Date(usr.created_at || Date.now()).toLocaleDateString('vi-VN')}
                           </td>
 
@@ -227,7 +227,7 @@ export default function AdminUsersPage() {
                             <button
                               type="button"
                               onClick={() => router.push(`/admin/users/${usr.user_id}`)}
-                              className="px-2.5 py-1 rounded-lg bg-neutral-100 dark:bg-neutral-800 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black text-[10px] font-bold uppercase tracking-wider text-black dark:text-white transition-all cursor-pointer"
+                              className="cursor-pointer rounded-lg bg-neutral-100 px-2.5 py-1 font-sans text-[10px] font-[550] uppercase tracking-wider text-black transition-all hover:bg-black hover:text-white dark:bg-neutral-800 dark:text-white dark:hover:bg-white dark:hover:text-black"
                             >
                               Chi tiết
                             </button>
@@ -237,7 +237,7 @@ export default function AdminUsersPage() {
                                 type="button"
                                 onClick={() => handleToggleBlock(usr)}
                                 disabled={isUserActionPending}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40 ${
+                              className={`cursor-pointer rounded-lg px-2.5 py-1 font-sans text-[10px] font-[550] uppercase tracking-wider transition-all disabled:opacity-40 ${
                                   isBlocked
                                     ? 'border border-emerald-200 dark:border-emerald-900 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
                                     : 'border border-rose-200 dark:border-rose-900 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40'

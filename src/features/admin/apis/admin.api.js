@@ -106,9 +106,10 @@ export const getAdminProductByIdApi = (productId) => {
 export const createAdminFullProductApi = (data) => api.post('/admin/products/full', data);
 export const updateAdminFullProductApi = (productId, data) => api.put(`/admin/products/${productId}/full`, data);
 
-export const uploadAdminProductImagesApi = (files, onUploadProgress) => {
+export const uploadAdminProductImagesApi = (files, profile = 'product', onUploadProgress) => {
   const formData = new FormData();
   files.forEach((file) => formData.append('images', file));
+  formData.append('profile', profile);
   return api.post('/admin/uploads/product-images', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress,

@@ -10,10 +10,13 @@ import {
   useAddHeroImage,
   useToggleImageStatus,
   useDeleteHeroImage,
+  useUpdateHeroImage,
+  useReorderHeroImages,
 } from '../hooks/useAdminBanners';
 import { uploadBannerImageApi } from '../apis/adminBannerApi';
 import { toast } from '../../../shared/utils/toast';
 import AdminPageHeader from '../components/AdminPageHeader';
+import ImageCropModal from '../../../shared/components/media/ImageCropModal';
 
 export default function AdminBannersPage() {
   const { data, isLoading, isError, refetch } = useAdminHero();
@@ -21,10 +24,13 @@ export default function AdminBannersPage() {
   const addImageMutation = useAddHeroImage();
   const toggleImageMutation = useToggleImageStatus();
   const deleteImageMutation = useDeleteHeroImage();
+  const updateImageMutation = useUpdateHeroImage();
+  const reorderImagesMutation = useReorderHeroImages();
 
   const fileInputRef = useRef(null);
   const [isUploading, setIsUploading] = useState(false);
   const [deletingImage, setDeletingImage] = useState(null);
+  const [cropEditor, setCropEditor] = useState(null);
 
   // Form nội dung text chung
   const [contentForm, setContentForm] = useState({
@@ -58,7 +64,47 @@ export default function AdminBannersPage() {
   };
 
   // Upload ảnh trực tiếp từ máy
-  const handleFileUpload = async (event) => {
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file hình ảnh hợp lệ (PNG, JPG, WEBP)');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Kích thước ảnh tối đa là 10MB');
+      return;
+    }
+    event.target.value = '';
+    setCropEditor({ source: file, mode: 'upload' });
+  };
+
+  const handleCropSave = async ({ file }) => {
+    setIsUploading(true);
+    try {
+      const asset = await uploadBannerImageApi(file, 'banner');
+      if (cropEditor.mode === 'edit') {
+        await updateImageMutation.mutateAsync({
+          id: cropEditor.slide.banner_id,
+          image_url: asset.url,
+          media_asset_id: asset.media_asset_id,
+        });
+      } else {
+        await addImageMutation.mutateAsync({
+          image_url: asset.url,
+          media_asset_id: asset.media_asset_id,
+          sort_order: slides.length,
+        });
+      }
+      setCropEditor(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Không thể lưu ảnh banner');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleLegacyFileUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -74,7 +120,7 @@ export default function AdminBannersPage() {
 
     setIsUploading(true);
     try {
-      const res = await uploadBannerImageApi(file);
+      const res = await uploadBannerImageApi(file, 'banner');
       const uploadedUrl = res.url || res.url_product_image || res;
       if (uploadedUrl) {
         await addImageMutation.mutateAsync({
@@ -98,6 +144,14 @@ export default function AdminBannersPage() {
     });
   };
 
+  const handleMoveSlide = async (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= slides.length) return;
+    const reordered = [...slides];
+    [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
+    await reorderImagesMutation.mutateAsync(reordered.map((slide, order) => ({ banner_id: slide.banner_id, sort_order: order })));
+  };
+
   // Xác nhận xóa ảnh
   const handleConfirmDelete = async () => {
     if (!deletingImage) return;
@@ -105,8 +159,11 @@ export default function AdminBannersPage() {
     setDeletingImage(null);
   };
 
+  void handleLegacyFileUpload;
+  const handleEditSlide = (slide) => setCropEditor({ mode: 'edit', slide, source: slide.cloudinary_source_url || slide.image_url });
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16">
+    <div className="mx-auto max-w-7xl space-y-8 pb-16 font-sans font-[550]">
       <AdminPageHeader
         eyebrow="Marketing"
         title="Quản lý banner trang chủ"
@@ -131,11 +188,11 @@ export default function AdminBannersPage() {
         </div>
       ) : isError ? (
         <div className="p-8 text-center rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400">
-          <p className="font-semibold text-sm">Không thể kết nối đến server để tải cấu hình</p>
+          <p className="font-sans text-sm font-[550]">Không thể kết nối đến server để tải cấu hình</p>
           <button
             type="button"
             onClick={() => refetch()}
-            className="mt-3 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-red-600 text-white rounded-xl hover:bg-red-700 cursor-pointer"
+            className="mt-3 cursor-pointer rounded-xl bg-red-600 px-4 py-2 font-sans text-xs font-[550] uppercase tracking-wider text-white hover:bg-red-700"
           >
             Thử Lại
           </button>
@@ -145,10 +202,10 @@ export default function AdminBannersPage() {
           {/* 2. MỤC 1: CẤU HÌNH TIÊU ĐỀ, MÔ TẢ & TEXT MARQUEE */}
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 sm:p-7 space-y-5 shadow-xs">
             <div className="border-b border-neutral-100 dark:border-neutral-900 pb-3">
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+              <span className="font-sans text-[10px] font-[550] uppercase tracking-widest text-neutral-400">
                 MỤC 1
               </span>
-              <h2 className="text-base font-bold text-black dark:text-white uppercase tracking-wider">
+              <h2 className="font-sans text-base font-[550] uppercase tracking-wider text-black dark:text-white">
                 Nội Dung Hero & Text Marquee
               </h2>
             </div>
@@ -156,7 +213,7 @@ export default function AdminBannersPage() {
             <form onSubmit={handleSaveContent} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                  <label className="font-sans text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
                     Tag Phụ
                   </label>
                   <input
@@ -169,7 +226,7 @@ export default function AdminBannersPage() {
                 </div>
 
                 <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                  <label className="font-sans text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
                     Tiêu Đề Chính <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -177,13 +234,13 @@ export default function AdminBannersPage() {
                     value={contentForm.title}
                     onChange={(e) => setContentForm((prev) => ({ ...prev, title: e.target.value }))}
                     placeholder="GRITMODE SIGNATURE"
-                    className="w-full px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-black text-sm text-black dark:text-white font-bold focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                    className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2 font-sans text-sm font-[550] text-black transition-colors focus:border-black focus:outline-none dark:border-neutral-800 dark:bg-black dark:text-white dark:focus:border-white"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
+                <label className="font-sans text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
                   Mô Tả Chiến Dịch
                 </label>
                 <textarea
@@ -196,7 +253,7 @@ export default function AdminBannersPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 flex items-center gap-1.5">
+                <label className="flex items-center gap-1.5 font-sans text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
                   <Icon icon="solar:ticker-star-bold" className="w-4 h-4 text-amber-500" />
                   <span>Dải Chữ Chạy (Text Marquee Ticker)</span>
                 </label>
@@ -205,7 +262,7 @@ export default function AdminBannersPage() {
                   value={contentForm.marquee_text}
                   onChange={(e) => setContentForm((prev) => ({ ...prev, marquee_text: e.target.value }))}
                   placeholder="⚡ MIỄN PHÍ VẬN CHUYỂN • 🔥 BỘ SƯU TẬP SIGNATURE STREETWEAR"
-                  className="w-full px-3.5 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-black text-sm font-mono text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                  className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2 font-sans text-sm font-[550] text-black transition-colors focus:border-black focus:outline-none dark:border-neutral-800 dark:bg-black dark:text-white dark:focus:border-white"
                 />
               </div>
 
@@ -213,7 +270,7 @@ export default function AdminBannersPage() {
                 <button
                   type="submit"
                   disabled={updateContentMutation.isPending}
-                  className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-black px-4 py-2 font-sans text-xs font-[550] uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
                 >
                   {updateContentMutation.isPending ? (
                     <>
@@ -235,10 +292,10 @@ export default function AdminBannersPage() {
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-6 sm:p-7 space-y-5 shadow-xs">
             <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-900 pb-3">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                  <span className="font-sans text-[10px] font-[550] uppercase tracking-widest text-neutral-400">
                   MỤC 2
                 </span>
-                <h2 className="text-base font-bold text-black dark:text-white uppercase tracking-wider">
+                <h2 className="font-sans text-base font-[550] uppercase tracking-wider text-black dark:text-white">
                   Bộ Ảnh Nền Hero Slider
                 </h2>
               </div>
@@ -256,7 +313,7 @@ export default function AdminBannersPage() {
                   type="button"
                   disabled={isUploading || addImageMutation.isPending}
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-xl bg-black px-4 py-2 font-sans text-xs font-[550] uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
                 >
                   {isUploading ? (
                     <>
@@ -277,7 +334,7 @@ export default function AdminBannersPage() {
             {slides.length === 0 ? (
               <div className="py-10 text-center rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-black/30">
                 <Icon icon="solar:gallery-wide-bold-duotone" className="w-10 h-10 text-neutral-400 mx-auto mb-2" />
-                <h3 className="text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+                  <h3 className="font-sans text-xs font-[550] uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
                   Chưa có ảnh slide nào trong hệ thống
                 </h3>
               </div>
@@ -301,15 +358,24 @@ export default function AdminBannersPage() {
                         sizes="(max-width: 768px) 100vw, 400px"
                         className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
                       />
+                      <button
+                        type="button"
+                        onClick={() => handleEditSlide(slide)}
+                        className="absolute bottom-2.5 right-2.5 z-10 grid size-9 place-items-center rounded-full bg-white/95 text-black shadow-lg transition-transform hover:scale-105"
+                        title="Chỉnh crop ảnh banner"
+                        aria-label={`Chỉnh crop slide ${idx + 1}`}
+                      >
+                        <Icon icon="solar:pen-new-square-linear" className="w-4 h-4" />
+                      </button>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
 
                       {/* Thứ tự & Trạng thái (góc trên bên trái) */}
                       <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-black/85 backdrop-blur-md text-white border border-white/20">
+                        <span className="rounded-md border border-white/20 bg-black/85 px-2 py-0.5 font-sans text-[10px] font-[550] uppercase tracking-wider text-white backdrop-blur-md">
                           #{idx + 1}
                         </span>
                         <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider backdrop-blur-md ${
+                            className={`rounded-md px-2 py-0.5 font-sans text-[10px] font-[550] uppercase tracking-wider backdrop-blur-md ${
                             slide.is_active
                               ? 'bg-emerald-500/90 text-white'
                               : 'bg-neutral-800/90 text-neutral-400'
@@ -336,9 +402,29 @@ export default function AdminBannersPage() {
                         >
                           <span className="bg-white w-3.5 h-3.5 rounded-full shadow-sm" />
                         </button>
-                        <span className="text-[11px] font-medium text-neutral-400">
+                        <span className="font-sans text-[11px] font-[550] text-neutral-400">
                           {slide.is_active ? 'Bật' : 'Tắt'}
                         </span>
+                        <button
+                          type="button"
+                          disabled={idx === 0 || reorderImagesMutation.isPending}
+                          onClick={() => handleMoveSlide(idx, -1)}
+                          className="grid size-7 place-items-center rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white disabled:opacity-30"
+                          title="Đưa lên trước"
+                          aria-label="Đưa banner lên trước"
+                        >
+                          <Icon icon="solar:alt-arrow-left-linear" className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === slides.length - 1 || reorderImagesMutation.isPending}
+                          onClick={() => handleMoveSlide(idx, 1)}
+                          className="grid size-7 place-items-center rounded-lg text-neutral-400 hover:bg-neutral-800 hover:text-white disabled:opacity-30"
+                          title="Đưa xuống sau"
+                          aria-label="Đưa banner xuống sau"
+                        >
+                          <Icon icon="solar:alt-arrow-right-linear" className="w-3.5 h-3.5" />
+                        </button>
                       </div>
 
                       {/* Nút Xóa có icon thùng rác và chữ Xóa ở footer */}
@@ -361,14 +447,26 @@ export default function AdminBannersPage() {
       )}
 
       {/* MODAL XÁC NHẬN XÓA ẢNH */}
+      {cropEditor && (
+        <ImageCropModal
+          source={cropEditor.source}
+          profile="banner"
+          title="Crop ảnh banner"
+          saveLabel="Lưu banner"
+          cancelLabel="Huỷ"
+          onCancel={() => setCropEditor(null)}
+          onSave={handleCropSave}
+        />
+      )}
+
       {deletingImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 text-white rounded-2xl p-6 space-y-4 shadow-2xl">
+          <div className="w-full max-w-sm space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900 p-6 text-white shadow-md">
             <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center">
               <Icon icon="solar:trash-bin-trash-bold" className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">Xác nhận xóa ảnh slide?</h3>
+            <h3 className="font-sans text-base font-[550] text-white">Xác nhận xóa ảnh slide?</h3>
               <p className="text-xs text-neutral-400 mt-1">
                 Ảnh này sẽ bị xóa vĩnh viễn khỏi danh sách Hero Banner trang chủ.
               </p>
@@ -377,7 +475,7 @@ export default function AdminBannersPage() {
               <button
                 type="button"
                 onClick={() => setDeletingImage(null)}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
+              className="cursor-pointer rounded-xl px-3.5 py-1.5 font-sans text-xs font-[550] text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
               >
                 Hủy
               </button>
@@ -385,7 +483,7 @@ export default function AdminBannersPage() {
                 type="button"
                 disabled={deleteImageMutation.isPending}
                 onClick={handleConfirmDelete}
-                className="px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer disabled:opacity-50"
+              className="cursor-pointer rounded-xl bg-red-600 px-4 py-1.5 font-sans text-xs font-[550] uppercase tracking-wider text-white transition-colors hover:bg-red-700 disabled:opacity-50"
               >
                 {deleteImageMutation.isPending ? 'Đang Xóa...' : 'Xóa Ảnh'}
               </button>

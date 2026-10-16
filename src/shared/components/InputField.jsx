@@ -73,7 +73,7 @@ export default function InputField({
             if (onBlur) onBlur(e);
           }}
           className={cn(
-            "w-full bg-transparent px-3.5 py-2.5 text-xs sm:text-sm font-medium text-black dark:text-white placeholder:text-neutral-400 outline-none border-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed",
+            "w-full bg-transparent px-3.5 py-2.5 font-sans text-xs font-[550] text-black dark:text-white placeholder:text-neutral-400 outline-none border-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed sm:text-sm",
             inputClassName
           )}
           {...props}
@@ -93,12 +93,12 @@ export default function InputField({
       </div>
 
       {error ? (
-        <div className="flex items-center gap-1.5 text-rose-500 text-xs mt-1.5 font-bold animate-fade-in">
+        <div className="mt-1.5 flex items-center gap-1.5 font-sans text-xs font-[550] text-rose-500 animate-fade-in">
           <Icon icon="solar:danger-circle-bold" className="text-sm flex-shrink-0" />
           <span>{error}</span>
         </div>
       ) : helperText ? (
-        <p className="text-neutral-500 text-xs mt-1.5 font-medium">
+        <p className="mt-1.5 font-sans text-xs font-[550] text-neutral-500">
           {helperText}
         </p>
       ) : null}

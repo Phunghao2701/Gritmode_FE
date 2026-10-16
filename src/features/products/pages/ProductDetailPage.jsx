@@ -15,7 +15,7 @@ import { toast } from '../../../shared/utils/toast';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 import ErrorState from '../../../shared/components/ErrorState';
-import { formatPriceVND, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
+import { formatPriceVND, getProductImagePlaceholderUrl, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -87,6 +87,13 @@ export default function ProductDetailPage() {
 
   const galleryImages = (displayImages && displayImages.length > 0) ? displayImages : (product?.images || []);
   const currentImage = galleryImages[selectedImageIndex] || galleryImages[0] || null;
+  const [loadedImageKey, setLoadedImageKey] = useState(null);
+  const currentImageKey = currentImage?.product_image_id || currentImage?.url_product_image || null;
+  const currentPlaceholder = getProductImagePlaceholderUrl(currentImage?.url_product_image);
+
+  useEffect(() => {
+    setLoadedImageKey(null);
+  }, [currentImageKey]);
 
   const handlePrevImage = useCallback(() => {
     if (isZoomed || galleryImages.length <= 1) return;
@@ -279,15 +286,27 @@ export default function ProductDetailPage() {
             className="group relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm flex items-center justify-center select-none cursor-pointer"
           >
             {currentImage?.url_product_image ? (
-              <img
-                src={getSizedProductImageUrl(currentImage.url_product_image, 960)}
-                srcSet={getProductImageSrcSet(currentImage.url_product_image, [640, 960, 1280, 1600])}
-                sizes="(min-width: 1024px) 58vw, 100vw"
-                alt={product.name_product}
-                decoding="async"
-                fetchPriority="high"
-                className="w-full h-full object-cover object-top transition-all duration-300 pointer-events-none"
-              />
+              <div className="relative w-full h-full">
+                {currentPlaceholder && (
+                  <img
+                    src={currentPlaceholder}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover object-top scale-105 blur-sm"
+                  />
+                )}
+                <img
+                  src={getSizedProductImageUrl(currentImage.url_product_image, 960)}
+                  srcSet={getProductImageSrcSet(currentImage.url_product_image, [640, 960, 1280, 1600])}
+                  sizes="(min-width: 1024px) 58vw, 100vw"
+                  alt={product.name_product}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  onLoad={() => setLoadedImageKey(currentImageKey)}
+                  className={`relative w-full h-full object-cover object-top transition-opacity duration-300 pointer-events-none ${!currentPlaceholder || loadedImageKey === currentImageKey ? 'opacity-100' : 'opacity-0'}`}
+                />
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-neutral-400 gap-2">
                 <Icon icon="solar:t-shirt-bold-duotone" className="text-7xl opacity-40" />

@@ -26,6 +26,7 @@ import { toast } from '../../../shared/utils/toast';
 import { createCollectionApi } from '../../collections/apis/collection.api';
 import { unwrapApiData, requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
+import ImageCropModal from '../../../shared/components/media/ImageCropModal';
 
 const splitValues = (value) => [...new Set(value.split(',').map((item) => item.trim().toUpperCase()).filter(Boolean))];
 const combinationKey = (color, size) => `${color}\u0000${size}`;
@@ -155,6 +156,7 @@ export default function AdminProductEditPage() {
   const [variants, setVariants] = useState({});
   const [editingInventoryKey, setEditingInventoryKey] = useState(null);
   const [images, setImages] = useState([]);
+  const [cropEditor, setCropEditor] = useState(null);
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
   const [productStatus, setProductStatus] = useState('draft');
@@ -381,6 +383,13 @@ export default function AdminProductEditPage() {
           url_product_image: img.url_product_image || img.url,
           is_thumbnail: img.is_thumbnail ?? idx === 0,
           position: img.position_product_image ?? idx,
+          cloudinary_public_id: img.cloudinary_public_id || null,
+          cloudinary_source_public_id: img.cloudinary_source_public_id || null,
+          cloudinary_source_url: img.cloudinary_source_url || null,
+          crop_profile: img.crop_profile || 'product',
+          image_width: img.image_width || null,
+          image_height: img.image_height || null,
+          image_format: img.image_format || null,
         })));
       } catch {
         if (mounted) toast.error('Không thể tải thông tin sản phẩm.');
@@ -440,7 +449,76 @@ export default function AdminProductEditPage() {
     images,
   ]);
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = (e) => {
+    const rawFiles = Array.from(e.target.files || []);
+    if (!rawFiles.length) return;
+    e.target.value = '';
+    setCropEditor({ mode: 'upload', file: rawFiles[0], queue: rawFiles.slice(1) });
+  };
+
+  const handleCropCancel = () => setCropEditor(null);
+
+  const handleCropSave = async ({ file }) => {
+    if (!cropEditor) return;
+    const isEdit = cropEditor.mode === 'edit';
+    const targetId = cropEditor.image?.product_image_id;
+    const tempId = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const previewUrl = isEdit ? null : URL.createObjectURL(file);
+    if (!isEdit) {
+      setImages((prev) => [...prev, {
+        __tempId: tempId,
+        url_product_image: previewUrl,
+        isUploading: true,
+        progress: 5,
+        is_thumbnail: images.length === 0,
+        position: images.length,
+      }]);
+    }
+    try {
+      const response = await uploadAdminProductImagesApi([file], 'product', (progressEvent) => {
+        const percent = progressEvent.total ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total)) : 60;
+        if (!isEdit) setImages((prev) => prev.map((img) => img.__tempId === tempId ? { ...img, progress: percent } : img));
+      });
+      const uploaded = requireApiArray(response, 'Ảnh sản phẩm tải lên');
+      const asset = uploaded[0];
+      if (!asset?.url || !asset.media_asset_id) throw new Error('Upload không trả về asset hợp lệ');
+      setImages((prev) => {
+        const nextItem = {
+          ...(isEdit ? cropEditor.image : {}),
+          __tempId: isEdit ? cropEditor.image.__tempId : tempId,
+          url_product_image: asset.url,
+          media_asset_id: asset.media_asset_id,
+          cloudinary_public_id: asset.cloudinary_public_id,
+          cloudinary_source_public_id: asset.cloudinary_source_public_id,
+          cloudinary_source_url: asset.cloudinary_source_url,
+          crop_profile: asset.crop_profile,
+          image_width: asset.image_width,
+          image_height: asset.image_height,
+          image_format: asset.image_format,
+          isUploading: false,
+          progress: 100,
+        };
+        return isEdit ? prev.map((img) => img.product_image_id === targetId ? nextItem : img) : prev.map((img) => img.__tempId === tempId ? nextItem : img);
+      });
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      const nextFile = cropEditor.queue?.[0];
+      setCropEditor(nextFile ? { mode: 'upload', file: nextFile, queue: cropEditor.queue.slice(1) } : null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || `Không thể tải lên ảnh: ${file.name}`);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (!isEdit) setImages((prev) => prev.filter((img) => img.__tempId !== tempId));
+      setCropEditor(null);
+    }
+  };
+
+  const handleEditImage = (index) => setCropEditor({
+    mode: 'edit',
+    image: images[index],
+    source: images[index].cloudinary_source_url || images[index].url_product_image,
+    queue: [],
+  });
+
+  const handleLegacyImageUpload = async (e) => {
     const rawFiles = Array.from(e.target.files || []);
     if (!rawFiles.length) return;
     e.target.value = ''; // Reset input to allow selecting same files again
@@ -461,7 +539,7 @@ export default function AdminProductEditPage() {
     await Promise.all(
       newItems.map(async (item) => {
         try {
-          const res = await uploadAdminProductImagesApi([item.file], (progressEvent) => {
+          const res = await uploadAdminProductImagesApi([item.file], 'product', (progressEvent) => {
             const percent = progressEvent.total
               ? Math.min(95, Math.round((progressEvent.loaded * 100) / progressEvent.total))
               : 60;
@@ -472,12 +550,21 @@ export default function AdminProductEditPage() {
           const uploaded = requireApiArray(res, 'Ảnh sản phẩm tải lên');
           const serverUrl = uploaded[0]?.url;
           if (serverUrl) {
+            if (item.url_product_image?.startsWith('blob:')) URL.revokeObjectURL(item.url_product_image);
             setImages((prev) =>
               prev.map((img) =>
                 img.__tempId === item.__tempId
                   ? {
                       ...img,
                       url_product_image: serverUrl,
+                      media_asset_id: uploaded[0]?.media_asset_id,
+                      cloudinary_public_id: uploaded[0]?.cloudinary_public_id,
+                      cloudinary_source_public_id: uploaded[0]?.cloudinary_source_public_id,
+                      cloudinary_source_url: uploaded[0]?.cloudinary_source_url,
+                      crop_profile: uploaded[0]?.crop_profile,
+                      image_width: uploaded[0]?.image_width,
+                      image_height: uploaded[0]?.image_height,
+                      image_format: uploaded[0]?.image_format,
                       isUploading: false,
                       progress: 100,
                     }
@@ -493,15 +580,22 @@ export default function AdminProductEditPage() {
     );
   };
 
+  void handleLegacyImageUpload;
+
   const handleSetThumbnail = (index) => {
-    setImages((prev) => prev.map((img, i) => ({ ...img, is_thumbnail: i === index })));
+    setImages((prev) => {
+      const selected = prev[index];
+      if (!selected) return prev;
+      return [selected, ...prev.filter((_, i) => i !== index)].map((img, i) => ({ ...img, is_thumbnail: i === 0, position: i }));
+    });
   };
 
   const handleRemoveImage = (index) => {
     setImages((prev) => {
+      const removed = prev[index];
+      if (removed?.url_product_image?.startsWith('blob:')) URL.revokeObjectURL(removed.url_product_image);
       const next = prev.filter((_, i) => i !== index);
-      if (next.length && !next.some((img) => img.is_thumbnail)) next[0].is_thumbnail = true;
-      return next;
+      return next.map((img, i) => ({ ...img, is_thumbnail: i === 0, position: i }));
     });
   };
 
@@ -647,7 +741,9 @@ export default function AdminProductEditPage() {
         .filter((img) => !img.isUploading && img.url_product_image)
         .map((img, idx) => ({
           ...(img.product_image_id ? { product_image_id: img.product_image_id } : {}),
+          ...(img.media_asset_id ? { media_asset_id: img.media_asset_id } : {}),
           url_product_image: img.url_product_image,
+          ...(img.cloudinary_source_url ? { cloudinary_source_url: img.cloudinary_source_url } : {}),
           is_thumbnail: Boolean(img.is_thumbnail),
           position_product_image: idx,
         })),
@@ -727,27 +823,27 @@ export default function AdminProductEditPage() {
 
   if (loadingProduct) {
     return (
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="max-w-6xl mx-auto p-6 space-y-6 font-sans font-[550]">
         <LoadingSkeleton className="h-10 w-48 rounded-xl" />
-        <LoadingSkeleton className="h-64 rounded-3xl" />
-        <LoadingSkeleton className="h-96 rounded-3xl" />
+          <LoadingSkeleton className="h-64 rounded-2xl" />
+          <LoadingSkeleton className="h-96 rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20">
+    <div className="max-w-6xl mx-auto space-y-8 pb-20 font-sans font-[550]">
       {/* Header & Back Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-6">
         <div>
           <Link
             href="/admin/products"
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black dark:hover:text-white mb-2 transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-[550] uppercase tracking-wider text-neutral-500 hover:text-black dark:hover:text-white mb-2 transition-colors"
           >
             <Icon icon="solar:arrow-left-linear" />
             <span>Quay lại danh sách sản phẩm</span>
           </Link>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
+          <h1 className="font-sans font-[550] text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
             {isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
           </h1>
         </div>
@@ -772,7 +868,7 @@ export default function AdminProductEditPage() {
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-sm font-bold border border-rose-200 dark:border-rose-900">
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 text-sm font-[550] border border-rose-200 dark:border-rose-900">
           {error}
         </div>
       )}
@@ -784,8 +880,8 @@ export default function AdminProductEditPage() {
         <div className="lg:col-span-8 space-y-8">
           
           {/* Section 1: Basic Info */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-5">
-            <h2 className="text-sm font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-2xl space-y-5">
+            <h2 className="text-sm font-[550] uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               1. Thông tin cơ bản
             </h2>
             
@@ -803,7 +899,7 @@ export default function AdminProductEditPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
+              <label className="block text-xs font-[550] uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
                 Mô tả sản phẩm
               </label>
               <textarea
@@ -811,21 +907,21 @@ export default function AdminProductEditPage() {
                 placeholder="Mô tả chất liệu 100% cotton, định lượng GSM, form dáng, hướng dẫn giặt sấy..."
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 p-4 text-sm focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 p-4 font-sans text-sm font-[550] placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
               />
             </div>
           </div>
 
           {/* Section 2: Options & Variants Builder */}
-          <div ref={variantsSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-6 scroll-mt-24">
-            <h2 className="text-sm font-black uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
+          <div ref={variantsSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-2xl space-y-6 scroll-mt-24">
+            <h2 className="text-sm font-[550] uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               2. Màu sắc, kích thước & giá bán
             </h2>
-            {fieldErrors.variants && <p className="text-xs font-bold text-rose-500">{fieldErrors.variants}</p>}
+            {fieldErrors.variants && <p className="text-xs font-[550] text-rose-500">{fieldErrors.variants}</p>}
 
             {/* Colors */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
+              <label className="block text-xs font-[550] uppercase tracking-wider text-neutral-700 dark:text-neutral-300 mb-2">
                 Màu sắc (phân cách bằng dấu phẩy) *
               </label>
               <input
@@ -836,7 +932,7 @@ export default function AdminProductEditPage() {
                   clearFieldError('variants');
                   setColorText(e.target.value.toUpperCase());
                 }}
-                className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-3 text-sm focus:outline-none focus:border-black dark:focus:border-white"
+                className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-3 font-sans text-sm font-[550] placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white"
               />
               <div className="flex flex-wrap gap-2 mt-2">
                 {colors.map((c, i) => {
@@ -844,7 +940,7 @@ export default function AdminProductEditPage() {
                   return (
                     <div
                       key={i}
-                      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition-colors ${
+                      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-[550] transition-colors ${
                         isHidden
                           ? 'bg-neutral-100 text-neutral-400 dark:bg-neutral-800 dark:text-neutral-500'
                           : 'bg-black text-white dark:bg-white dark:text-black'
@@ -870,13 +966,13 @@ export default function AdminProductEditPage() {
             {/* Sizes */}
             <div className="border-t border-neutral-100 pt-6 dark:border-neutral-800">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+                <label className="block text-xs font-[550] uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
                   Kích thước tiêu chuẩn *
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsAddingCustomSize(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-[550] uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
                 >
                   <Icon icon="solar:add-circle-linear" />
                   Thêm size
@@ -904,7 +1000,7 @@ export default function AdminProductEditPage() {
                             setSelectedCustomSizes((prev) => isSelected ? prev.filter((item) => item !== s) : [...prev, s]);
                           }
                         }}
-                        className={`px-3.5 py-2 text-xs font-black uppercase tracking-wider transition-colors cursor-pointer ${
+                        className={`px-3.5 py-2 text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer ${
                           isHidden
                             ? 'bg-neutral-100 text-neutral-400 dark:bg-neutral-900 dark:text-neutral-500 line-through'
                             : isSelected
@@ -957,7 +1053,7 @@ export default function AdminProductEditPage() {
                   <button
                     type="button"
                     onClick={handleAddCustomSize}
-                    className="rounded-full bg-black px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white transition-transform hover:scale-[1.02] dark:bg-white dark:text-black"
+                    className="rounded-full bg-black px-4 py-2 text-[10px] font-[550] uppercase tracking-wider text-white transition-transform hover:scale-[1.02] dark:bg-white dark:text-black"
                   >
                     Thêm
                   </button>
@@ -967,7 +1063,7 @@ export default function AdminProductEditPage() {
                       setCustomSizeDraft('');
                       setIsAddingCustomSize(false);
                     }}
-                    className="rounded-full border border-neutral-200 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-neutral-500 hover:border-black hover:text-black dark:border-neutral-700 dark:hover:border-white dark:hover:text-white"
+                    className="rounded-full border border-neutral-200 px-3 py-2 text-[10px] font-[550] uppercase tracking-wider text-neutral-500 hover:border-black hover:text-black dark:border-neutral-700 dark:hover:border-white dark:hover:text-white"
                   >
                     Hủy
                   </button>
@@ -977,7 +1073,7 @@ export default function AdminProductEditPage() {
 
             {/* Shared pricing */}
               <div ref={priceFieldRef} className={`border-t border-neutral-100 pt-6 space-y-3 dark:border-neutral-800 ${fieldErrors.price ? 'text-rose-600 dark:text-rose-400' : ''}`}>
-              <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+              <span className="text-xs font-[550] uppercase tracking-wider text-neutral-500">
                 Giá bán chung
               </span>
               <div className={`grid grid-cols-1 ${isEditMode ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
@@ -990,7 +1086,7 @@ export default function AdminProductEditPage() {
                     clearFieldError('price');
                     setDefaultPrice(formatNumberWithDots(e.target.value));
                   }}
-                  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 text-xs font-bold"
+                  className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 font-sans text-xs font-[550] placeholder:text-neutral-400"
                 />
                 <div className="relative">
                   <input
@@ -1000,9 +1096,9 @@ export default function AdminProductEditPage() {
                     placeholder="Sale (%)"
                     value={defaultSalePercent}
                     onChange={(e) => setDefaultSalePercent(e.target.value)}
-                    className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 pr-7 text-xs font-bold text-rose-500"
+                    className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-2 pr-7 font-sans text-xs font-[550] text-rose-500 placeholder:text-neutral-400"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs font-bold pointer-events-none">%</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs font-[550] pointer-events-none">%</span>
                 </div>
                 {!isEditMode && (
                   <input
@@ -1016,12 +1112,12 @@ export default function AdminProductEditPage() {
                     }}
                     ref={inventoryFieldRef}
                     aria-invalid={Boolean(fieldErrors.inventory)}
-                    className={`rounded-xl border bg-white px-3 py-2 text-xs font-bold dark:bg-neutral-900 ${fieldErrors.inventory ? 'border-rose-500' : 'border-neutral-200 dark:border-neutral-800'}`}
+                    className={`rounded-xl border bg-white px-3 py-2 font-sans text-xs font-[550] placeholder:text-neutral-400 dark:bg-neutral-900 ${fieldErrors.inventory ? 'border-rose-500' : 'border-neutral-200 dark:border-neutral-800'}`}
                   />
                 )}
               </div>
-              {fieldErrors.price && <p className="text-xs font-bold text-rose-500">{fieldErrors.price}</p>}
-              {!isEditMode && fieldErrors.inventory && <p className="text-xs font-bold text-rose-500">{fieldErrors.inventory}</p>}
+              {fieldErrors.price && <p className="text-xs font-[550] text-rose-500">{fieldErrors.price}</p>}
+              {!isEditMode && fieldErrors.inventory && <p className="text-xs font-[550] text-rose-500">{fieldErrors.inventory}</p>}
             </div>
 
             {isEditMode && (
@@ -1031,19 +1127,19 @@ export default function AdminProductEditPage() {
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-xs font-black uppercase tracking-wider text-neutral-700 dark:text-neutral-200">Tồn kho theo biến thể</h2>
+                    <h2 className="text-xs font-[550] uppercase tracking-wider text-neutral-700 dark:text-neutral-200">Tồn kho theo biến thể</h2>
                     <p className="mt-1 max-w-xl text-xs leading-5 text-neutral-500 dark:text-neutral-400">
                       Cập nhật tồn tổng theo từng màu và kích thước. Số đang giữ không thể bị giảm.
                     </p>
                   </div>
-                  <span className="rounded-full bg-black px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white dark:bg-white dark:text-black">
+                  <span className="rounded-full bg-black px-2.5 py-1 text-[10px] font-[550] uppercase tracking-wider text-white dark:bg-white dark:text-black">
                     {combinations.length} biến thể
                   </span>
                 </div>
 
                 <div className="overflow-x-auto bg-white dark:bg-neutral-900">
                   <div className="min-w-[640px]">
-                    <div className="grid grid-cols-[minmax(0,1.6fr)_90px_90px_100px_120px] gap-3 border-b border-neutral-200 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
+                    <div className="grid grid-cols-[minmax(0,1.6fr)_90px_90px_100px_120px] gap-3 border-b border-neutral-200 px-3 py-2 text-[10px] font-[550] uppercase tracking-wider text-neutral-500 dark:border-neutral-800 dark:text-neutral-400">
                       <span>Biến thể</span>
                       <span className="text-center">Tồn kho</span>
                       <span className="text-center">Đang giữ</span>
@@ -1065,12 +1161,12 @@ export default function AdminProductEditPage() {
                           className="grid grid-cols-[minmax(0,1.6fr)_90px_90px_100px_120px] items-center gap-3 border-b border-neutral-100 px-3 py-3 last:border-b-0 dark:border-neutral-800/80"
                         >
                           <div className="min-w-0">
-                            <p className="truncate text-xs font-black text-neutral-800 dark:text-neutral-100">{color} / {size}</p>
-                            <p className="mt-0.5 truncate font-mono text-[10px] text-neutral-400">{variant.sku || 'SKU sẽ được tạo tự động'}</p>
+                            <p className="truncate text-xs font-[550] text-neutral-800 dark:text-neutral-100">{color} / {size}</p>
+                            <p className="mt-0.5 truncate font-sans text-[10px] font-[550] text-neutral-400">{variant.sku || 'SKU sẽ được tạo tự động'}</p>
                           </div>
-                          <span className="text-center text-xs font-bold text-neutral-700 dark:text-neutral-200">{stock}</span>
-                          <span className="text-center text-xs font-bold text-neutral-500 dark:text-neutral-400">{reserved}</span>
-                          <span className={`text-center text-xs font-black ${available > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                            <span className="text-center text-xs font-[550] text-neutral-700 dark:text-neutral-200">{stock}</span>
+                            <span className="text-center text-xs font-[550] text-neutral-500 dark:text-neutral-400">{reserved}</span>
+                            <span className={`text-center text-xs font-[550] ${available > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
                             {Math.max(0, available)}
                           </span>
                           <div className="flex items-center justify-center gap-1.5">
@@ -1094,7 +1190,7 @@ export default function AdminProductEditPage() {
                                   }}
                                   aria-label={`Tồn kho ${color} ${size}`}
                                   aria-invalid={hasInvalidStock}
-                                  className={`w-20 rounded-lg border bg-white px-2.5 py-2 text-right text-xs font-bold outline-none transition-colors dark:bg-neutral-950 ${hasInvalidStock ? 'border-rose-500 text-rose-600' : 'border-neutral-200 focus:border-black dark:border-neutral-700 dark:focus:border-white'}`}
+                                  className={`w-20 rounded-lg border bg-white px-2.5 py-2 text-right font-sans text-xs font-[550] outline-none transition-colors dark:bg-neutral-950 ${hasInvalidStock ? 'border-rose-500 text-rose-600' : 'border-neutral-200 focus:border-black dark:border-neutral-700 dark:focus:border-white'}`}
                                 />
                                 <button
                                   type="button"
@@ -1137,7 +1233,7 @@ export default function AdminProductEditPage() {
                   </div>
                 </div>
 
-                {fieldErrors.inventory && <p className="text-xs font-bold text-rose-500">{fieldErrors.inventory}</p>}
+                        {fieldErrors.inventory && <p className="text-xs font-[550] text-rose-500">{fieldErrors.inventory}</p>}
               </div>
             )}
 
@@ -1149,13 +1245,13 @@ export default function AdminProductEditPage() {
         <div className="lg:col-span-4 space-y-8">
           
           {/* Categories */}
-          <div ref={categorySectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-4 scroll-mt-24">
+          <div ref={categorySectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-2xl space-y-4 scroll-mt-24">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-neutral-400">Danh mục chính *</span>
+              <span className="text-xs font-[550] uppercase tracking-wider text-neutral-400">Danh mục chính *</span>
               <button
                 type="button"
                 onClick={() => setCategoryModal({ open: true, editing: null, initialParentId: '' })}
-                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
+                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-[550] uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
               >
                 <Icon icon="solar:add-circle-linear" />
                 Tạo mới
@@ -1172,7 +1268,7 @@ export default function AdminProductEditPage() {
                 aria-controls="admin-category-options"
                 aria-invalid={Boolean(fieldErrors.category)}
                 onFocus={() => clearFieldError('category')}
-                className={`w-full flex items-center justify-between rounded-2xl border bg-neutral-50 px-4 py-3 text-xs font-bold text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:bg-neutral-950 dark:focus-visible:ring-white ${fieldErrors.category ? 'border-rose-500' : 'border-neutral-200 dark:border-neutral-800'}`}
+                className={`w-full flex items-center justify-between rounded-2xl border bg-neutral-50 px-4 py-3 text-xs font-[550] text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:bg-neutral-950 dark:focus-visible:ring-white ${fieldErrors.category ? 'border-rose-500' : 'border-neutral-200 dark:border-neutral-800'}`}
               >
                 <span className={form.primary_category_id ? 'text-black dark:text-white' : 'text-neutral-400'}>
                   {form.primary_category_id
@@ -1226,7 +1322,7 @@ export default function AdminProductEditPage() {
 
                             {/* Name */}
                             <span
-                              className="flex-1 text-xs font-bold uppercase tracking-wide truncate"
+                              className="flex-1 text-xs font-[550] uppercase tracking-wide truncate"
                             >
                               {root.name_category || root.name}
                             </span>
@@ -1258,7 +1354,7 @@ export default function AdminProductEditPage() {
                                 }`}
                               >
                                 <span
-                                  className="flex-1 text-xs font-medium text-neutral-600 dark:text-neutral-300 truncate"
+                                  className="flex-1 text-xs font-[550] text-neutral-600 dark:text-neutral-300 truncate"
                                   style={isChildSelected ? { color: 'inherit' } : {}}
                                   onClick={() => { clearFieldError('category'); setForm((p) => ({ ...p, primary_category_id: child.__id })); setCatDropdownOpen(false); }}
                                 >
@@ -1285,7 +1381,7 @@ export default function AdminProductEditPage() {
                 </div>
               )}
             </div>
-            {fieldErrors.category && <p className="text-xs font-bold text-rose-500">{fieldErrors.category}</p>}
+            {fieldErrors.category && <p className="text-xs font-[550] text-rose-500">{fieldErrors.category}</p>}
           </div>
 
           {categoryModal.open && (
@@ -1299,15 +1395,15 @@ export default function AdminProductEditPage() {
           )}
 
           {/* Collections */}
-          <div className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-4">
+          <div className="bg-white dark:bg-neutral-900 p-6 rounded-2xl space-y-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-black uppercase tracking-wider text-neutral-400 block">
+              <span className="text-xs font-[550] uppercase tracking-wider text-neutral-400 block">
                 Bộ sưu tập
               </span>
               <button
                 type="button"
                 onClick={() => setCollectionModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
+                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-[10px] font-[550] uppercase tracking-wider text-neutral-600 transition-colors hover:border-black hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-white dark:hover:text-white dark:focus-visible:ring-white"
               >
                 <Icon icon="solar:add-circle-linear" />
                 Tạo mới
@@ -1319,7 +1415,7 @@ export default function AdminProductEditPage() {
                 onClick={() => setCollectionDropdownOpen((value) => !value)}
                 aria-expanded={collectionDropdownOpen}
                 aria-haspopup="listbox"
-                className="flex w-full items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-left text-xs font-bold text-black outline-none transition-colors hover:border-neutral-400 focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:hover:border-neutral-600 dark:focus-visible:ring-white"
+                className="flex w-full items-center justify-between rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-left text-xs font-[550] text-black outline-none transition-colors hover:border-neutral-400 focus-visible:ring-2 focus-visible:ring-black dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:hover:border-neutral-600 dark:focus-visible:ring-white"
               >
                 <span className={form.collection_ids.length ? 'text-black dark:text-white' : 'text-neutral-400'}>
                   {form.collection_ids.length
@@ -1339,7 +1435,7 @@ export default function AdminProductEditPage() {
                     const isExpanded = expandedCollections[parentId];
                     return (
                       <div key={parentId}>
-                        <div className="group flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-black uppercase tracking-wide text-neutral-400 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                        <div className="group flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs font-[550] uppercase tracking-wide text-neutral-400 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800">
                           <button
                             type="button"
                             onClick={() => setExpandedCollections((prev) => ({ ...prev, [parentId]: !prev[parentId] }))}
@@ -1355,7 +1451,7 @@ export default function AdminProductEditPage() {
                           const colId = String(col.collection_id || col.id);
                           const isSelected = form.collection_ids.includes(colId);
                           return (
-                            <label key={colId} className="flex cursor-pointer items-center gap-3 rounded-xl py-2.5 pl-10 pr-3 text-xs font-bold text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800">
+                            <label key={colId} className="flex cursor-pointer items-center gap-3 rounded-xl py-2.5 pl-10 pr-3 text-xs font-[550] text-neutral-700 transition-colors hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800">
                               <input
                                 type="checkbox"
                                 checked={isSelected}
@@ -1386,22 +1482,22 @@ export default function AdminProductEditPage() {
           </div>
 
           {/* Images Upload & Gallery */}
-          <div ref={imagesSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-3xl space-y-4 scroll-mt-24">
+          <div ref={imagesSectionRef} className="bg-white dark:bg-neutral-900 p-6 rounded-2xl space-y-4 scroll-mt-24">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-neutral-400">
+              <span className="text-xs font-[550] uppercase tracking-wider text-neutral-400">
                 Hình ảnh sản phẩm ({images.length})
               </span>
             </div>
 
             <label ref={imageFieldRef} className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-6 text-center hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors cursor-pointer bg-neutral-50 dark:bg-neutral-950 ${fieldErrors.images ? 'border-rose-400' : 'border-neutral-300 dark:border-neutral-700'}`}>
               <Icon icon="solar:cloud-upload-linear" className="text-3xl text-neutral-400 mb-2" />
-              <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">
+              <span className="text-xs font-[550] text-neutral-600 dark:text-neutral-400">
                 Bấm để chọn hoặc kéo thả ảnh vào đây
               </span>
               <span className="text-[10px] text-neutral-400 mt-1">JPEG, PNG, WebP (Tối đa 10MB)</span>
               <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
             </label>
-            {fieldErrors.images && <p className="text-xs font-bold text-rose-500">{fieldErrors.images}</p>}
+            {fieldErrors.images && <p className="text-xs font-[550] text-rose-500">{fieldErrors.images}</p>}
 
             {images.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
@@ -1444,24 +1540,32 @@ export default function AdminProductEditPage() {
                               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                             />
                           </svg>
-                          <span className="absolute text-[11px] font-black font-mono">
+                          <span className="absolute font-sans text-[11px] font-[550]">
                             {img.progress || 5}%
                           </span>
                         </div>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-white/90 mt-1">
+                        <span className="mt-1 text-[9px] font-[550] uppercase tracking-wider text-white/90">
                           Đang tải lên
                         </span>
                       </div>
                     )}
 
                     {!img.isUploading && img.is_thumbnail && (
-                      <span className="absolute top-2 left-2 bg-black text-white dark:bg-white dark:text-black text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow z-10">
+                      <span className="absolute top-2 left-2 z-10 rounded-full bg-black px-2 py-0.5 text-[9px] font-[550] uppercase text-white shadow dark:bg-white dark:text-black">
                         Thumbnail
                       </span>
                     )}
 
                     {!img.isUploading && (
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity z-10">
+                        <button
+                          type="button"
+                          onClick={() => handleEditImage(i)}
+                          title="Chỉnh crop ảnh"
+                          className="p-1.5 bg-white text-black rounded-full hover:scale-110 transition-transform cursor-pointer"
+                        >
+                          <Icon icon="solar:pen-new-square-linear" className="text-xs" />
+                        </button>
                         {!img.is_thumbnail && (
                           <button
                             type="button"
@@ -1469,7 +1573,7 @@ export default function AdminProductEditPage() {
                             title="Đặt làm ảnh đại diện"
                             className="p-1.5 bg-white text-black rounded-full hover:scale-110 transition-transform cursor-pointer"
                           >
-                            <Icon icon="solar:star-bold" className="text-xs" />
+                            <Icon icon="solar:gallery-add-linear" className="text-xs" />
                           </button>
                         )}
                         <button
@@ -1501,11 +1605,23 @@ export default function AdminProductEditPage() {
         />
       )}
 
+      {cropEditor && (
+        <ImageCropModal
+          source={cropEditor.source || cropEditor.file}
+          profile="product"
+          title={cropEditor.mode === 'edit' ? 'Chỉnh crop ảnh sản phẩm' : 'Crop ảnh sản phẩm'}
+          saveLabel="Lưu ảnh"
+          cancelLabel="Huỷ"
+          onCancel={handleCropCancel}
+          onSave={handleCropSave}
+        />
+      )}
+
       {/* Floating Save Footer on mobile/desktop */}
-      <div className="sticky bottom-4 z-40 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-xl flex items-center justify-between gap-4">
+      <div className="sticky bottom-4 z-40 flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white/90 p-4 shadow-xl backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
         <Link
           href="/admin/products"
-          className="text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white"
+          className="text-xs font-[550] text-neutral-500 hover:text-black dark:hover:text-white"
         >
           Hủy bỏ
         </Link>

@@ -1,4 +1,3 @@
-/* global process */
 'use client';
 
 import { useEffect, lazy, Suspense, useState } from 'react';
