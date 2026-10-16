@@ -1,5 +1,3 @@
-/* global process */
-
 const normalizeSiteUrl = (value) => {
   const trimmed = String(value || '').trim();
   if (!trimmed) return '';

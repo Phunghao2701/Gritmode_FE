@@ -69,7 +69,7 @@ export default function AdminCollectionsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
+    <div className="mx-auto max-w-7xl space-y-6 pb-12 font-sans font-[550] animate-fade-in">
       <AdminPageHeader
         eyebrow="Sản phẩm & Kho"
         title="Quản lý bộ sưu tập"
@@ -88,11 +88,11 @@ export default function AdminCollectionsPage() {
       {isLoading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((n) => (
-            <LoadingSkeleton key={n} height="90px" className="rounded-3xl" />
+            <LoadingSkeleton key={n} height="90px" className="rounded-2xl" />
           ))}
         </div>
       ) : parents.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-neutral-300 dark:border-neutral-700 p-12 text-center text-neutral-400 bg-white dark:bg-neutral-900">
+        <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-12 text-center font-normal text-neutral-400 dark:border-neutral-700 dark:bg-neutral-900">
           Chưa có nhóm bộ sưu tập.
         </div>
       ) : (
@@ -104,7 +104,7 @@ export default function AdminCollectionsPage() {
             return (
               <section
                 key={parent.collection_id}
-                className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-sm"
+                className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
               >
                 {/* Header / Parent Row */}
                 <header className="flex flex-wrap items-center gap-3 px-6 py-5 bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800">
@@ -123,11 +123,11 @@ export default function AdminCollectionsPage() {
                       className={`shrink-0 text-base transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                     />
                     <div>
-                      <p className="text-[10px] uppercase font-black text-neutral-400">Nhóm cha</p>
-                      <h2 className="font-display font-black text-xl uppercase text-black dark:text-white">
+                      <p className="font-sans text-[10px] font-[550] uppercase text-neutral-400">Nhóm cha</p>
+                      <h2 className="font-sans text-xl font-[550] uppercase text-black dark:text-white">
                         {parent.name_collection}
                       </h2>
-                      <p className="text-xs text-neutral-400">{children.length} bộ sưu tập con</p>
+                      <p className="font-normal text-xs text-neutral-400">{children.length} bộ sưu tập con</p>
                     </div>
                   </button>
 
@@ -156,7 +156,7 @@ export default function AdminCollectionsPage() {
                     <button
                       type="button"
                       onClick={() => router.push(`/admin/collections/create?parent_collection_id=${parent.collection_id}`)}
-                      className="rounded-full border border-black dark:border-white px-4 py-2 text-xs font-black uppercase text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors ml-1 cursor-pointer"
+                      className="ml-1 cursor-pointer rounded-full border border-black px-4 py-2 font-sans text-xs font-[550] uppercase text-black transition-colors hover:bg-black hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-black"
                     >
                       + Thêm bộ sưu tập con
                     </button>
@@ -165,7 +165,7 @@ export default function AdminCollectionsPage() {
 
                 {/* Children Grid */}
                 {!isExpanded ? null : children.length === 0 ? (
-                  <p className="p-6 text-xs text-neutral-400">Nhóm này chưa có bộ sưu tập con.</p>
+                  <p className="p-6 font-normal text-xs text-neutral-400">Nhóm này chưa có bộ sưu tập con.</p>
                 ) : (
                   <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 p-6">
                     {children.map((child) => (
@@ -189,8 +189,8 @@ export default function AdminCollectionsPage() {
 
                         <div className="p-4 flex items-center justify-between gap-3">
                           <div>
-                            <h3 className="font-black text-sm text-black dark:text-white">{child.name_collection}</h3>
-                            <p className="text-[11px] text-neutral-400 mt-0.5">{child.product_count || 0} sản phẩm</p>
+                            <h3 className="font-sans text-sm font-[550] text-black dark:text-white">{child.name_collection}</h3>
+                            <p className="mt-0.5 font-normal text-[11px] text-neutral-400">{child.product_count || 0} sản phẩm</p>
                           </div>
 
                           <div className="flex items-center gap-1">
@@ -228,28 +228,28 @@ export default function AdminCollectionsPage() {
       {/* Delete Confirmation Modal */}
       {deletingCollection && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-scale-in">
+          <div className="w-full max-w-md space-y-5 rounded-2xl border border-neutral-200 bg-white p-6 shadow-md dark:border-neutral-800 dark:bg-neutral-900 animate-scale-in">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
                 <Icon icon="solar:trash-bin-trash-bold" className="text-xl" />
               </div>
               <div>
-                <h3 className="font-display font-black text-lg uppercase text-black dark:text-white">
+                <h3 className="font-sans text-lg font-[550] uppercase text-black dark:text-white">
                   Xóa bộ sưu tập
                 </h3>
-                <p className="text-xs text-neutral-400">Thao tác này sẽ xóa hoàn toàn khỏi hệ thống</p>
+                <p className="font-normal text-xs text-neutral-400">Thao tác này sẽ xóa hoàn toàn khỏi hệ thống</p>
               </div>
             </div>
 
-            <p className="text-xs text-neutral-600 dark:text-neutral-300 leading-relaxed">
-              Bạn có chắc chắn muốn xóa bộ sưu tập <span className="font-black text-black dark:text-white">"{deletingCollection.name_collection}"</span>?
+            <p className="font-normal text-xs leading-relaxed text-neutral-600 dark:text-neutral-300">
+              Bạn có chắc chắn muốn xóa bộ sưu tập <span className="font-sans font-[550] text-black dark:text-white">"{deletingCollection.name_collection}"</span>?
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setDeletingCollection(null)}
-                className="px-4 py-2 rounded-full border border-neutral-200 dark:border-neutral-800 text-xs font-bold text-neutral-600 dark:text-neutral-400 cursor-pointer"
+                className="cursor-pointer rounded-xl border border-neutral-200 px-4 py-2 font-sans text-xs font-[550] text-neutral-600 dark:border-neutral-800 dark:text-neutral-400"
               >
                 Hủy bỏ
               </button>
@@ -257,7 +257,7 @@ export default function AdminCollectionsPage() {
                 type="button"
                 onClick={handleDeleteConfirm}
                 disabled={deleteMutation.isPending}
-                className="px-5 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider transition-colors cursor-pointer"
+                className="cursor-pointer rounded-xl bg-rose-600 px-5 py-2 font-sans text-xs font-[550] uppercase tracking-wider text-white transition-colors hover:bg-rose-700"
               >
                 Xác nhận xóa
               </button>

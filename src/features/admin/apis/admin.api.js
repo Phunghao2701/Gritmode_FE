@@ -106,9 +106,10 @@ export const getAdminProductByIdApi = (productId) => {
 export const createAdminFullProductApi = (data) => api.post('/admin/products/full', data);
 export const updateAdminFullProductApi = (productId, data) => api.put(`/admin/products/${productId}/full`, data);
 
-export const uploadAdminProductImagesApi = (files, onUploadProgress) => {
+export const uploadAdminProductImagesApi = (files, profile = 'product', onUploadProgress) => {
   const formData = new FormData();
   files.forEach((file) => formData.append('images', file));
+  formData.append('profile', profile);
   return api.post('/admin/uploads/product-images', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress,
@@ -146,6 +147,15 @@ export const deleteProductVariantApi = (variantId) => api.delete(`/admin/product
 
 export const createProductImageApi = (productId, data) => {
   return api.post(`/admin/products/${productId}/images`, data);
+};
+export const updateProductImageApi = (imageId, data) => api.patch(`/admin/product-images/${imageId}`, data);
+export const cropProductImageApi = (imageId, file, onUploadProgress) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  return api.post(`/admin/product-images/${imageId}/crop`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress,
+  });
 };
 export const deleteProductImageApi = (imageId) => api.delete(`/admin/product-images/${imageId}`);
 

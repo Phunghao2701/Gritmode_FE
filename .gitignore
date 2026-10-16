@@ -84,7 +84,12 @@ specs/
 .DS_Store
 Thumbs.db
 
-tests/
+tests/*
+!tests/e2e/
+!tests/e2e/image-crud.spec.js
+!tests/fixtures/
+!tests/fixtures/image-crud.fixture.js
+!tests/fixtures/portrait.svg
 test-artifacts/
 
 .agents/

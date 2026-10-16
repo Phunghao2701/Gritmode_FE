@@ -88,9 +88,9 @@ export default function AdminCategoryEditPage() {
 
   if (loadingCategories && isEditMode) {
     return (
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6 font-sans font-[550]">
         <LoadingSkeleton className="h-10 w-48 rounded-xl" />
-        <LoadingSkeleton className="h-64 rounded-3xl" />
+        <LoadingSkeleton className="h-64 rounded-2xl" />
       </div>
     );
   }
@@ -102,18 +102,18 @@ export default function AdminCategoryEditPage() {
     : 'Thêm danh mục gốc';
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20 animate-fade-in">
+    <div className="mx-auto max-w-6xl space-y-8 pb-20 font-sans font-[550] animate-fade-in">
       {/* Top Bar Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-6">
         <div>
           <Link
             href="/admin/categories"
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-black dark:hover:text-white mb-2 transition-colors"
+            className="mb-2 inline-flex items-center gap-2 font-sans text-xs font-[550] uppercase tracking-wider text-neutral-500 transition-colors hover:text-black dark:hover:text-white"
           >
             <Icon icon="solar:arrow-left-linear" />
             <span>Quay lại danh mục</span>
           </Link>
-          <h1 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black dark:text-white">
+          <h1 className="font-sans text-2xl font-[550] uppercase tracking-tight text-black dark:text-white sm:text-3xl">
             {pageTitle}
           </h1>
         </div>
@@ -130,14 +130,14 @@ export default function AdminCategoryEditPage() {
 
       {/* Main Form Section */}
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <section className="lg:col-span-12 bg-white dark:bg-neutral-900 p-6 sm:p-8 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
+        <section className="space-y-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8 lg:col-span-12">
           <div className="flex items-center gap-3 border-b border-neutral-100 dark:border-neutral-800 pb-4">
             <span className="grid size-9 place-items-center rounded-xl bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white">
               <Icon icon="solar:widget-5-linear" />
             </span>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Thông tin danh mục</p>
-              <h2 className="font-display font-black text-lg uppercase text-black dark:text-white">
+              <p className="font-sans text-[10px] font-[550] uppercase tracking-widest text-neutral-400">Thông tin danh mục</p>
+              <h2 className="font-sans text-lg font-[550] uppercase text-black dark:text-white">
                 {isChildCategory ? 'Thông tin danh mục con' : 'Tên nhóm danh mục'}
               </h2>
             </div>
@@ -145,16 +145,16 @@ export default function AdminCategoryEditPage() {
 
           {/* If creating child category, show fixed parent information */}
           {isChildCategory && (
-            <div className="p-4 rounded-2xl bg-neutral-50 dark:bg-neutral-950 border border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+            <div className="flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400 block">
+                <span className="block font-sans text-[10px] font-[550] uppercase tracking-widest text-neutral-400">
                   Thuộc danh mục cha
                 </span>
-                <span className="font-black text-sm text-black dark:text-white mt-0.5 block">
+                <span className="mt-0.5 block font-sans text-sm font-[550] text-black dark:text-white">
                   {parentCategory ? (parentCategory.name_category || parentCategory.name) : `ID #${form.parent_category_id}`}
                 </span>
               </div>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+              <span className="rounded-full bg-neutral-200 px-2.5 py-1 font-sans text-[10px] font-[550] uppercase text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
                 Danh mục con
               </span>
             </div>
@@ -162,7 +162,7 @@ export default function AdminCategoryEditPage() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="category-name" className="text-xs font-black uppercase tracking-wider text-neutral-500">
+              <label htmlFor="category-name" className="font-sans text-xs font-[550] uppercase tracking-wider text-neutral-500">
                 Tên danh mục <span className="text-rose-500">*</span>
               </label>
               <input
@@ -173,12 +173,12 @@ export default function AdminCategoryEditPage() {
                 placeholder={isChildCategory ? "Ví dụ: Áo Thun Boxy, Quần Short..." : "Ví dụ: TOPS, BOTTOMS, PHỤ KIỆN..."}
                 maxLength={255}
                 autoFocus
-                className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-3 text-sm text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 font-sans text-sm font-[550] text-black transition-colors placeholder:text-neutral-400 focus:border-black focus:outline-none dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:focus:border-white"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="category-position" className="text-xs font-black uppercase tracking-wider text-neutral-500">
+              <label htmlFor="category-position" className="font-sans text-xs font-[550] uppercase tracking-wider text-neutral-500">
                 Thứ tự hiển thị
               </label>
               <input
@@ -188,19 +188,19 @@ export default function AdminCategoryEditPage() {
                 value={String(form.position_category)}
                 onChange={(e) => setForm((p) => ({ ...p, position_category: e.target.value }))}
                 placeholder="0"
-                className="w-full rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 px-4 py-3 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 font-sans text-sm font-[550] text-black transition-colors focus:border-black focus:outline-none dark:border-neutral-800 dark:bg-neutral-950 dark:text-white dark:focus:border-white"
               />
-              <span className="text-[11px] text-neutral-400 block">Số càng nhỏ hiển thị càng trước trong menu</span>
+              <span className="block font-normal text-[11px] text-neutral-400">Số càng nhỏ hiển thị càng trước trong menu</span>
             </div>
           </div>
         </section>
       </form>
 
       {/* Sticky Bottom Bar */}
-      <div className="sticky bottom-4 z-20 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-xl flex items-center justify-between gap-4">
+      <div className="sticky bottom-4 z-20 flex items-center justify-between gap-4 rounded-2xl border border-neutral-200 bg-white/90 p-4 shadow-md backdrop-blur-md dark:border-neutral-800 dark:bg-neutral-900/90">
         <Link
           href="/admin/categories"
-          className="text-xs font-bold text-neutral-500 hover:text-black dark:hover:text-white"
+          className="font-sans text-xs font-[550] text-neutral-500 hover:text-black dark:hover:text-white"
         >
           Hủy bỏ
         </Link>

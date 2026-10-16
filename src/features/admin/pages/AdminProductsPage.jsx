@@ -68,7 +68,7 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto font-sans font-[550]">
       <AdminPageHeader
         eyebrow="Sản phẩm"
         title={`Quản lý sản phẩm (${total})`}
@@ -92,7 +92,7 @@ export default function AdminProductsPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-11 pr-4 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+              className="w-full pl-11 pr-4 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 font-sans text-xs font-normal text-black dark:text-white placeholder:text-neutral-400 focus:outline-none focus:border-black dark:focus:border-white transition-colors"
             />
           </div>
           <div className="flex items-center gap-6 text-xs uppercase tracking-wider select-none">
@@ -105,7 +105,7 @@ export default function AdminProductsPage() {
                 key={tab.value || 'all'}
                 type="button"
                 onClick={() => handleStatusChange(tab.value)}
-                className={`relative py-2 font-normal transition-colors duration-300 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:bg-black dark:after:bg-white after:origin-center after:transition-transform after:duration-300 ${
+                className={`relative py-2 font-[550] transition-colors duration-300 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:bg-black dark:after:bg-white after:origin-center after:transition-transform after:duration-300 ${
                   statusFilter === tab.value
                     ? 'text-black dark:text-white after:scale-x-100'
                     : 'text-neutral-400 hover:text-black dark:hover:text-white after:scale-x-0'
@@ -131,11 +131,11 @@ export default function AdminProductsPage() {
                 <table className="w-full text-left text-xs">
                   <thead className="uppercase text-neutral-400 border-b border-neutral-100 dark:border-neutral-800">
                     <tr>
-                      <th className="pb-3 font-black">Sản phẩm</th>
-                      <th className="pb-3 font-black">Mô tả</th>
-                      <th className="pb-3 font-black text-center">Khoảng giá</th>
-                      <th className="pb-3 font-black text-center" title="Tồn kho khả dụng sau khi trừ số lượng đang giữ">Tồn kho</th>
-                      <th className="pb-3 font-black text-right">Hành động</th>
+                      <th className="pb-3 font-[550]">Sản phẩm</th>
+                      <th className="pb-3 font-[550]">Mô tả</th>
+                      <th className="pb-3 font-[550] text-center">Khoảng giá</th>
+                      <th className="pb-3 font-[550] text-center" title="Tồn kho khả dụng sau khi trừ số lượng đang giữ">Tồn kho</th>
+                      <th className="pb-3 font-[550] text-right">Hành động</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/60">
@@ -183,14 +183,14 @@ export default function AdminProductsPage() {
                                   </div>
                                 )}
                                 <div>
-                                  <h4 className="font-bold text-black dark:text-white uppercase line-clamp-1">{name}</h4>
-                                  <span className="text-[10px] font-mono text-neutral-400">ID: #{productId}</span>
+                                  <h4 className="font-[550] text-black dark:text-white uppercase line-clamp-1">{name}</h4>
+                                  <span className="font-sans font-[550] text-[11px] text-neutral-500">ID: #{productId}</span>
                                   {hasSale && discountPercent > 0 && (
-                                    <span className="ml-2 text-[9px] font-bold uppercase rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 px-1.5 py-0.5">
+                                    <span className="ml-2 text-[9px] font-[550] uppercase rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 px-1.5 py-0.5">
                                       -{discountPercent}%
                                     </span>
                                   )}
-                                  <span className={`ml-2 text-[9px] font-black uppercase rounded-full px-2 py-0.5 ${
+                                  <span className={`ml-2 text-[9px] font-[550] uppercase rounded-full px-2 py-0.5 ${
                                     isDraft
                                       ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400'
                                       : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
@@ -200,21 +200,21 @@ export default function AdminProductsPage() {
                                 </div>
                               </div>
                             </td>
-                            <td className="py-4 text-neutral-400 max-w-xs truncate">
+                            <td className="py-4 text-neutral-500 max-w-xs truncate">
                               {p.description || 'Chưa có mô tả'}
                             </td>
                             <td className="py-4 text-center text-black dark:text-white">
                               {hasSale && (
-                                <div className="text-neutral-400 line-through font-normal">
+                                <div className="text-neutral-400 line-through font-[550]">
                                   {originalMinPrice === originalMaxPrice ? formatPriceVND(originalMinPrice) : `${formatPriceVND(originalMinPrice)} - ${formatPriceVND(originalMaxPrice)}`}
                                 </div>
                               )}
-                              <div className={hasSale ? 'font-black text-red-600 dark:text-red-500' : 'font-black'}>
+                              <div className={hasSale ? 'font-[550] text-red-600 dark:text-red-500' : 'font-[550]'}>
                                 {minPrice === maxPrice ? formatPriceVND(minPrice) : `${formatPriceVND(minPrice)} - ${formatPriceVND(maxPrice)}`}
                               </div>
                             </td>
                             <td className="py-4 text-center" title="Tồn kho khả dụng sau khi trừ số lượng đang giữ">
-                              <span className={`font-black tabular-nums ${stockTone}`}>
+                              <span className={`font-[550] tabular-nums ${stockTone}`}>
                                 {quantityAvailable}
                               </span>
                               <span className="ml-1 text-[10px] text-neutral-400">sp</span>
@@ -225,7 +225,7 @@ export default function AdminProductsPage() {
                                   <button
                                     type="button"
                                     onClick={() => handlePublishDirect(productId)}
-                                    className="px-2.5 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-black text-[10px] uppercase tracking-wider hover:opacity-85 transition-all cursor-pointer shadow-sm"
+                                    className="px-2.5 py-1.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-[550] text-[10px] uppercase tracking-wider hover:opacity-85 transition-all cursor-pointer shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                                     title="Đăng bán ngay"
                                   >
                                     Đăng bán
@@ -234,7 +234,7 @@ export default function AdminProductsPage() {
                                 <button
                                   type="button"
                                   onClick={() => router.push(`/admin/inventory?search=${encodeURIComponent(name)}`)}
-                                  className="rounded-xl border border-neutral-200 p-2 text-black transition-all hover:border-neutral-400 dark:border-neutral-700 dark:text-white dark:hover:border-neutral-500"
+                                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 p-2 text-black transition-all hover:border-neutral-400 dark:border-neutral-700 dark:text-white dark:hover:border-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 cursor-pointer"
                                   title="Quản lý tồn kho"
                                   aria-label={`Quản lý tồn kho ${name}`}
                                 >
@@ -243,7 +243,7 @@ export default function AdminProductsPage() {
                                 <button
                                   type="button"
                                   onClick={() => router.push(`/admin/products/${productId}/edit`)}
-                                  className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-black dark:text-white transition-all cursor-pointer"
+                                  className="inline-flex h-10 w-10 items-center justify-center p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 text-black dark:text-white transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                                   title="Chỉnh sửa"
                                 >
                                   <Icon icon="solar:pen-linear" />
@@ -251,7 +251,7 @@ export default function AdminProductsPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleDelete(productId, name, p.status_product)}
-                                  className="p-2 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer"
+                                  className="inline-flex h-10 w-10 items-center justify-center p-2 rounded-xl border border-rose-200 dark:border-rose-900/40 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
                                   title={status === 'active' ? 'Lưu trữ sản phẩm' : 'Xóa bản nháp'}
                                 >
                                   <Icon icon="solar:trash-bin-minimalistic-linear" />

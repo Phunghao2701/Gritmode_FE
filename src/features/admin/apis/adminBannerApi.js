@@ -33,6 +33,30 @@ export const toggleImageStatusApi = async ({ id, is_active }) => {
   return requireApiObject(response, 'Trạng thái ảnh banner');
 };
 
+export const updateHeroImageApi = async ({ id, ...payload }) => {
+  const response = await api.patch(`/admin/banners/images/${id}`, payload);
+  return requireApiObject(response, 'Ảnh banner');
+};
+
+export const cropHeroImageApi = async ({ id, file }) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const response = await api.post(`/admin/banners/images/${id}/crop`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return requireApiObject(response, 'Ảnh banner');
+};
+
+export const updateHeroImageOrderApi = async ({ id, sort_order }) => {
+  const response = await api.patch(`/admin/banners/images/${id}/order`, { sort_order });
+  return requireApiObject(response, 'Thứ tự banner');
+};
+
+export const reorderHeroImagesApi = async (items) => {
+  const response = await api.patch('/admin/banners/images/order', { items });
+  return requireApiArray(response, 'Thứ tự banner');
+};
+
 /**
  * Xóa ảnh slide khỏi Hero
  */
@@ -44,9 +68,10 @@ export const deleteHeroImageApi = async (id) => {
 /**
  * Tải ảnh banner lên Cloudinary thông qua backend
  */
-export const uploadBannerImageApi = async (file) => {
+export const uploadBannerImageApi = async (file, profile = 'banner') => {
   const formData = new FormData();
   formData.append('images', file);
+  formData.append('profile', profile);
   const response = await api.post('/admin/uploads/product-images', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '../../../shared/components/Icon';
 import {
@@ -21,22 +21,68 @@ export default function OrderDetailModal({
 }) {
   const [cancelReason, setCancelReason] = useState('');
   const [showCancelInput, setShowCancelInput] = useState(false);
+  const [cancelReasonError, setCancelReasonError] = useState('');
+  const dialogRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const lastActiveElementRef = useRef(null);
 
   const orderId = order?.order_id || order?.id;
-  const { data: fullDetail, isPending: loadingDetail } = useAdminOrderDetail(orderId);
+  const {
+    data: fullDetail,
+    isPending: loadingDetail,
+    isError: detailError,
+    refetch: refetchDetail,
+  } = useAdminOrderDetail(orderId);
 
   // Lock body scroll when modal is active
   useEffect(() => {
+    if (!order) return undefined;
+
     const originalStyle = window.getComputedStyle(document.body).overflow;
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalStyle;
+
+    lastActiveElementRef.current = document.activeElement;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const focusableElements = dialogRef.current?.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), [href], select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (!focusableElements?.length) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
     };
-  }, []);
+
+    document.addEventListener('keydown', handleKeyDown);
+    requestAnimationFrame(() => closeButtonRef.current?.focus());
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalStyle;
+      lastActiveElementRef.current?.focus?.();
+    };
+  }, [onClose, order]);
 
   if (!order) return null;
 
-  const activeOrder = fullDetail ? { ...fullDetail, ...order } : order;
+  const activeOrder = fullDetail ? { ...order, ...fullDetail } : order;
 
   const orderStatus = getOrderStatusInfo(activeOrder.status_order);
   const paymentMethod = activeOrder.payment_method || activeOrder.payment?.payment_method || 'cod';
@@ -52,8 +98,17 @@ export default function OrderDetailModal({
   const items = Array.isArray(activeOrder.items) ? activeOrder.items : [];
 
   const handleCancelSubmit = () => {
-    onCancel({ orderId, reason: cancelReason.trim() });
+    const reason = cancelReason.trim();
+
+    if (!reason) {
+      setCancelReasonError('Vui lòng nhập lý do hủy đơn.');
+      return;
+    }
+
+    onCancel({ orderId, reason });
     setShowCancelInput(false);
+    setCancelReason('');
+    setCancelReasonError('');
   };
 
   const modalContent = (
@@ -66,27 +121,30 @@ export default function OrderDetailModal({
         aria-modal="true"
         aria-labelledby="admin-order-detail-title"
         data-lenis-prevent
-        className="relative w-full max-w-xl rounded-[28px] bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xl overflow-hidden overscroll-contain scrollbar-none p-7 sm:p-8 space-y-5 max-h-[92dvh] overflow-y-auto"
+        ref={dialogRef}
+        className="relative w-full max-w-xl rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-xl overflow-hidden overscroll-contain scrollbar-none p-7 sm:p-8 space-y-5 max-h-[92dvh] overflow-y-auto font-sans font-[550]"
         onClick={(e) => e.stopPropagation()}
       >
         
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 block">
+            <span className="text-[11px] font-[550] uppercase tracking-widest text-neutral-500 block">
               CHI TIẾT ĐƠN HÀNG ADMIN
             </span>
-            <h3 id="admin-order-detail-title" className="font-mono font-bold text-xl text-black dark:text-white uppercase mt-0.5 tracking-tight">
+            <h3 id="admin-order-detail-title" className="font-sans font-[550] text-xl text-black dark:text-white uppercase mt-0.5 tracking-tight">
               {activeOrder.order_code || activeOrder.code_order || `#ORD-${orderId}`}
             </h3>
-            <p className="text-[11px] text-neutral-400 mt-0.5">
+            <p className="text-xs text-neutral-500 mt-0.5">
               Đặt lúc: {new Date(activeOrder.created_at || Date.now()).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {new Date(activeOrder.created_at || Date.now()).toLocaleDateString('vi-VN')}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-neutral-400 hover:text-black dark:hover:text-white text-xl transition-colors cursor-pointer"
+            ref={closeButtonRef}
+            aria-label="Đóng chi tiết đơn hàng"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-black dark:hover:bg-neutral-800 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 text-xl transition-colors cursor-pointer"
           >
             <Icon icon="solar:close-circle-linear" />
           </button>
@@ -94,50 +152,61 @@ export default function OrderDetailModal({
 
         {/* Status Badges */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3.5 rounded-2xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-100/80 dark:border-neutral-800">
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+          <div className="p-3.5 rounded-xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800">
+            <span className="text-[11px] font-[550] text-neutral-500 uppercase tracking-wider block mb-1">
               TRẠNG THÁI ĐƠN HÀNG
             </span>
-            <span className={`inline-block text-[10px] font-bold uppercase px-3 py-0.5 rounded-full border ${orderStatus.color || 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+            <span className={`inline-block text-[11px] font-[550] uppercase px-3 py-0.5 rounded-full border ${orderStatus.color || 'bg-amber-50 text-amber-600 border-amber-200'}`}>
               {orderStatus.label}
             </span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-100/80 dark:border-neutral-800">
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+          <div className="p-3.5 rounded-xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800">
+            <span className="text-[11px] font-[550] text-neutral-500 uppercase tracking-wider block mb-1">
               THANH TOÁN
             </span>
-            <span className={`inline-block text-[10px] font-bold uppercase px-3 py-0.5 rounded-full border ${paymentStatus.color || 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+            <span className={`inline-block text-[11px] font-[550] uppercase px-3 py-0.5 rounded-full border ${paymentStatus.color || 'bg-amber-50 text-amber-600 border-amber-200'}`}>
               {paymentMethod.toUpperCase()} • {paymentStatus.label}
             </span>
           </div>
         </div>
 
         {/* Customer & Shipping Info Box */}
-        <div className="p-4 rounded-2xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-100/80 dark:border-neutral-800 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div className="p-4 rounded-xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="space-y-0.5">
-            <span className="font-bold uppercase tracking-wider text-neutral-400 text-[10px] block mb-1">
+            <span className="font-[550] uppercase tracking-wider text-neutral-500 text-[11px] block mb-1">
               NGƯỜI NHẬN & LIÊN HỆ
             </span>
-            <p className="font-bold text-xs text-black dark:text-white">
+            <p className="font-[550] text-sm text-black dark:text-white">
               {address.receiver_name_order_address || activeOrder.receiver_name_order_address || activeOrder.shipping_name || activeOrder.user_name || 'Khách hàng'}
             </p>
-            <p className="text-neutral-500 font-mono text-[11px]">
+            <p className="text-neutral-500 font-sans font-[550] text-xs">
               {address.phone_order_address || activeOrder.phone_order_address || activeOrder.phone_order || activeOrder.shipping_phone || '—'}
             </p>
-            <p className="text-neutral-500 text-[11px]">
+            <p className="text-neutral-500 text-xs">
               {activeOrder.email_order || activeOrder.shipping_email || activeOrder.user_email || '—'}
             </p>
           </div>
 
           <div className="space-y-0.5">
-            <span className="font-bold uppercase tracking-wider text-neutral-400 text-[10px] block mb-1">
+            <span className="font-[550] uppercase tracking-wider text-neutral-500 text-[11px] block mb-1">
               ĐỊA CHỈ GIAO HÀNG
             </span>
             {loadingDetail ? (
-              <p className="text-neutral-400 italic text-[11px]">Đang tải địa chỉ...</p>
+              <p className="text-neutral-500 italic text-xs">Đang tải địa chỉ...</p>
+            ) : detailError ? (
+              <div className="flex items-center justify-between gap-3 text-xs text-rose-600">
+                <span>Không thể tải địa chỉ.</span>
+                <button
+                  type="button"
+                  onClick={() => refetchDetail()}
+                  className="font-[550] underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                >
+                  Thử lại
+                </button>
+              </div>
             ) : (
-              <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed text-[11px]">
+              <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed text-xs">
                 {activeOrder.shipping_address_detail || [
                   address.address_line_order_address || address.street || address.address_detail,
                   address.ward_order_address || address.ward,
@@ -147,7 +216,7 @@ export default function OrderDetailModal({
               </p>
             )}
             {activeOrder.note_order && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold pt-1 italic">
+              <p className="text-xs text-amber-600 dark:text-amber-400 font-[550] pt-1 italic">
                 Ghi chú: "{activeOrder.note_order}"
               </p>
             )}
@@ -156,16 +225,27 @@ export default function OrderDetailModal({
 
         {/* Products Snapshot */}
         <div className="space-y-2.5">
-          <h4 className="font-bold uppercase tracking-wider text-neutral-400 text-[10px]">
+          <h4 className="font-[550] uppercase tracking-wider text-neutral-500 text-[11px]">
             SẢN PHẨM TRONG ĐƠN ({items.length})
           </h4>
 
           {loadingDetail ? (
-            <div className="py-4 text-center text-neutral-400 text-xs italic">
+            <div className="py-4 text-center text-neutral-500 text-xs italic">
               Đang tải danh sách sản phẩm...
             </div>
+          ) : detailError ? (
+            <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs text-rose-700">
+              <span>Không thể tải chi tiết sản phẩm.</span>
+              <button
+                type="button"
+                onClick={() => refetchDetail()}
+                className="font-[550] underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+              >
+                Thử lại
+              </button>
+            </div>
           ) : items.length === 0 ? (
-            <div className="py-4 text-center text-neutral-400 text-xs">
+            <div className="py-4 text-center text-neutral-500 text-xs">
               Không có thông tin chi tiết sản phẩm.
             </div>
           ) : (
@@ -185,27 +265,27 @@ export default function OrderDetailModal({
                 return (
                   <div key={item.order_item_id || idx} className="py-2.5 flex items-center justify-between gap-4 text-xs">
                     <div>
-                      <h5 className="flex items-center gap-2 font-bold text-black dark:text-white uppercase text-xs">
-                        <span className="min-w-0 truncate">
+                      <h5 className="flex flex-wrap items-center gap-2 font-[550] text-black dark:text-white uppercase text-sm">
+                        <span className="min-w-0 break-words">
                           {item.name_product_order_item || item.name_product || item.title || 'SẢN PHẨM'}
                         </span>
                         {isOnSale && (
-                          <span className="shrink-0 rounded-full bg-rose-50 px-1.5 py-0.5 text-[9px] font-black tracking-wider text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
+                          <span className="shrink-0 rounded-full bg-rose-50 px-1.5 py-0.5 text-[9px] font-[550] tracking-wider text-rose-600 dark:bg-rose-950/40 dark:text-rose-300">
                             SALE
                           </span>
                         )}
                       </h5>
-                      <p className="text-neutral-400 text-[10px] uppercase font-mono mt-0.5">
+                      <p className="text-neutral-500 text-xs uppercase font-sans font-[550] mt-0.5 break-words">
                         {sku ? `SKU: ${sku} • ` : ''}{optValues ? `${optValues} • ` : ''}SL: X{itemQty}
                       </p>
                     </div>
                     <span className="flex shrink-0 flex-col items-end gap-0.5 text-xs tabular-nums">
                       {isOnSale && (
-                        <span className="text-[10px] font-medium text-neutral-400 line-through">
+                        <span className="text-[10px] font-[550] text-neutral-400 line-through">
                           {formatPriceVND(originalItemTotal)}
                         </span>
                       )}
-                      <span className={`font-bold ${isOnSale ? 'text-rose-600 dark:text-rose-300' : 'text-black dark:text-white'}`}>
+                      <span className={`font-[550] ${isOnSale ? 'text-rose-600 dark:text-rose-300' : 'text-black dark:text-white'}`}>
                         {formatPriceVND(itemTotal)}
                       </span>
                     </span>
@@ -220,25 +300,25 @@ export default function OrderDetailModal({
         <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 space-y-1 text-xs">
           <div className="flex justify-between text-neutral-500">
             <span>Tạm tính:</span>
-            <span className="font-medium text-black dark:text-white tabular-nums">
+              <span className="font-[550] text-black dark:text-white tabular-nums">
               {formatPriceVND(activeOrder.subtotal_order || activeOrder.total_order || 0)}
             </span>
           </div>
           <div className="flex justify-between text-neutral-500">
             <span>Phí giao hàng:</span>
-            <span className="font-medium text-black dark:text-white tabular-nums">
+              <span className="font-[550] text-black dark:text-white tabular-nums">
               {formatPriceVND(activeOrder.shipping_fee_order || activeOrder.shipping_fee || 0)}
             </span>
           </div>
           {Number(activeOrder.discount_order || activeOrder.discount_amount || 0) > 0 && (
-            <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold">
+            <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-[550]">
               <span>Giảm giá ({activeOrder.code_voucher_order || 'Voucher'}):</span>
               <span className="tabular-nums">-{formatPriceVND(activeOrder.discount_order || activeOrder.discount_amount)}</span>
             </div>
           )}
-          <div className="flex justify-between font-bold text-sm text-black dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="flex justify-between font-[550] text-sm text-black dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-800">
             <span className="uppercase tracking-wider">TỔNG THANH TOÁN:</span>
-            <span className="text-sm font-bold tabular-nums">
+            <span className="text-sm font-[550] tabular-nums">
               {formatPriceVND(activeOrder.total_order || 0)}
             </span>
           </div>
@@ -248,19 +328,30 @@ export default function OrderDetailModal({
         <div className="pt-2">
           {showCancelInput ? (
             <div className="space-y-2 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-xs">
-              <label className="font-bold text-rose-600 dark:text-rose-400 block">Lý do hủy đơn hàng:</label>
+              <label className="font-[550] text-rose-600 dark:text-rose-400 block">Lý do hủy đơn hàng:</label>
               <input
                 type="text"
+                required
+                aria-invalid={Boolean(cancelReasonError)}
+                aria-describedby={cancelReasonError ? 'cancel-reason-error' : undefined}
                 placeholder="Nhập lý do hủy (VD: Khách yêu cầu, hết hàng lưu kho...)"
                 value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-neutral-900 text-black dark:text-white text-xs focus:outline-none"
+                onChange={(e) => {
+                  setCancelReason(e.target.value);
+                  if (cancelReasonError) setCancelReasonError('');
+                }}
+                className="w-full px-3 py-2 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-neutral-900 text-black dark:text-white text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
               />
+              {cancelReasonError && (
+                <p id="cancel-reason-error" role="alert" className="text-xs text-rose-600 dark:text-rose-400">
+                  {cancelReasonError}
+                </p>
+              )}
               <div className="flex justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setShowCancelInput(false)}
-                  className="px-4 py-1.5 rounded-full border border-neutral-300 text-neutral-600 font-bold text-xs cursor-pointer"
+                  className="px-4 py-1.5 rounded-full border border-neutral-300 text-neutral-600 font-[550] text-xs cursor-pointer"
                 >
                   Đóng
                 </button>
@@ -268,7 +359,7 @@ export default function OrderDetailModal({
                   type="button"
                   onClick={handleCancelSubmit}
                   disabled={isActionPending}
-                  className="px-4 py-1.5 rounded-full bg-rose-600 text-white font-bold uppercase tracking-wider text-xs hover:bg-rose-700 cursor-pointer"
+                  className="px-4 py-1.5 rounded-full bg-rose-600 text-white font-[550] uppercase tracking-wider text-xs hover:bg-rose-700 cursor-pointer"
                 >
                   Xác nhận hủy đơn
                 </button>
@@ -283,7 +374,7 @@ export default function OrderDetailModal({
                     type="button"
                     onClick={() => setShowCancelInput(true)}
                     disabled={isActionPending}
-                    className="px-4 py-1.5 rounded-full border border-rose-200 dark:border-rose-900/60 bg-transparent text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full border border-rose-200 dark:border-rose-900/60 bg-transparent text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
                   >
                     HỦY ĐƠN
                   </button>
@@ -297,7 +388,7 @@ export default function OrderDetailModal({
                     type="button"
                     onClick={() => onConfirm(orderId)}
                     disabled={isActionPending}
-                    className="px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full bg-black hover:bg-neutral-800 text-white text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                   >
                     Xác nhận đơn
                   </button>
@@ -307,7 +398,7 @@ export default function OrderDetailModal({
                     type="button"
                     onClick={() => onProcess(orderId)}
                     disabled={isActionPending}
-                    className="px-4 py-1.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full bg-black hover:bg-neutral-800 text-white text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                   >
                     Chuẩn bị hàng
                   </button>
@@ -317,7 +408,7 @@ export default function OrderDetailModal({
                     type="button"
                     onClick={() => onShip(orderId)}
                     disabled={isActionPending}
-                    className="px-4 py-1.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full bg-black hover:bg-neutral-800 text-white text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                   >
                     Giao hàng
                   </button>
@@ -327,7 +418,7 @@ export default function OrderDetailModal({
                     type="button"
                     onClick={() => onComplete(orderId)}
                     disabled={isActionPending}
-                    className="px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-sm disabled:opacity-40"
+                    className="px-4 py-1.5 rounded-full bg-black hover:bg-neutral-800 text-white text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                   >
                     Hoàn tất
                   </button>
@@ -336,7 +427,7 @@ export default function OrderDetailModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-2 rounded-full bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer shadow-sm"
+                  className="px-6 py-2 rounded-full border border-neutral-300 bg-white text-black dark:border-neutral-700 dark:bg-neutral-900 dark:text-white text-xs font-[550] uppercase tracking-wider hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
                 >
                   ĐÓNG
                 </button>
