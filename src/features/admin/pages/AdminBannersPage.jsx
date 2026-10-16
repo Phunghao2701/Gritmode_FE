@@ -10,7 +10,6 @@ import {
   useAddHeroImage,
   useToggleImageStatus,
   useDeleteHeroImage,
-  useUpdateHeroImage,
   useCropHeroImage,
   useReorderHeroImages,
 } from '../hooks/useAdminBanners';
@@ -25,7 +24,6 @@ export default function AdminBannersPage() {
   const addImageMutation = useAddHeroImage();
   const toggleImageMutation = useToggleImageStatus();
   const deleteImageMutation = useDeleteHeroImage();
-  const updateImageMutation = useUpdateHeroImage();
   const cropImageMutation = useCropHeroImage();
   const reorderImagesMutation = useReorderHeroImages();
 
@@ -84,13 +82,15 @@ export default function AdminBannersPage() {
   const handleCropSave = async ({ file }) => {
     setIsUploading(true);
     try {
-      const asset = await uploadBannerImageApi(file, 'banner');
       if (cropEditor.mode === 'edit') {
         await cropImageMutation.mutateAsync({
           id: cropEditor.slide.banner_id,
           file,
         });
+        setCropEditor(null);
+        return;
       } else {
+        const asset = await uploadBannerImageApi(file, 'banner');
         await addImageMutation.mutateAsync({
           image_url: asset.url,
           media_asset_id: asset.media_asset_id,
