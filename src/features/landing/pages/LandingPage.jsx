@@ -2,19 +2,24 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import ProductCard from '../../products/components/ProductCard';
 import { useProducts, useCategories } from '../../products/hooks/useProducts';
 import { useBanners } from '../hooks/useBanners';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 import ErrorState from '../../../shared/components/ErrorState';
-import { getSizedProductImageUrl } from '../../products/utils/product.utils';
+import {
+  getProductImageSrcSet,
+  getSizedProductImageUrl,
+} from '../../products/utils/product.utils';
+
+const HERO_IMAGE_WIDTHS = [640, 750, 828, 1080, 1280, 1440, 1920];
 
 export default function LandingPage() {
   const router = useRouter();
   const [activeCategoryId, setActiveCategoryId] = useState('');
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+  const [loadedHeroIndexes, setLoadedHeroIndexes] = useState([0]);
 
   const { data: dbCategories = [] } = useCategories();
   const { data: heroData, isError: isHeroError, refetch: refetchHero } = useBanners();
@@ -43,6 +48,13 @@ export default function LandingPage() {
     if (heroSlides.length === 0) return;
     setActiveHeroIndex((current) => current % heroSlides.length);
   }, [heroSlides.length]);
+
+  useEffect(() => {
+    if (heroSlides.length === 0) return;
+    setLoadedHeroIndexes((current) => (
+      current.includes(activeHeroIndex) ? current : [...current, activeHeroIndex]
+    ));
+  }, [activeHeroIndex, heroSlides.length]);
 
   useEffect(() => {
     if (heroSlides.length < 2) return undefined;
@@ -86,17 +98,18 @@ export default function LandingPage() {
                   }`}
                   aria-hidden={!isActive}
                 >
-                  <Image
-                    src={getSizedProductImageUrl(slide.image, 1920)}
-                    alt={heroSettings?.title || 'Gritmode Hero'}
-                    fill
-                    priority={index === 0}
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    quality={90}
-                    unoptimized={typeof slide.image === 'string' && (slide.image.includes('cloudinary.com') || slide.image.includes('images.unsplash.com'))}
-                    sizes="100vw"
-                    className="object-cover object-center sm:object-[center_15%]"
-                  />
+                  {loadedHeroIndexes.includes(index) && (
+                    <img
+                      src={getSizedProductImageUrl(slide.image, 1920)}
+                      srcSet={getProductImageSrcSet(slide.image, HERO_IMAGE_WIDTHS)}
+                      alt={heroSettings?.title || 'Gritmode Hero'}
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : 'low'}
+                      decoding="async"
+                      sizes="100vw"
+                      className="absolute inset-0 size-full object-cover object-center sm:object-[center_15%]"
+                    />
+                  )}
                 </div>
               );
             })
@@ -192,11 +205,14 @@ export default function LandingPage() {
         {/* 5-Column Product Grid or Empty State */}
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+            {Array.from({ length: 15 }, (_, index) => index + 1).map((n) => (
               <div key={n} className="space-y-3">
                 <div className="aspect-[3/4] w-full rounded-2xl bg-neutral-100 dark:bg-neutral-900 animate-pulse" />
-                <LoadingSkeleton height="1rem" width="75%" className="rounded-lg" />
-                <LoadingSkeleton height="1rem" width="45%" className="rounded-lg" />
+                <div className="min-h-[5rem] space-y-1 px-1">
+                  <LoadingSkeleton height="0.75rem" width="50%" className="rounded-lg" />
+                  <LoadingSkeleton height="1rem" width="75%" className="rounded-lg" />
+                  <LoadingSkeleton height="1rem" width="45%" className="rounded-lg" />
+                </div>
               </div>
             ))}
           </div>
