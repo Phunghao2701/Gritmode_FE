@@ -34,7 +34,7 @@ export default function UserDetailModal({
               <h3 className="font-display font-[550] text-lg text-black dark:text-white line-clamp-1">
                 {user.full_name || 'Khách hàng chưa đặt tên'}
               </h3>
-              <p className="text-neutral-500 text-xs font-mono">{user.email}</p>
+              <p className="text-neutral-500 text-xs font-sans">{user.email}</p>
             </div>
           </div>
           <button
@@ -75,7 +75,7 @@ export default function UserDetailModal({
           </div>
           <div>
             <span className="text-[10px] font-bold uppercase text-neutral-400">Số điện thoại</span>
-            <p className="font-mono text-black dark:text-white mt-0.5">{user.phone || 'Chưa cập nhật'}</p>
+            <p className="font-sans text-black dark:text-white mt-0.5">{user.phone || 'Chưa cập nhật'}</p>
           </div>
           <div>
             <span className="text-[10px] font-bold uppercase text-neutral-400">Xác thực Email</span>
@@ -85,7 +85,7 @@ export default function UserDetailModal({
           </div>
           <div className="col-span-2 pt-2 border-t border-neutral-200 dark:border-neutral-700 text-[11px] text-neutral-400 flex justify-between">
             <span>Ngày đăng ký: {new Date(user.created_at || Date.now()).toLocaleDateString('vi-VN')}</span>
-            <span className="font-mono text-[10px]">ID: {user.user_id}</span>
+            <span className="font-sans text-[10px]">ID: {user.user_id}</span>
           </div>
         </div>
 

@@ -47,9 +47,6 @@ export default function useAuth() {
     resetOtp,
   } = useOtpStore.getState();
 
-  // Cart store (cho guest token)
-  const { clearGuestToken } = useCartStore.getState();
-
   // -------------------------------------------------------
   // REQUEST OTP
   // -------------------------------------------------------
@@ -126,18 +123,7 @@ export default function useAuth() {
 
         // Nếu có guest token → refetch cart từ BE (BE đã merge), rồi clear guest token
         if (currentGuestToken) {
-          try {
-            // Trigger refetch cart — import động để tránh circular dependency
-            const cartModule = await import('../../cart/apis/cart.api');
-            if (cartModule.getCartApi) {
-              await cartModule.getCartApi();
-              useCartStore.getState().clearCart?.();
-              // Cart state sẽ được managed bởi cart feature hooks, đây chỉ clear guest
-            }
-          } catch {
-            // Cart refetch fail không ảnh hưởng authentication
-          }
-          clearGuestToken();
+          await useCartStore.getState().syncAfterAuthentication();
         }
 
         const isNewUser = data.is_new_user;
@@ -171,7 +157,7 @@ export default function useAuth() {
         setVerifying(false);
       }
     },
-    [otpState.isVerifying, setVerifying, setOtpError, resetOtp, clearGuestToken, router]
+    [otpState.isVerifying, setVerifying, setOtpError, resetOtp, router]
   );
 
   // -------------------------------------------------------

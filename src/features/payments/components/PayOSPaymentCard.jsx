@@ -49,7 +49,7 @@ export default function PayOSPaymentCard({ payment, remainingSeconds }) {
           <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400">
             Hết hạn sau
           </span>
-          <span className={`font-mono text-sm font-black ${remainingSeconds <= 60 ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-900 dark:text-white'}`}>
+          <span className={`font-sans text-sm font-black ${remainingSeconds <= 60 ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-900 dark:text-white'}`}>
             {formatCountdown(remainingSeconds)}
           </span>
         </div>
@@ -75,7 +75,7 @@ export default function PayOSPaymentCard({ payment, remainingSeconds }) {
               >
                 <span className="text-neutral-500 dark:text-neutral-400">{label}</span>
                 <div className="flex min-w-0 items-center gap-2 text-right">
-                  <span className={`max-w-[14rem] truncate font-bold text-black dark:text-white ${key === 'account_number' || key === 'transfer_description' ? 'font-mono' : ''}`}>
+                  <span className={`max-w-[14rem] truncate font-bold text-black dark:text-white ${key === 'account_number' || key === 'transfer_description' ? 'font-sans' : ''}`}>
                     {formattedValue}
                   </span>
                   {copy && (

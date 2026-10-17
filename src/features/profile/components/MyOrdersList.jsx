@@ -107,7 +107,7 @@ export default function MyOrdersList() {
                   className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-800/30 space-y-3"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-black text-sm text-black dark:text-white uppercase">
+                    <span className="font-sans font-black text-sm text-black dark:text-white uppercase">
                       {ord.order_code || `#ORD-${orderId}`}
                     </span>
                     <span className={`inline-block text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${orderStatus.color}`}>
@@ -177,7 +177,7 @@ export default function MyOrdersList() {
 
                   return (
                     <tr key={orderId} className="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
-                      <td className="py-4 font-mono font-black text-black dark:text-white uppercase">
+                      <td className="py-4 font-sans font-black text-black dark:text-white uppercase">
                         {ord.order_code || `#ORD-${orderId}`}
                       </td>
                       <td className="py-4 text-neutral-400">

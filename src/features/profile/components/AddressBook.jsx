@@ -125,7 +125,7 @@ export default function AddressBook({
                         </span>
                       )}
                     </div>
-                    <span className="text-xs font-mono font-semibold text-neutral-500">
+                    <span className="text-xs font-sans font-semibold text-neutral-500">
                       {addr.phone_user_address}
                     </span>
                   </div>

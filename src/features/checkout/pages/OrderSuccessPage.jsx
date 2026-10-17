@@ -128,7 +128,7 @@ export default function OrderSuccessPage() {
               <span className="text-[10px] font-[550] uppercase tracking-widest text-neutral-400">
                 Mã đơn hàng:
               </span>
-              <span className="font-mono font-[550] text-sm uppercase text-black dark:text-white">
+              <span className="font-sans font-[550] text-sm uppercase text-black dark:text-white">
                 {order?.order_code}
               </span>
             </div>
@@ -181,7 +181,7 @@ export default function OrderSuccessPage() {
                     {order?.address?.receiver_name_order_address ||
                       order?.receiver_name_order_address}
                   </p>
-                  <p className="text-neutral-500 font-mono font-normal">
+                  <p className="text-neutral-500 font-sans font-normal">
                     {order?.address?.phone_order_address ||
                       order?.phone_order_address ||
                       order?.phone_order}

@@ -22,15 +22,22 @@ export default async function sitemap() {
     { url: `${baseUrl}/policies/terms`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ];
 
-  const res = await getProductsApi({ limit: 100 });
-  const payload = requireApiObject(res, 'Sitemap products');
-  if (!Array.isArray(payload.items)) throw new Error('Sitemap products payload is invalid');
-  const productRoutes = payload.items.map((product) => ({
-    url: `${baseUrl}/products/${product.slug_product}`,
-    lastModified: new Date(product.updated_at),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }));
+  let productRoutes = [];
+  try {
+    const res = await getProductsApi({ limit: 100 });
+    const payload = requireApiObject(res, 'Sitemap products');
+    if (Array.isArray(payload.items)) {
+      productRoutes = payload.items.map((product) => ({
+        url: `${baseUrl}/products/${product.slug_product}`,
+        lastModified: new Date(product.updated_at),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+      }));
+    }
+  } catch {
+    // The sitemap remains valid with static routes when the API is unavailable
+    // during a build or a transient deployment.
+  }
 
   return [...staticRoutes, ...productRoutes];
 }

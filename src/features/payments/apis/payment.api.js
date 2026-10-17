@@ -41,6 +41,7 @@ export const createPayOSPaymentApi = (data, guestInfo = {}) => {
  * Hủy link thanh toán payOS đang chờ xử lý
  * @param {number|string} orderId
  */
-export const cancelPayOSPaymentApi = (orderId) => {
-  return api.post(`/orders/${orderId}/payment/cancel`);
+export const cancelPayOSPaymentApi = (orderId, detailToken) => {
+  const headers = detailToken ? { 'X-Order-Detail-Token': detailToken } : undefined;
+  return api.post(`/orders/${orderId}/payment/cancel`, undefined, { headers });
 };

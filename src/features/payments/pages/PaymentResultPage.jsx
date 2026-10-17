@@ -15,7 +15,7 @@ import { requireApiObject } from '../../../shared/services/responseContract';
 import { useAuthStore } from '../../../shared/store/authStore';
 
 export default function PaymentResultPage() {
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated, isInitialized } = useAuthStore();
 
@@ -38,7 +38,7 @@ export default function PaymentResultPage() {
         : await getMyOrderByIdApi(orderId);
       return requireApiObject(res, 'Chi tiết đơn hàng');
     },
-    enabled: !!orderId && isInitialized && Boolean(detailToken || !isAuthenticated),
+    enabled: !!orderId && isInitialized && Boolean(detailToken || isAuthenticated),
   });
 
   const {
@@ -118,7 +118,7 @@ export default function PaymentResultPage() {
         <div className="p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-left space-y-3 shadow-sm text-xs">
           <div className="flex justify-between text-neutral-500">
             <span>Mã đơn hàng:</span>
-            <span className="font-mono font-black text-black dark:text-white uppercase">#{orderId}</span>
+            <span className="font-sans font-black text-black dark:text-white uppercase">#{orderId}</span>
           </div>
           <div className="flex justify-between text-neutral-500">
             <span>Số tiền:</span>

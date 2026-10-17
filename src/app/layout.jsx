@@ -1,20 +1,5 @@
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import '../index.css';
 import Providers from './providers';
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin', 'vietnamese'],
-  weight: 'variable',
-  variable: '--font-sans',
-  display: 'swap',
-});
-
-const jetBrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-mono',
-  display: 'swap',
-});
 
 export const metadata = {
   title: {
@@ -44,7 +29,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="vi" className={`${plusJakartaSans.variable} ${jetBrainsMono.variable}`}>
+    <html lang="vi" className="font-sans">
       <head>
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//res.cloudinary.com" />

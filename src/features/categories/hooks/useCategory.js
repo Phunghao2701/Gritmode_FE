@@ -22,7 +22,7 @@ export const useCategories = (options = {}) => {
     staleTime: CACHE_STALE_TIME.categories,
     enabled,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: true,
     ...queryOptions,
   });

@@ -21,7 +21,7 @@ export const useCollections = (options = {}) => {
     staleTime: CACHE_STALE_TIME.collections,
     enabled,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: true,
     ...queryOptions,
   });

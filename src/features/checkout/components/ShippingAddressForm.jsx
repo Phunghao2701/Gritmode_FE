@@ -71,7 +71,7 @@ export default function ShippingAddressForm({
                   <p className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
                     {fullAddr}
                   </p>
-                  <span className="text-[10px] font-mono text-neutral-400">
+                  <span className="text-[10px] font-sans text-neutral-400">
                     {addr.phone_user_address}
                   </span>
                 </button>

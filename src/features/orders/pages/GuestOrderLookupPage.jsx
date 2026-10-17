@@ -129,7 +129,7 @@ export default function GuestOrderLookupPage() {
               value={formData.order_code}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs font-mono font-medium text-black dark:text-white uppercase focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+              className="w-full px-4 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs font-sans font-medium text-black dark:text-white uppercase focus:outline-none focus:border-black dark:focus:border-white transition-colors"
             />
           </div>
 
@@ -191,7 +191,7 @@ export default function GuestOrderLookupPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
             <div>
               <span className="text-[10px] font-[550] uppercase text-neutral-400">Kết quả tra cứu</span>
-              <h3 className="font-mono font-[550] text-lg text-black dark:text-white uppercase mt-0.5">
+              <h3 className="font-sans font-[550] text-lg text-black dark:text-white uppercase mt-0.5">
                 {searchedOrder.order_code}
               </h3>
               <p className="text-xs text-neutral-500">

@@ -64,7 +64,7 @@ export default function ProfilePage() {
                 {currentUser.role === 'admin' ? 'Quản trị viên' : 'Thành viên VIP'}
               </span>
             </div>
-            <p className="text-xs text-neutral-400 font-mono">
+            <p className="text-xs text-neutral-400 font-sans">
               {currentUser.email}
             </p>
             {currentUser.created_at && (

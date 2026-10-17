@@ -166,7 +166,7 @@ export default function ContactPage() {
                         <Icon icon="solar:clock-circle-linear" />
                         <span>{s.hours}</span>
                       </p>
-                      <p className="flex items-center gap-1.5 font-mono">
+                      <p className="flex items-center gap-1.5 font-sans">
                         <Icon icon="solar:phone-linear" />
                         <span>{s.phone}</span>
                       </p>
@@ -187,7 +187,7 @@ export default function ContactPage() {
                   <span className="text-neutral-400">Hotline CSKH:</span>
                   <a
                     href="tel:0326747206"
-                    className="font-bold font-mono hover:underline"
+                    className="font-bold font-sans hover:underline"
                   >
                     0326 747 206
                   </a>

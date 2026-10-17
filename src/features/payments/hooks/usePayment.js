@@ -101,8 +101,13 @@ export const useCancelPayOSPayment = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (orderId) => cancelPayOSPaymentApi(orderId),
-    onSuccess: (res, orderId) => {
+    mutationFn: (input) => {
+      const orderId = typeof input === 'object' ? input.orderId : input;
+      const detailToken = typeof input === 'object' ? input.detailToken : undefined;
+      return cancelPayOSPaymentApi(orderId, detailToken);
+    },
+    onSuccess: (res, input) => {
+      const orderId = typeof input === 'object' ? input.orderId : input;
       toast.success('Đã hủy liên kết VIETQR.');
       invalidateOrderQueries(queryClient, orderId);
     },

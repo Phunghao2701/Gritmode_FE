@@ -29,7 +29,7 @@ export default function OrderDetailModal({
         <div className="flex items-start justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Chi tiết đơn hàng</span>
-            <h3 className="font-mono font-black text-lg sm:text-xl uppercase text-black dark:text-white mt-0.5">
+            <h3 className="font-sans font-black text-lg sm:text-xl uppercase text-black dark:text-white mt-0.5">
               {order.order_code || `#ORD-${order.order_id}`}
             </h3>
             <p className="text-[11px] text-neutral-500 mt-0.5">
