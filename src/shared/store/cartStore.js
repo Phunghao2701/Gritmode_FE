@@ -124,6 +124,16 @@ export const useCartStore = create(
         }
       },
 
+      // Refresh the authenticated cart after the backend merges a guest cart.
+      // Clear stale guest ownership even when the refresh fails so a later
+      // retry cannot send the old guest cart while Bearer auth is active.
+      syncAfterAuthentication: async () => {
+        const result = await get().fetchCart();
+        get().clearGuestToken();
+        if (!result.success) get().resetCartState();
+        return result;
+      },
+
       // Add Item to Cart (Optimistic UI)
       addItem: async ({ variantId, product_variant_id, productId, quantity = 1, quantity_available, title, price, originalPrice, original_price, image, variant, animate = true, sourceRect }) => {
         const targetVariantId = Number(product_variant_id || variantId);

@@ -18,7 +18,7 @@ export default function AdminUserDetailPage() {
     unblockUser,
     setUserInactive,
     isUserActionPending,
-  } = useAdminUsers();
+  } = useAdminUsers({}, { enabled: false });
 
   if (isLoading) {
     return (

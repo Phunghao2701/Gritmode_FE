@@ -10,10 +10,11 @@ export default function PayOSModal({
   onClose,
   onSuccess,
   guestInfo,
+  detailToken,
 }) {
   const { payment, isPaid, isExpired, isFailed, refetch } = useOrderPayment(
     orderId,
-    { enabled: isOpen, guestInfo }
+    { enabled: isOpen, guestInfo, detailToken }
   );
 
   const createPayOSMutation = useCreatePayOSPayment();
@@ -24,7 +25,7 @@ export default function PayOSModal({
   if (!isOpen || !payment) return null;
 
   const handleRetryPayment = () => {
-    createPayOSMutation.mutate({ orderId, guestInfo });
+    createPayOSMutation.mutate({ orderId, guestInfo, detailToken });
   };
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in select-none">

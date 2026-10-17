@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useQueryClient } from '@tanstack/react-query';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -21,14 +22,24 @@ import {
   cropProductImageApi,
 } from '../apis/admin.api';
 import { generateSkuSuggestion } from '../utils/productVariants';
-import CategoryFormModal from '../components/CategoryFormModal';
-import QuickCollectionFormModal from '../components/QuickCollectionFormModal';
 import { toast } from '../../../shared/utils/toast';
 import { createCollectionApi } from '../../collections/apis/collection.api';
 import { unwrapApiData, requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
-import ImageCropModal from '../../../shared/components/media/ImageCropModal';
 import { getSizedProductImageUrl } from '../../products/utils/product.utils';
+
+const CategoryFormModal = dynamic(() => import('../components/CategoryFormModal'), {
+  ssr: false,
+  loading: () => null,
+});
+const QuickCollectionFormModal = dynamic(() => import('../components/QuickCollectionFormModal'), {
+  ssr: false,
+  loading: () => null,
+});
+const ImageCropModal = dynamic(() => import('../../../shared/components/media/ImageCropModal'), {
+  ssr: false,
+  loading: () => null,
+});
 
 const splitValues = (value) => [...new Set(value.split(',').map((item) => item.trim().toUpperCase()).filter(Boolean))];
 const combinationKey = (color, size) => `${color}\u0000${size}`;

@@ -55,6 +55,15 @@ export const cancelMyOrderApi = (orderId) => {
 };
 
 /**
+ * Yêu cầu hoàn tiền cho đơn PayOS đã thanh toán (Authenticated)
+ * @param {number|string} orderId
+ * @param {string} reason
+ */
+export const requestMyRefundApi = (orderId, reason) => {
+  return api.post(`/orders/${orderId}/refund-request`, reason ? { reason } : {});
+};
+
+/**
  * Tra cứu đơn hàng của khách vãng lai (Guest)
  * @param {object} data - { order_code, email, phone }
  */
@@ -69,4 +78,13 @@ export const lookupGuestOrderApi = (data) => {
  */
 export const cancelGuestOrderApi = (orderCode, data) => {
   return publicApi.post(`/orders/guest/${orderCode}/cancel`, data);
+};
+
+/**
+ * Yêu cầu hoàn tiền cho đơn PayOS của khách vãng lai (Guest)
+ * @param {string} orderCode
+ * @param {{email: string, phone: string, reason?: string}} data
+ */
+export const requestGuestRefundApi = (orderCode, data) => {
+  return publicApi.post(`/orders/guest/${orderCode}/refund-request`, data);
 };

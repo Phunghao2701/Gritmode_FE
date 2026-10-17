@@ -40,7 +40,7 @@ export default function PaginationControls({ currentPage, totalPages, onPageChan
       {/* Page Numbers */}
       {pageItems.map((item, index) =>
         item === 'ellipsis' ? (
-          <span key={`ellipsis-${index}`} className="w-8 text-center text-xs font-black text-neutral-400 select-none">
+          <span key={`ellipsis-${index}`} className="w-8 text-center text-xs font-[550] text-neutral-400 select-none">
             ...
           </span>
         ) : (
@@ -49,7 +49,7 @@ export default function PaginationControls({ currentPage, totalPages, onPageChan
             type="button"
             onClick={() => onPageChange(item)}
             className={cn(
-              "inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm active:scale-95",
+              "inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-xl text-xs font-[550] transition-all cursor-pointer shadow-sm active:scale-95",
               item === currentPage
                 ? "bg-black text-white dark:bg-white dark:text-black shadow-md border border-transparent"
                 : "border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-800"

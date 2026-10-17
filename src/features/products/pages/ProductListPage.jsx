@@ -117,8 +117,8 @@ export default function ProductListPage() {
 
     // Only sync search if it's genuinely different from current local state
     // (e.g. incoming from header search navigation or browser back/forward)
-    setSearchQuery((current) => (current !== q && q !== debouncedSearch ? q : current));
-    setDebouncedSearch((current) => (current !== q && q !== debouncedSearch ? q : current));
+    setSearchQuery((current) => (current !== q ? q : current));
+    setDebouncedSearch((current) => (current !== q ? q : current));
   }, [searchParams]);
 
   const handleCategoryChange = (catIdOrSlug) => {

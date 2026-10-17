@@ -2,18 +2,24 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import Icon from '../../shared/components/Icon';
+import StickyChatButton from '../components/StickyChatButton';
 import PrimaryButton from '../../shared/components/Button/PrimaryButton';
 import { useAuthStore } from '../store/authStore';
 import useAuth from '../../features/auth/hooks/useAuth';
 import ROUTES from '../routes/routePaths';
 import { useCartStore } from '../store/cartStore';
-import CartDrawer from '../../features/cart/components/CartDrawer';
 import { useCategories } from '../../features/categories/hooks/useCategory';
 import { useCollections } from '../../features/collections/hooks/useCollection';
 import { useProducts } from '../../features/products/hooks/useProducts';
 import { formatPriceVND, getSizedProductImageUrl } from '../../features/products/utils/product.utils';
 import { useBanners } from '../../features/landing/hooks/useBanners';
+
+const CartDrawer = dynamic(() => import('../../features/cart/components/CartDrawer'), {
+  ssr: false,
+  loading: () => null,
+});
 
 const SOCIAL_LINKS = [
   { href: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK_URL, icon: 'simple-icons:facebook', label: 'Gritmode Facebook Page' },
@@ -27,9 +33,16 @@ export default function MainLayout({ children }) {
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
   const { getTotalItems, openDrawer } = useCartStore();
-  const { categoryTree } = useCategories();
-  const { collections } = useCollections();
-  const { data: heroData } = useBanners();
+
+  const [activeMegaMenu, setActiveMegaMenu] = useState(null); // 'shop' | 'collections' | null
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [shouldRenderCartDrawer, setShouldRenderCartDrawer] = useState(false);
+
+  const isHomePage = pathname === '/';
+  const shouldLoadNavigationData = activeMegaMenu !== null || isMobileMenuOpen;
+  const { categoryTree } = useCategories({ enabled: shouldLoadNavigationData });
+  const { collections } = useCollections({ enabled: shouldLoadNavigationData });
+  const { data: heroData } = useBanners({ enabled: isHomePage });
 
   const marqueeItems = useMemo(() => {
     const raw = heroData?.settings?.marquee_text?.trim();
@@ -56,12 +69,9 @@ export default function MainLayout({ children }) {
     return expanded;
   }, [heroData?.settings?.marquee_text]);
 
-
-  const [activeMegaMenu, setActiveMegaMenu] = useState(null); // 'shop' | 'collections' | null
   const [isHeaderHovered, setIsHeaderHovered] = useState(false);
   const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileMenuLevel, setMobileMenuLevel] = useState('main'); // 'main' | 'shop' | 'collections'
   const [mobileExpandedCategory, setMobileExpandedCategory] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -69,6 +79,11 @@ export default function MainLayout({ children }) {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [isClientMounted, setIsClientMounted] = useState(false);
   const [cartAnimation, setCartAnimation] = useState(null);
+
+  const handleOpenCart = () => {
+    setShouldRenderCartDrawer(true);
+    openDrawer();
+  };
 
   useEffect(() => {
     setIsClientMounted(true);
@@ -169,7 +184,6 @@ export default function MainLayout({ children }) {
   }, [categoryTree]);
 
   const cartItemCount = isClientMounted ? getTotalItems() : 0;
-  const isHomePage = pathname === '/';
 
   // Listen to scroll for:
   // 1. Detecting when scrolled past Hero (for Homepage)
@@ -262,6 +276,7 @@ export default function MainLayout({ children }) {
       <li key={nodeId}>
         <Link
           href={`/products?category=${nodeSlug}`}
+          prefetch={false}
           onClick={() => setActiveMegaMenu(null)}
           style={{ paddingLeft: `${level * 12}px` }}
           className={`${isWhiteTheme ? 'hover:text-black dark:hover:text-white' : 'hover:text-white'} hover:translate-x-1 inline-block transition-all`}
@@ -336,7 +351,7 @@ export default function MainLayout({ children }) {
                 className="relative py-7 cursor-pointer"
                 onMouseEnter={() => setActiveMegaMenu('shop')}
               >
-                <Link href="/products"
+                <Link href="/products" prefetch={false}
                   className={`pb-1 transition-[color,opacity,border-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded ${activeMegaMenu === 'shop'
                     ? isWhiteTheme ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'border-b-2 border-white text-white'
                     : isWhiteTheme ? 'text-black dark:text-white hover:opacity-60' : isTextSolidWhite ? 'text-white hover:opacity-75' : 'text-white/60 hover:text-white hover:opacity-100'
@@ -351,7 +366,7 @@ export default function MainLayout({ children }) {
                 className="relative py-7 cursor-pointer"
                 onMouseEnter={() => setActiveMegaMenu('collections')}
               >
-                <Link href="/collections"
+                <Link href="/collections" prefetch={false}
                   className={`pb-1 transition-[color,opacity,border-color] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded ${activeMegaMenu === 'collections'
                     ? isWhiteTheme ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'border-b-2 border-white text-white'
                     : isWhiteTheme ? 'text-black dark:text-white hover:opacity-60' : isTextSolidWhite ? 'text-white hover:opacity-75' : 'text-white/60 hover:text-white hover:opacity-100'
@@ -438,7 +453,7 @@ export default function MainLayout({ children }) {
 
               {/* Shopping Bag with live count badge */}
               <button
-                onClick={openDrawer}
+                onClick={handleOpenCart}
                 className={`relative p-1 transition-[color,opacity,transform] duration-150 ease-out flex items-center gap-1 sm:gap-1.5 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded-full ${isWhiteTheme ? 'text-black dark:text-white hover:opacity-60' : isTextSolidWhite ? 'text-white hover:opacity-75' : 'text-white/60 hover:text-white hover:opacity-100'
                   }`}
                 title="Giỏ hàng"
@@ -476,7 +491,7 @@ export default function MainLayout({ children }) {
                     <div key={cat.category_id} className="space-y-4">
                       <h3 className={`font-display font-black text-sm uppercase tracking-wider pb-2 border-b ${isWhiteTheme ? 'text-black dark:text-white border-neutral-200 dark:border-neutral-800' : 'text-white border-white/10'
                         }`}>
-                        <Link href={`/products?category=${cat.slug_category || cat.slug}`}
+                        <Link href={`/products?category=${cat.slug_category || cat.slug}`} prefetch={false}
                           onClick={() => setActiveMegaMenu(null)}
                           className="hover:opacity-75 transition-opacity"
                         >
@@ -793,7 +808,7 @@ export default function MainLayout({ children }) {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    openDrawer();
+                    handleOpenCart();
                   }}
                   className="relative p-1.5 text-neutral-800 hover:text-black cursor-pointer text-lg"
                   aria-label="Giỏ hàng"
@@ -873,7 +888,7 @@ export default function MainLayout({ children }) {
                         return (
                           <div key={cat.category_id} className="border-b border-neutral-100 pb-2">
                             <div className="flex items-center justify-between">
-                              <Link href={`/products?category=${cat.slug_category || cat.slug}`}
+                              <Link href={`/products?category=${cat.slug_category || cat.slug}`} prefetch={false}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className="text-sm font-bold uppercase tracking-wider text-black hover:text-neutral-600 py-1"
                               >
@@ -899,6 +914,7 @@ export default function MainLayout({ children }) {
                                   <Link
                                     key={sub.category_id}
                                     href={`/products?category=${sub.slug_category || sub.slug}`}
+                                    prefetch={false}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className="block py-1 hover:text-black"
                                   >
@@ -938,7 +954,7 @@ export default function MainLayout({ children }) {
 
                   {/* Collections List */}
                   <div className="space-y-2 text-sm font-bold uppercase tracking-wider">
-                    <Link href="/collections"
+                    <Link href="/collections" prefetch={false}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="block py-2 text-black hover:text-neutral-600 border-b border-neutral-100"
                     >
@@ -949,6 +965,7 @@ export default function MainLayout({ children }) {
                         <Link
                           key={col.collection_id}
                           href={`/products?collection=${col.slug_collection || col.slug}`}
+                          prefetch={false}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className="block py-2 text-neutral-700 hover:text-black border-b border-neutral-100 font-normal text-xs"
                         >
@@ -1047,7 +1064,9 @@ export default function MainLayout({ children }) {
       )}
 
       {/* Slide-out Cart Drawer */}
-      {isClientMounted && <CartDrawer />}
+      {shouldRenderCartDrawer && <CartDrawer />}
+
+      <StickyChatButton />
 
       {/* DirtyCoins Style Streetwear Footer */}
       <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-600 dark:text-neutral-400">

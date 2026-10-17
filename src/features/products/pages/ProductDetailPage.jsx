@@ -23,10 +23,6 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { addItem } = useCartStore();
 
-  useEffect(() => {
-    router.prefetch('/checkout');
-  }, [router]);
-
   const {
     product,
     isLoadingProduct,

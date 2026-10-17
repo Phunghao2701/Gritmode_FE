@@ -31,7 +31,7 @@ export default function Pagination({
         {' '}-{' '}
         <span className="font-bold text-black dark:text-white">{formatNum(endItem)}</span>
         {' '}trong tổng số{' '}
-        <span className="font-black text-black dark:text-white">{formatNum(totalItems)}</span>
+        <span className="font-[550] text-black dark:text-white">{formatNum(totalItems)}</span>
         {' '}{entityName}
       </div>
 

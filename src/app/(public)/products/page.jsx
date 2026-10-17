@@ -21,7 +21,7 @@ export default async function ProductsPage({ searchParams }) {
   const queryClient = getQueryClient();
 
   // Prefetch categories
-  await queryClient.prefetchQuery({
+  const categoriesPrefetch = queryClient.prefetchQuery({
     queryKey: ['categories-public-tree'],
     queryFn: async () => {
       const res = await getCategoriesApi();
@@ -39,7 +39,7 @@ export default async function ProductsPage({ searchParams }) {
     limit: 20,
   };
 
-  await queryClient.prefetchQuery({
+  const productsPrefetch = queryClient.prefetchQuery({
     queryKey: ['products', params],
     queryFn: async () => {
       const res = await getProductsApi(params);
@@ -49,9 +49,11 @@ export default async function ProductsPage({ searchParams }) {
     },
   });
 
+  await Promise.all([categoriesPrefetch, productsPrefetch]);
+
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<div className="max-w-[1400px] mx-auto p-8"><LoadingSkeleton height="h-96" /></div>}>
+      <Suspense fallback={<div className="max-w-[1400px] mx-auto p-8"><LoadingSkeleton height="24rem" /></div>}>
         <ProductListPage />
       </Suspense>
     </HydrationBoundary>

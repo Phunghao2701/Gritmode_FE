@@ -1,22 +1,83 @@
 import React from 'react';
 import Icon from '../../../shared/components/Icon';
-import { getOrderStatusInfo, getPaymentStatusInfo, isOrderCancellable } from '../utils/order.utils';
+import {
+  getOrderStatusInfo,
+  getPaymentStatusInfo,
+  isOrderCancellable,
+  isRefundRequestable,
+} from '../utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 
 export default function OrderDetailModal({
   order,
   isOpen,
   onClose,
+  isLoadingDetail = false,
+  detailError = false,
+  onRetryDetail,
   onCancelOrder,
   isCancelling = false,
+  onRequestRefund,
+  isRequestingRefund = false,
 }) {
   if (!isOpen || !order) return null;
+
+  if (isLoadingDetail || detailError) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl">
+          <div className="flex items-start justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Chi tiết đơn hàng</span>
+              <h3 className="font-sans font-black text-lg sm:text-xl uppercase text-black dark:text-white mt-0.5">
+                {order.order_code || `#ORD-${order.order_id}`}
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-neutral-400 hover:text-black dark:hover:text-white p-1 rounded-full cursor-pointer text-2xl"
+              aria-label="Đóng"
+            >
+              <Icon icon="solar:close-circle-linear" />
+            </button>
+          </div>
+          <div className="py-12 text-center">
+            {isLoadingDetail ? (
+              <>
+                <Icon icon="solar:spinner-linear" className="mx-auto text-3xl text-neutral-500 animate-spin" />
+                <p className="mt-4 text-sm text-neutral-500">Đang tải chi tiết đơn hàng...</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-rose-600">Không thể tải chi tiết đơn hàng.</p>
+                <button
+                  type="button"
+                  onClick={onRetryDetail}
+                  className="mt-4 rounded-xl bg-black px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:opacity-85 cursor-pointer"
+                >
+                  Thử lại
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const orderStatus = getOrderStatusInfo(order.status_order);
   const paymentMethod = order.payment_method || order.payment?.payment_method || 'cod';
   const rawPaymentStatus = order.status_payment || order.payment?.status_payment;
   const paymentStatus = getPaymentStatusInfo(rawPaymentStatus, paymentMethod);
   const cancellable = isOrderCancellable(order.status_order, rawPaymentStatus);
+  const refundStatus = order.refund_status || order.refund_request?.status_refund_request;
+  const refundRequestable = isRefundRequestable(
+    order.status_order,
+    paymentMethod,
+    rawPaymentStatus,
+    refundStatus,
+  );
 
   const address = order.address || {};
   const items = Array.isArray(order.items) ? order.items : [];
@@ -29,7 +90,7 @@ export default function OrderDetailModal({
         <div className="flex items-start justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Chi tiết đơn hàng</span>
-            <h3 className="font-mono font-black text-lg sm:text-xl uppercase text-black dark:text-white mt-0.5">
+            <h3 className="font-sans font-black text-lg sm:text-xl uppercase text-black dark:text-white mt-0.5">
               {order.order_code || `#ORD-${order.order_id}`}
             </h3>
             <p className="text-[11px] text-neutral-500 mt-0.5">
@@ -138,6 +199,7 @@ export default function OrderDetailModal({
 
         {/* Actions */}
         <div className="pt-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
           {cancellable && (
             <button
               type="button"
@@ -153,6 +215,27 @@ export default function OrderDetailModal({
               <span>Hủy đơn hàng</span>
             </button>
           )}
+          {refundRequestable && onRequestRefund && (
+            <button
+              type="button"
+              onClick={() => onRequestRefund(order.order_id || order.order_code)}
+              disabled={isRequestingRefund}
+              className="px-4 py-2.5 rounded-xl border border-amber-300 dark:border-amber-900/60 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-xs font-black uppercase tracking-wider disabled:opacity-40 cursor-pointer transition-colors flex items-center gap-1.5"
+            >
+              {isRequestingRefund ? (
+                <Icon icon="solar:spinner-linear" className="animate-spin" />
+              ) : (
+                <Icon icon="solar:wallet-money-linear" />
+              )}
+              <span>Hoàn tiền</span>
+            </button>
+          )}
+          {['pending', 'processing'].includes(String(refundStatus || '').toLowerCase()) && (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              Đang chờ xử lý hoàn tiền
+            </span>
+          )}
+          </div>
 
           <button
             type="button"

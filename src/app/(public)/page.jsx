@@ -18,13 +18,13 @@ export default async function HomePage() {
   const queryClient = getQueryClient();
 
   // Prefetch Banners & Hero settings for instant zero-delay presentation
-  await queryClient.prefetchQuery({
+  const bannersPrefetch = queryClient.prefetchQuery({
     queryKey: STOREFRONT_BANNERS_KEY,
     queryFn: getActiveBannersApi,
   });
 
   // Prefetch Categories for MegaMenu and filter tabs
-  await queryClient.prefetchQuery({
+  const categoriesPrefetch = queryClient.prefetchQuery({
     queryKey: ['categories-public-tree'],
     queryFn: async () => {
       const res = await getCategoriesApi();
@@ -33,7 +33,7 @@ export default async function HomePage() {
   });
 
   // Prefetch Products for Landing Hero / Newest products list
-  await queryClient.prefetchQuery({
+  const productsPrefetch = queryClient.prefetchQuery({
     queryKey: ['products', { category_id: undefined, sort: 'newest', limit: 15 }],
     queryFn: async () => {
       const res = await getProductsApi({ category_id: undefined, sort: 'newest', limit: 15 });
@@ -42,6 +42,8 @@ export default async function HomePage() {
       return raw;
     },
   });
+
+  await Promise.all([bannersPrefetch, categoriesPrefetch, productsPrefetch]);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

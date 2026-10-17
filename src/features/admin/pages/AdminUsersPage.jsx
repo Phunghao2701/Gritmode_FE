@@ -7,6 +7,7 @@ import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
 import AdminPageHeader from '../components/AdminPageHeader';
+import ErrorState from '../../../shared/components/ErrorState';
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -28,6 +29,8 @@ export default function AdminUsersPage() {
   const {
     users,
     isLoading,
+    isError,
+    refetch,
     total,
     blockUser,
     unblockUser,
@@ -39,6 +42,10 @@ export default function AdminUsersPage() {
     page,
     limit: 20,
   });
+
+  if (isError && !isLoading) {
+    return <ErrorState onRetry={refetch} title="Không thể tải danh sách người dùng" />;
+  }
 
   const roleTabs = [
     { value: '', label: 'Tất cả vai trò' },

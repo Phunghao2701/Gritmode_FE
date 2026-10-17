@@ -17,6 +17,7 @@ export default function OrderDetailModal({
   onShip,
   onComplete,
   onCancel,
+  onCompleteRefund,
   isActionPending = false,
 }) {
   const [cancelReason, setCancelReason] = useState('');
@@ -93,6 +94,9 @@ export default function OrderDetailModal({
     paymentMethod,
     rawPaymentStatus
   );
+  const refundRequest = activeOrder.refund_request;
+  const refundRequestStatus = String(refundRequest?.status_refund_request || activeOrder.refund_status || '').toLowerCase();
+  const canCompleteRefund = ['pending', 'processing'].includes(refundRequestStatus);
 
   const address = activeOrder.address || {};
   const items = Array.isArray(activeOrder.items) ? activeOrder.items : [];
@@ -109,6 +113,23 @@ export default function OrderDetailModal({
     setShowCancelInput(false);
     setCancelReason('');
     setCancelReasonError('');
+  };
+
+  const handleCompleteRefund = () => {
+    if (!onCompleteRefund || !refundRequest?.refund_request_id) return;
+
+    const providerReference = window.prompt(
+      'Mã giao dịch hoàn tiền (nếu có, có thể để trống):',
+      refundRequest.provider_reference || '',
+    );
+    if (providerReference === null) return;
+
+    const adminNote = window.prompt('Ghi chú xử lý hoàn tiền (không bắt buộc):', refundRequest.admin_note || '') || '';
+    onCompleteRefund({
+      refundRequestId: refundRequest.refund_request_id,
+      providerReference: providerReference.trim(),
+      adminNote: adminNote.trim(),
+    });
   };
 
   const modalContent = (
@@ -170,6 +191,38 @@ export default function OrderDetailModal({
             </span>
           </div>
         </div>
+
+        {refundRequest && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs dark:border-amber-900/60 dark:bg-amber-950/20">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-[550] uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                  YÊU CẦU HOÀN TIỀN
+                </p>
+                <p className="mt-1 text-amber-700/80 dark:text-amber-300/80">
+                  {refundRequestStatus === 'completed'
+                    ? 'Đã ghi nhận hoàn tiền cho khách hàng.'
+                    : 'Đã hủy đơn. Hãy hoàn tiền qua kênh thanh toán phù hợp rồi xác nhận tại đây.'}
+                </p>
+              </div>
+              {canCompleteRefund && onCompleteRefund && (
+                <button
+                  type="button"
+                  onClick={handleCompleteRefund}
+                  disabled={isActionPending}
+                  className="shrink-0 rounded-full bg-amber-600 px-3.5 py-1.5 text-[11px] font-[550] uppercase tracking-wider text-white transition-colors hover:bg-amber-700 disabled:opacity-40"
+                >
+                  Xác nhận đã hoàn
+                </button>
+              )}
+            </div>
+            {refundRequest.reason && (
+              <p className="mt-2 text-amber-700/80 dark:text-amber-300/80">
+                Lý do: {refundRequest.reason}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Customer & Shipping Info Box */}
         <div className="p-4 rounded-xl bg-neutral-50/80 dark:bg-neutral-800/40 border border-neutral-200/80 dark:border-neutral-800 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">

@@ -43,7 +43,7 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory, i
                   <h4 className="font-[550] text-xs text-black dark:text-white line-clamp-1">
                     {item.name_product || item.productTitle || item.name}
                   </h4>
-                  <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-mono">
+                  <p className="text-[10px] text-neutral-400 uppercase tracking-wider font-sans">
                     {item.sku || item.variantSku || 'Chưa có mã'}
                   </p>
                 </div>

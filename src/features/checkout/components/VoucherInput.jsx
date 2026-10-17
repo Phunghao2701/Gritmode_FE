@@ -41,7 +41,7 @@ export default function VoucherInput({ appliedVoucher, onApplyVoucher, onRemoveV
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono font-black uppercase text-xs tracking-wider text-black dark:text-white">
+              <span className="font-sans font-black uppercase text-xs tracking-wider text-black dark:text-white">
                 {codeVoucher}
               </span>
               <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -74,7 +74,7 @@ export default function VoucherInput({ appliedVoucher, onApplyVoucher, onRemoveV
           placeholder=""
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
-          className="w-full pl-10 pr-3 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs font-mono font-black text-black dark:text-white placeholder:text-neutral-400 placeholder:font-sans focus:outline-none focus:border-black dark:focus:border-white uppercase transition-colors"
+          className="w-full pl-10 pr-3 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs font-sans font-black text-black dark:text-white placeholder:text-neutral-400 placeholder:font-sans focus:outline-none focus:border-black dark:focus:border-white uppercase transition-colors"
         />
       </div>
       <button
