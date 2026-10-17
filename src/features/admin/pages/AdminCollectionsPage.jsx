@@ -13,6 +13,7 @@ import {
 } from '../../collections/apis/collection.api';
 import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 import { requireApiArray } from '../../../shared/services/responseContract';
+import ErrorState from '../../../shared/components/ErrorState';
 
 export default function AdminCollectionsPage() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function AdminCollectionsPage() {
   const [expandedIds, setExpandedIds] = useState(new Set());
   const [deletingCollection, setDeletingCollection] = useState(null);
 
-  const { data: collections = [], isLoading } = useQuery({
+  const { data: collections = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['admin-collections'],
     staleTime: 1000 * 60 * 5,
     refetchOnMount: true,
@@ -68,6 +69,10 @@ export default function AdminCollectionsPage() {
     if (!deletingCollection) return;
     deleteMutation.mutate(deletingCollection.collection_id || deletingCollection.id);
   };
+
+  if (isError && !isLoading) {
+    return <ErrorState onRetry={refetch} title="Không thể tải bộ sưu tập" />;
+  }
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-12 font-sans font-[550] animate-fade-in">

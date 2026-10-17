@@ -9,6 +9,7 @@ import Pagination from '../../../shared/components/Pagination';
 import { getOrderStatusInfo } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import AdminPageHeader from '../components/AdminPageHeader';
+import ErrorState from '../../../shared/components/ErrorState';
 
 const OrderDetailModal = dynamic(() => import('../components/OrderDetailModal'), {
   ssr: false,
@@ -50,6 +51,8 @@ export default function AdminOrdersPage() {
   const {
     orders,
     isLoading,
+    isError,
+    refetch,
     total,
     confirmOrder,
     processOrder,
@@ -65,6 +68,10 @@ export default function AdminOrdersPage() {
     page,
     limit: 10,
   });
+
+  if (isError && !isLoading) {
+    return <ErrorState onRetry={refetch} title="Không thể tải danh sách đơn hàng" />;
+  }
 
   const tabs = [
     { value: '', label: 'Tất cả' },

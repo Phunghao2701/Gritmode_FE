@@ -8,6 +8,7 @@ import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
 import AdminPageHeader from '../components/AdminPageHeader';
+import ErrorState from '../../../shared/components/ErrorState';
 
 const StockAdjustModal = dynamic(() => import('../components/StockAdjustModal'), {
   ssr: false,
@@ -34,6 +35,8 @@ export default function AdminInventoryPage() {
   const {
     inventory,
     isLoading,
+    isError,
+    refetch,
     total,
     outOfStockTotal,
     isOutOfStockCountLoading,
@@ -47,6 +50,10 @@ export default function AdminInventoryPage() {
     page,
     limit,
   });
+
+  if (isError && !isLoading) {
+    return <ErrorState onRetry={refetch} title="Không thể tải kho hàng" />;
+  }
 
   const outOfStockLabel = isOutOfStockCountLoading || isOutOfStockCountError || outOfStockTotal === undefined
     ? 'Hết hàng'

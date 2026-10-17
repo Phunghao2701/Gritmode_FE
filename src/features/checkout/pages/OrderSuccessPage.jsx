@@ -21,7 +21,7 @@ export default function OrderSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderDetailToken = searchParams.get('token');
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitialized } = useAuthStore();
 
   // 1. Fetch Order Details (Both Guest & Authenticated)
   const { data: fetchedOrder, isPending: isOrderPending, isError: isOrderError, refetch: refetchOrder } = useQuery({
@@ -35,7 +35,7 @@ export default function OrderSuccessPage() {
         : await getMyOrderByIdApi(orderId);
       return requireApiObject(res, 'Chi tiết đơn hàng');
     },
-    enabled: !!orderId,
+    enabled: !!orderId && isInitialized && Boolean(orderDetailToken || isAuthenticated),
     staleTime: CACHE_STALE_TIME.orderDetail,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -54,7 +54,7 @@ export default function OrderSuccessPage() {
     isPaymentReady,
     refetch: refetchPayment,
   } = useOrderPayment(orderId, {
-    enabled: !!orderId && (isAuthenticated || Boolean(order?.email_order && order?.phone_order)),
+    enabled: !!orderId && isInitialized && (Boolean(orderDetailToken) || isAuthenticated || Boolean(order?.email_order && order?.phone_order)),
     guestInfo: {
       email: order?.email_order,
       phone: order?.phone_order,
@@ -386,6 +386,7 @@ export default function OrderSuccessPage() {
                       email: order?.email_order,
                       phone: order?.phone_order,
                     },
+                  detailToken: orderDetailToken,
                   })}
                   isLoading={createPayOSMutation.isPending}
                   className="w-full justify-center py-3.5 uppercase tracking-widest text-xs font-black rounded-2xl shadow-lg"

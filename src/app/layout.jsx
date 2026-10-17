@@ -4,7 +4,7 @@ import Providers from './providers';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin', 'vietnamese'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: 'variable',
   variable: '--font-sans',
   display: 'swap',
 });

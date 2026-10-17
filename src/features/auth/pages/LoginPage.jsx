@@ -12,6 +12,11 @@ import { useCartStore } from '@/shared/store/cartStore';
 import gritmodeLogo from '../../../assets/icons/GM den.jpg';
 import { requireApiObject } from '@/shared/services/responseContract';
 
+const getSafeReturnPath = (value) => {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return '/';
+  return value;
+};
+
 // ----------------------------------------------------------------
 // OTP Input — 6 ô số riêng biệt
 // ----------------------------------------------------------------
@@ -103,7 +108,7 @@ function Countdown({ seconds, onExpire }) {
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get('from') || '/';
+  const from = getSafeReturnPath(searchParams.get('from'));
 
   // Step: 'email' | 'otp'
   const [step, setStep] = useState('email');

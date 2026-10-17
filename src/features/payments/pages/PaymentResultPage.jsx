@@ -1,9 +1,9 @@
 'use client';
 import React from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { getMyOrderByIdApi } from '../../orders/apis/order.api';
+import { getMyOrderByIdApi, getSharedOrderByIdApi } from '../../orders/apis/order.api';
 import { useOrderPayment } from '../hooks/usePayment';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -17,10 +17,12 @@ import { useAuthStore } from '../../../shared/store/authStore';
 export default function PaymentResultPage() {
   const [searchParams] = useSearchParams();
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitialized } = useAuthStore();
 
   const orderId = searchParams.get('orderId') || searchParams.get('order_id');
-  const isCancelledFlow = window.location.pathname.includes('cancel');
+  const pathname = usePathname();
+  const detailToken = searchParams.get('token');
+  const isCancelledFlow = pathname?.includes('cancel');
 
   const {
     data: guestOrder,
@@ -28,13 +30,15 @@ export default function PaymentResultPage() {
     isError: isGuestOrderError,
     refetch: refetchGuestOrder,
   } = useQuery({
-    queryKey: ['order-payment-result-order', orderId],
+    queryKey: ['order-payment-result-order', orderId, detailToken || 'authenticated'],
     queryFn: async () => {
       if (!orderId) throw new Error('Thiếu mã đơn hàng');
-      const res = await getMyOrderByIdApi(orderId);
+      const res = detailToken
+        ? await getSharedOrderByIdApi(orderId, detailToken)
+        : await getMyOrderByIdApi(orderId);
       return requireApiObject(res, 'Chi tiết đơn hàng');
     },
-    enabled: !!orderId && !isAuthenticated,
+    enabled: !!orderId && isInitialized && Boolean(detailToken || !isAuthenticated),
   });
 
   const {
@@ -43,17 +47,18 @@ export default function PaymentResultPage() {
     isError: isPaymentError,
     refetch,
   } = useOrderPayment(orderId, {
-    enabled: !!orderId && (
-      isAuthenticated ||
+    enabled: !!orderId && isInitialized && (
+      Boolean(detailToken) || isAuthenticated ||
       Boolean(guestOrder?.email_order && guestOrder?.phone_order)
     ),
+    detailToken,
     guestInfo: {
       email: guestOrder?.email_order,
       phone: guestOrder?.phone_order,
     },
   });
 
-  const isLoading = isGuestOrderLoading || isPaymentLoading;
+  const isLoading = !isInitialized || isGuestOrderLoading || isPaymentLoading;
   const isError = isGuestOrderError || isPaymentError;
   const retry = () => {
     if (isGuestOrderError) refetchGuestOrder();

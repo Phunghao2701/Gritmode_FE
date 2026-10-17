@@ -65,6 +65,8 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestPath = String(originalRequest?.url || '').split('?')[0];
+    const isAuthMutation = /^\/auth\/(request-otp|verify-otp|google|logout)$/.test(requestPath);
 
     // Chỉ xử lý 401 và không phải request refresh hoặc auth endpoints
     if (
@@ -72,7 +74,8 @@ api.interceptors.response.use(
       originalRequest &&
       !originalRequest._retry &&
       !originalRequest._isRefreshRequest &&
-      !originalRequest.url?.includes('/auth/refresh')
+      !originalRequest.url?.includes('/auth/refresh') &&
+      !isAuthMutation
     ) {
       // Nếu đang refresh → queue request hiện tại chờ
       if (isRefreshing) {

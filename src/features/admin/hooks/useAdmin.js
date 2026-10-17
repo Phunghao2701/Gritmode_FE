@@ -435,11 +435,12 @@ export const useAdminCategories = () => {
   };
 };
 
-export const useAdminUsers = (params = {}) => {
+export const useAdminUsers = (params = {}, options = {}) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ['admin-users', params],
+    enabled: options.enabled ?? true,
     staleTime: 1000 * 30, // 30s cache
     queryFn: async () => {
       const res = await getAdminUsersApi(params);

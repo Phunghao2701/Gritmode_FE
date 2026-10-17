@@ -78,14 +78,15 @@ export const useCreatePayOSPayment = () => {
     mutationFn: (input) => {
       const orderId = typeof input === 'object' ? input.orderId || input.order_id : input;
       const guestInfo = typeof input === 'object' ? input.guestInfo || {} : {};
-      return createPayOSPaymentApi(orderId, guestInfo);
+      const detailToken = typeof input === 'object' ? input.detailToken || guestInfo.detailToken : undefined;
+      return createPayOSPaymentApi(orderId, { ...guestInfo, detailToken });
     },
     onSuccess: (res, input) => {
       const orderId = typeof input === 'object' ? input.orderId || input.order_id : input;
+      const detailToken = typeof input === 'object' ? input.detailToken || input.guestInfo?.detailToken : '';
       toast.success('Đã tạo liên kết thanh toán VIETQR mới.');
       const newPayment = requireApiObject(res, 'Payment payOS');
-      queryClient.setQueryData(['order-payment', String(orderId)], newPayment);
-      queryClient.setQueryData(['order-payment', Number(orderId)], newPayment);
+      queryClient.setQueryData(['order-payment', orderId, '', '', detailToken || 'unsigned'], newPayment);
       invalidateOrderQueries(queryClient, orderId);
       queryClient.invalidateQueries({ queryKey: ['order-payment', String(orderId)] });
       queryClient.invalidateQueries({ queryKey: ['order-payment', Number(orderId)] });
