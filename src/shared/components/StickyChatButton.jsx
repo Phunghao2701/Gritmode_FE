@@ -1,5 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+
+const CHAT_SCROLL_THRESHOLD = 160;
+
 const CHANNELS = [
   {
     key: 'messenger',
@@ -11,11 +16,45 @@ const CHANNELS = [
 ];
 
 export default function StickyChatButton() {
+  const pathname = usePathname();
+  const isBannerPage = pathname === '/';
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const updateVisibility = () => {
+      const nextVisibility =
+        !isBannerPage || window.scrollY > CHAT_SCROLL_THRESHOLD;
+
+      setIsVisible((currentVisibility) =>
+        currentVisibility === nextVisibility ? currentVisibility : nextVisibility,
+      );
+    };
+
+    updateVisibility();
+
+    if (!isBannerPage) {
+      return undefined;
+    }
+
+    window.addEventListener('scroll', updateVisibility, { passive: true });
+
+    return () => window.removeEventListener('scroll', updateVisibility);
+  }, [isBannerPage]);
+
+  const shouldShow = !isBannerPage || isVisible;
+
   return (
-    <div className="fixed bottom-4 right-3 z-[70] flex flex-col items-end gap-2 sm:bottom-4 sm:right-3">
+    <div
+      aria-hidden={!shouldShow}
+      className={`fixed bottom-5 right-4 z-[70] flex flex-col items-end gap-2 transition-[opacity,transform,visibility] duration-500 ease-out sm:bottom-5 sm:right-4 ${
+        shouldShow
+          ? 'translate-y-0 opacity-100'
+          : 'pointer-events-none invisible translate-y-3 opacity-0'
+      }`}
+    >
       {CHANNELS.map((channel) => {
         const isConfigured = Boolean(channel.href);
-        const className = `grid size-12 place-items-center rounded-full transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${isConfigured ? 'hover:scale-105 active:scale-100' : 'cursor-not-allowed opacity-45'}`;
+        const className = `${shouldShow ? 'sticky-chat-button' : ''} grid size-12 place-items-center rounded-full transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 ${isConfigured ? 'hover:scale-105 active:scale-100' : 'cursor-not-allowed opacity-45'}`;
 
         if (!isConfigured) {
           return (

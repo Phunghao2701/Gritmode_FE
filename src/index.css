@@ -58,6 +58,36 @@ html.lenis body {
 @tailwind components;
 @tailwind utilities;
 
+@keyframes sticky-chat-bob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  25% {
+    transform: translate3d(0, -3px, 0) scale(1.025);
+  }
+
+  50% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  75% {
+    transform: translate3d(0, -2px, 0) scale(1.015);
+  }
+}
+
+.sticky-chat-button {
+  animation: sticky-chat-bob 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sticky-chat-button {
+    animation: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-neutral-200 dark:border-neutral-800;
