@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { toast } from '../../../shared/utils/toast';
 import { googleLoginApi, requestOtpApi, verifyOtpApi } from '../apis/auth.api';
@@ -105,7 +105,9 @@ function Countdown({ seconds, onExpire }) {
 // ================================================================
 // LOGIN PAGE — OTP 2-step
 // ================================================================
-export default function LoginPage() {
+const googleClientId = process.env.VITE_GOOGLE_CLIENT_ID || '';
+
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = getSafeReturnPath(searchParams.get('from'));
@@ -448,5 +450,13 @@ export default function LoginPage() {
         )}
       </section>
     </AuthLayout>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <LoginForm />
+    </GoogleOAuthProvider>
   );
 }
