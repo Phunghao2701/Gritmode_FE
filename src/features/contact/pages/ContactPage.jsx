@@ -124,7 +124,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white animate-fade-in">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans font-[550] animate-fade-in">
       {/* 1. Header Banner */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 py-12 sm:py-16">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
@@ -138,7 +138,7 @@ export default function ContactPage() {
           <h1 className="font-sans font-[550] text-2xl sm:text-3xl lg:text-4xl uppercase tracking-widest text-black dark:text-white">
             Liên hệ & Trải nghiệm
           </h1>
-          <p className="text-xs sm:text-sm font-normal text-neutral-500 max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm font-[550] text-neutral-500 max-w-2xl leading-relaxed">
             Cần hỗ trợ về đơn hàng, sản phẩm hoặc size? Gritmode luôn sẵn sàng
             lắng nghe.
           </p>
@@ -200,7 +200,7 @@ export default function ContactPage() {
                   <span className="text-neutral-400">Hotline CSKH:</span>
                   <a
                     href="tel:0326747206"
-                    className="font-bold font-sans hover:underline"
+                    className="font-sans font-[550] hover:underline"
                   >
                     0326 747 206
                   </a>
@@ -209,7 +209,7 @@ export default function ContactPage() {
                   <span className="text-neutral-400">Email đơn hàng:</span>
                   <a
                     href="mailto:support.gritmode@gmail.com"
-                    className="font-bold hover:underline"
+                    className="font-sans font-[550] hover:underline"
                   >
                     support.gritmode@gmail.com
                   </a>
@@ -218,7 +218,7 @@ export default function ContactPage() {
                   <span className="text-neutral-400">Hợp tác:</span>
                   <a
                     href="mailto:gritmode.stu@gmail.com"
-                    className="font-bold hover:underline"
+                    className="font-sans font-[550] hover:underline"
                   >
                     gritmode.stu@gmail.com
                   </a>
@@ -233,7 +233,7 @@ export default function ContactPage() {
                     href={soc.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-center text-xs font-black uppercase tracking-wider hover:border-neutral-400 dark:hover:border-neutral-500 transition-all flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-center text-xs font-sans font-[550] uppercase tracking-wider hover:border-neutral-400 dark:hover:border-neutral-500 transition-all flex items-center justify-center gap-1.5"
                   >
                     <Icon icon={soc.icon} />
                     <span>{soc.name}</span>
@@ -249,7 +249,7 @@ export default function ContactPage() {
               <h2 className="font-sans font-[550] text-xl sm:text-2xl uppercase tracking-widest text-black dark:text-white">
                 Gửi tin nhắn cho Gritmode
               </h2>
-              <p className="text-xs sm:text-sm font-normal text-neutral-500 mt-1 leading-relaxed">
+              <p className="text-xs sm:text-sm font-[550] text-neutral-500 mt-1 leading-relaxed">
                 Điền thông tin, Gritmode sẽ phản hồi trong vòng 24 giờ làm việc.
               </p>
             </div>
@@ -270,7 +270,7 @@ export default function ContactPage() {
                 </div>
                 <PrimaryButton
                   onClick={() => setIsSubmitted(false)}
-                  className="px-6 py-2.5 text-xs font-black uppercase"
+                  className="px-6 py-2.5 text-xs font-sans font-[550] uppercase"
                 >
                   Gửi tin nhắn khác
                 </PrimaryButton>
@@ -320,7 +320,7 @@ export default function ContactPage() {
                     value={formData.topic}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs sm:text-sm font-medium text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all cursor-pointer"
+                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs sm:text-sm font-sans font-[550] text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all cursor-pointer"
                   >
                     <option value="order_support">
                       Hỗ trợ thông tin & Đổi trả đơn hàng
@@ -351,7 +351,7 @@ export default function ContactPage() {
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs sm:text-sm font-medium text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs sm:text-sm font-sans font-[550] text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all"
                   />
                 </div>
 
