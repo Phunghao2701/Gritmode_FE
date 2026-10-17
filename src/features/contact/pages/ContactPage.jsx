@@ -46,25 +46,32 @@ export default function ContactPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !formData.fullName.trim() ||
-      !formData.email.trim() ||
-      !formData.message.trim()
-    ) {
+    const fullName = formData.fullName.trim();
+    const email = formData.email.trim();
+    const message = formData.message.trim();
+
+    if (!fullName || !email || !message) {
       toast.error("Vui lòng điền đầy đủ các thông tin bắt buộc.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Vui lòng nhập email hợp lệ.");
+      return;
+    }
+    if (message.length < 10) {
+      toast.error("Nội dung tin nhắn phải từ 10 ký tự.");
       return;
     }
 
     setIsSubmitting(true);
     try {
       await submitContactMessage({
-        full_name: formData.fullName.trim(),
-        email: formData.email.trim(),
+        full_name: fullName,
+        email,
         phone: formData.phone.trim() || null,
         topic: formData.topic,
-        message: formData.message.trim(),
+        message,
       });
-      setIsSubmitting(false);
       setIsSubmitted(true);
       toast.success(
         "Tin nhắn của bạn đã được gửi thành công! Đội ngũ Gritmode sẽ phản hồi sớm nhất.",
@@ -77,11 +84,17 @@ export default function ContactPage() {
         message: "",
       });
     } catch (error) {
-      setIsSubmitting(false);
+      const messageFromApi = error?.response?.data?.errors?.[0]?.message
+        || error?.response?.data?.message;
       toast.error(
-        error?.response?.data?.message ||
+        messageFromApi ||
+          (error?.code === "ECONNABORTED"
+            ? "Mất quá nhiều thời gian để gửi tin nhắn. Vui lòng thử lại."
+            : null) ||
           "Không thể gửi tin nhắn lúc này. Vui lòng thử lại.",
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

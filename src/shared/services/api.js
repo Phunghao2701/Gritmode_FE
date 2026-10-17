@@ -154,6 +154,7 @@ api.interceptors.response.use(
 export const publicApi = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
