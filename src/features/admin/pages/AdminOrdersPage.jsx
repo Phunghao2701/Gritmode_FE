@@ -138,7 +138,7 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
       <AdminPageHeader
         eyebrow={activeView === 'orders' ? 'Danh sách đơn hàng' : 'Thanh toán'}
         title={activeView === 'orders' ? `Quản lý đơn hàng (${total})` : `Yêu cầu hoàn tiền (${refundTotal})`}

@@ -64,7 +64,7 @@ export default function AdminUserDetailPage() {
   const isInactive = userStatus === 'inactive';
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 pb-12 font-sans font-[550] animate-fade-in">
+    <div className="mx-auto max-w-6xl space-y-6 pb-12 font-sans font-[550]">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-5">
         <div>

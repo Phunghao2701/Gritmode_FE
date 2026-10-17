@@ -317,7 +317,7 @@ export default function MainLayout({ children }) {
 
       {/* Main Streetwear Header */}
       <header
-        className={`sticky top-0 z-40 transition-all duration-300 ${isHeaderHidden ? '-translate-y-full' : 'translate-y-0'
+        className={`sticky top-0 z-40 transition-[transform,background-color,border-color,box-shadow] duration-[var(--motion-slow)] ${isHeaderHidden ? '-translate-y-full' : 'translate-y-0'
           } ${isWhiteTheme
             ? 'bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 shadow-sm'
             : isHeaderHovered || activeMegaMenu !== null
@@ -474,7 +474,7 @@ export default function MainLayout({ children }) {
         {/* --- MEGA MENU: SHOP --- */}
         {activeMegaMenu === 'shop' && (
           <div
-            className={`hidden lg:block absolute inset-x-0 top-full backdrop-blur-2xl border-b shadow-2xl animate-fade-in ${isWhiteTheme
+            className={`hidden lg:block absolute inset-x-0 top-full backdrop-blur-md border-b shadow-2xl animate-fade-in ${isWhiteTheme
               ? 'bg-white/95 dark:bg-black/95 text-black dark:text-white border-neutral-200 dark:border-neutral-800'
               : 'bg-black/85 text-white border-white/10'
               }`}
@@ -519,7 +519,7 @@ export default function MainLayout({ children }) {
         {/* --- MEGA MENU: COLLECTIONS --- */}
         {activeMegaMenu === 'collections' && (
           <div
-            className={`hidden lg:block absolute inset-x-0 top-full backdrop-blur-2xl border-b shadow-2xl animate-fade-in ${isWhiteTheme
+            className={`hidden lg:block absolute inset-x-0 top-full backdrop-blur-md border-b shadow-2xl animate-fade-in ${isWhiteTheme
               ? 'bg-white/95 dark:bg-black/95 text-black dark:text-white border-neutral-200 dark:border-neutral-800'
               : 'bg-black/85 text-white border-white/10'
               }`}
@@ -576,7 +576,7 @@ export default function MainLayout({ children }) {
 
       {/* Full-Screen Search Modal Overlay */}
       {isSearchOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl flex flex-col justify-start pt-16 sm:pt-20 px-4 sm:px-6 animate-fade-in overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col justify-start pt-16 sm:pt-20 px-4 sm:px-6 animate-fade-in overflow-y-auto">
           <div className="max-w-3xl w-full mx-auto space-y-6 pb-16">
             <div className="flex items-center justify-between">
               <span className="font-display font-black text-xl uppercase tracking-wider text-white">
@@ -763,7 +763,7 @@ export default function MainLayout({ children }) {
             }}
           />
 
-          <div className="fixed inset-y-0 left-0 max-w-sm w-full bg-white text-black shadow-2xl flex flex-col justify-between animate-in slide-in-from-left duration-300">
+          <div className="fixed inset-y-0 left-0 max-w-sm w-full bg-white text-black shadow-2xl flex flex-col justify-between animate-drawer-in">
             {/* 1. Header Bar */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200">
               <button
@@ -863,7 +863,7 @@ export default function MainLayout({ children }) {
 
               {/* LEVEL 2: Shop Submenu */}
               {mobileMenuLevel === 'shop' && (
-                <div className="space-y-4 animate-in slide-in-from-right duration-200">
+                <div className="space-y-4 animate-slide-in-right">
                   {/* Back Bar */}
                   <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
                     <button
@@ -937,7 +937,7 @@ export default function MainLayout({ children }) {
 
               {/* LEVEL 2: Collections Submenu */}
               {mobileMenuLevel === 'collections' && (
-                <div className="space-y-4 animate-in slide-in-from-right duration-200">
+                <div className="space-y-4 animate-slide-in-right">
                   {/* Back Bar */}
                   <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
                     <button

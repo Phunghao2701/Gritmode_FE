@@ -96,7 +96,7 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
               <span className="text-[9px] font-[550] uppercase tracking-widest bg-white/10 text-white px-2 py-0.5 rounded">
                 Admin Console
               </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             </div>
           </Link>
         </div>

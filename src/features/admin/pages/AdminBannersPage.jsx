@@ -467,7 +467,7 @@ export default function AdminBannersPage() {
       )}
 
       {deletingImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm space-y-4 rounded-2xl border border-neutral-800 bg-neutral-900 p-6 text-white shadow-md">
             <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center">
               <Icon icon="solar:trash-bin-trash-bold" className="w-5 h-5" />

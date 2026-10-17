@@ -50,7 +50,7 @@ export default function ProductGrid({
   return (
     <div className="space-y-12">
       {/* Products Grid */}
-      <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 animate-fade-in transition-opacity duration-300 ${isFetching ? 'opacity-50' : 'opacity-100'}`}>
+      <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 transition-opacity duration-[var(--motion-normal)] ${isFetching ? 'opacity-50' : 'opacity-100'}`}>
         {products.map((product) => (
           <ProductCard
             key={product.product_id || product.id || product._id}

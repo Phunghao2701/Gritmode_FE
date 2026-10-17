@@ -124,7 +124,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans font-[550] animate-fade-in">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans font-[550]">
       {/* 1. Header Banner */}
       <div className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 py-12 sm:py-16">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 space-y-3">

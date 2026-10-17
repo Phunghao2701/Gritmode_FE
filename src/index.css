@@ -31,6 +31,11 @@
 
 :root {
   --font-sans: 'Plus Jakarta Sans';
+  --motion-fast: 150ms;
+  --motion-normal: 220ms;
+  --motion-slow: 350ms;
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html.lenis,
@@ -186,6 +191,21 @@ html.lenis body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html,
+  html.lenis,
+  html.lenis body {
+    scroll-behavior: auto !important;
+  }
+
   .notification-motion,
   .animate-notification-popover,
   .animate-notification-item {
@@ -198,7 +218,13 @@ html.lenis body {
   }
 
   .cart-item-fly {
-    animation: cart-item-fly-reduced 180ms ease-out both;
+    animation: cart-item-fly-reduced 180ms ease-out both !important;
+    animation-duration: 180ms !important;
+  }
+
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
   }
 }
 
@@ -212,6 +238,12 @@ html.lenis body {
   * {
     -webkit-tap-highlight-color: transparent !important;
   }
+}
+
+/* Keep the dev-only TanStack control above the storefront chat action. */
+.tsqd-open-btn-container {
+  bottom: 76px !important;
+  right: 12px !important;
 }
 
 /* Product/collection/banner crop editor refinements. */

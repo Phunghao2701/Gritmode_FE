@@ -74,7 +74,7 @@ export default function AppToast() {
         return (
           <div
             key={item.id}
-            className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl border shadow-lg backdrop-blur-md transition-all duration-300 transform translate-y-0 animate-in fade-in slide-in-from-top-4 ${style.bgColor} ${style.borderColor}`}
+            className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl border shadow-lg backdrop-blur-md transition-all duration-300 transform translate-y-0 animate-fade-in ${style.bgColor} ${style.borderColor}`}
           >
             <div className="flex items-center gap-3 pr-2">
               <Icon icon={style.icon} className={`text-xl flex-shrink-0 ${style.iconColor}`} />

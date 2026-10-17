@@ -6,7 +6,7 @@ export default function LowStockAlert({ lowStockItems = [], onManageInventory, i
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
             <h2 className="font-display font-[550] text-lg text-black dark:text-white uppercase tracking-tight">
               Cảnh báo kho hàng
             </h2>

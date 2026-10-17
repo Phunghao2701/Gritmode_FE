@@ -231,7 +231,7 @@ export default function ProductListPage() {
     : 'Shop';
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-[70vh] animate-fade-in">
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 min-h-[70vh]">
       {/* Breadcrumb Navigation */}
       <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-400 select-none">
         <span onClick={() => { handleResetFilters(); }} className="font-normal hover:text-black dark:hover:text-white cursor-pointer transition-colors">

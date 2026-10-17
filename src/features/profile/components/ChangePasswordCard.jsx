@@ -69,7 +69,7 @@ export default function ChangePasswordCard() {
   };
 
   return (
-    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 animate-fade-in">
+    <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
       {/* Header */}
       <div className="border-b border-neutral-100 dark:border-neutral-800 pb-4">
         <h3 className="font-sans font-[550] text-xl text-black dark:text-white uppercase tracking-tight">

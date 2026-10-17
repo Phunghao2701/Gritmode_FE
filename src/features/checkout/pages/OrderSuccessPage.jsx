@@ -102,7 +102,7 @@ export default function OrderSuccessPage({ detailOnly = false } = {}) {
   }
 
   return (
-    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 animate-fade-in font-sans">
+    <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 font-sans">
       
       {/* 1. Top Status Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -120,7 +120,7 @@ export default function OrderSuccessPage({ detailOnly = false } = {}) {
                 ? 'text-emerald-500'
                 : effectiveExpired || isFailed
                   ? 'text-rose-500'
-                  : 'text-amber-500 animate-pulse'
+                : 'text-amber-500'
             }`}
           />
 
@@ -349,7 +349,7 @@ export default function OrderSuccessPage({ detailOnly = false } = {}) {
             effectivePaid ? (
               /* Case A: PayOS Paid Successfully */
               <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-emerald-500/30 shadow-xl text-center space-y-5">
-                <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-3xl mx-auto animate-bounce">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-3xl mx-auto animate-success-pop">
                   <Icon icon="solar:check-circle-bold" />
                 </div>
                 <div className="space-y-1.5">

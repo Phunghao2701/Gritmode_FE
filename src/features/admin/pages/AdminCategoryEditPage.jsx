@@ -102,7 +102,7 @@ export default function AdminCategoryEditPage() {
     : 'Thêm danh mục gốc';
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 pb-20 font-sans font-[550] animate-fade-in">
+    <div className="mx-auto max-w-6xl space-y-8 pb-20 font-sans font-[550]">
       {/* Top Bar Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200 dark:border-neutral-800 pb-6">
         <div>

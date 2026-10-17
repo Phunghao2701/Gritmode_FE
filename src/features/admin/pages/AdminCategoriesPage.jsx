@@ -80,7 +80,7 @@ export default function AdminCategoriesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12 font-sans font-[550] animate-fade-in">
+    <div className="mx-auto max-w-7xl space-y-6 pb-12 font-sans font-[550]">
       <AdminPageHeader
         eyebrow="Sản phẩm & Kho"
         title="Quản lý danh mục"

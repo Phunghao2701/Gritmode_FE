@@ -13,39 +13,87 @@ export default function SmoothScrollProvider({ children }) {
   const [lenisInstance, setLenisInstance] = useState(null);
 
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,           // scroll duration multiplier
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // expo out
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-      infinite: false,
-    });
+    if (typeof window === 'undefined') return undefined;
 
-    lenisRef.current = lenis;
-    setLenisInstance(lenis);
-    if (typeof window !== 'undefined') {
-      window.__lenis = lenis;
-    }
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let lenis = null;
+    let rafId = null;
+    let removeVirtualScrollListener = null;
 
-    // RAF loop
-    let rafId;
-    function raf(time) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
+    const stopLenis = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
 
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
+      removeVirtualScrollListener?.();
+      removeVirtualScrollListener = null;
+
+      if (lenis) {
+        lenis.destroy();
+        lenis = null;
+      }
+
       lenisRef.current = null;
       setLenisInstance(null);
-      if (typeof window !== 'undefined') {
-        window.__lenis = null;
+      window.__lenis = null;
+    };
+
+    const startLenis = () => {
+      if (motionPreference.matches || lenis) return;
+
+      lenis = new Lenis({
+        duration: 0.8,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        gestureOrientation: 'vertical',
+        smoothWheel: true,
+        wheelMultiplier: 1,
+        touchMultiplier: 2,
+        infinite: false,
+      });
+
+      lenisRef.current = lenis;
+      setLenisInstance(lenis);
+      window.__lenis = lenis;
+
+      const raf = (time) => {
+        rafId = null;
+        if (!lenis) return;
+        lenis.raf(time);
+        if (lenis.isScrolling) {
+          rafId = requestAnimationFrame(raf);
+        }
+      };
+
+      const scheduleRaf = () => {
+        if (rafId === null) {
+          rafId = requestAnimationFrame(raf);
+        }
+      };
+
+      removeVirtualScrollListener = lenis.on('virtual-scroll', scheduleRaf);
+    };
+
+    const handleMotionPreferenceChange = () => {
+      if (motionPreference.matches) stopLenis();
+      else startLenis();
+    };
+
+    startLenis();
+    if (motionPreference.addEventListener) {
+      motionPreference.addEventListener('change', handleMotionPreferenceChange);
+    } else {
+      motionPreference.addListener(handleMotionPreferenceChange);
+    }
+
+    return () => {
+      if (motionPreference.removeEventListener) {
+        motionPreference.removeEventListener('change', handleMotionPreferenceChange);
+      } else {
+        motionPreference.removeListener(handleMotionPreferenceChange);
       }
+      stopLenis();
     };
   }, []);
 

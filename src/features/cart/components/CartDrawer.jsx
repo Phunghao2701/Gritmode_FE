@@ -66,14 +66,14 @@ export default function CartDrawer() {
 
   return (
     <div
-      className={`fixed inset-0 z-50 overflow-hidden transition-all duration-400 ease-in-out ${
+      className={`fixed inset-0 z-50 overflow-hidden transition-[opacity,visibility] duration-[var(--motion-normal)] ease-in-out ${
         isOpen ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible delay-200'
       }`}
       aria-hidden={!isOpen}
     >
       {/* Smooth Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-400 ease-out cursor-pointer ${
+        className={`absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-[var(--motion-normal)] ease-out cursor-pointer ${
           isOpen ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={closeDrawer}

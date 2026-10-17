@@ -28,7 +28,7 @@ export default function CartSummary({
       </div>
 
       {hasStockIssues && (
-        <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[11px] font-normal uppercase tracking-wider flex items-center gap-2 animate-pulse">
+        <div role="alert" className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[11px] font-normal uppercase tracking-wider flex items-center gap-2">
           <Icon icon="solar:danger-triangle-bold" className="shrink-0" />
           <span>Vui lòng giảm số lượng sản phẩm vượt quá tồn kho để thanh toán.</span>
         </div>

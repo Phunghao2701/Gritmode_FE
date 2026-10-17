@@ -52,7 +52,7 @@ export default function ProfilePage() {
     .toUpperCase();
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 min-h-[80vh] animate-fade-in">
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 min-h-[80vh]">
       
       {/* 1. Account Summary Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-neutral-900 text-white border border-neutral-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">

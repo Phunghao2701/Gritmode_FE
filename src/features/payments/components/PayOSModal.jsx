@@ -53,7 +53,7 @@ export default function PayOSModal({
         {/* State 1: Paid Successfully */}
         {isPaid ? (
           <div className="py-6 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-3xl mx-auto animate-bounce">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center text-3xl mx-auto animate-success-pop">
               <Icon icon="solar:check-circle-bold" />
             </div>
             <div className="space-y-1">
