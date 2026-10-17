@@ -12,6 +12,8 @@ import {
   shipAdminOrderApi,
   completeAdminOrderApi,
   cancelAdminOrderApi,
+  getAdminRefundsApi,
+  completeAdminRefundApi,
   getAdminInventoryApi,
   updateVariantInventoryApi,
   getAdminProductsApi,
@@ -101,11 +103,12 @@ export const useAdminStats = () => {
   });
 };
 
-export const useAdminOrders = (params = {}) => {
+export const useAdminOrders = (params = {}, options = {}) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ['admin-orders', params],
+    enabled: options.enabled ?? true,
     staleTime: CACHE_STALE_TIME.adminOrders,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
@@ -161,13 +164,35 @@ export const useAdminOrders = (params = {}) => {
 
   const cancelMutation = useMutation({
     mutationFn: ({ orderId, reason }) => cancelAdminOrderApi(orderId, reason),
-    onSuccess: (_res, { orderId }) => {
+    onSuccess: (res, { orderId }) => {
       updateAdminOrderStatusCache(queryClient, orderId, 'cancelled');
-      toast.success('Đã hủy đơn hàng thành công!');
+      const refundRequired = res?.data?.data?.refund_required;
+      toast.success(
+        refundRequired
+          ? 'Đã hủy đơn. Yêu cầu hoàn tiền đang chờ admin xử lý.'
+          : 'Đã hủy đơn hàng thành công!',
+      );
       invalidateAdminOperationalQueries(queryClient);
       queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
     },
     onError: (err) => toast.error(err.response?.data?.message || 'Không thể hủy đơn hàng'),
+  });
+
+  const completeRefundMutation = useMutation({
+    mutationFn: ({ refundRequestId, providerReference, adminNote }) => completeAdminRefundApi(
+      refundRequestId,
+      {
+        provider_reference: providerReference || undefined,
+        admin_note: adminNote || undefined,
+      },
+    ),
+    onSuccess: () => {
+      toast.success('Đã ghi nhận hoàn tiền thành công.');
+      invalidateAdminOperationalQueries(queryClient);
+      queryClient.invalidateQueries({ queryKey: ['admin-inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-refunds'] });
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Không thể ghi nhận hoàn tiền'),
   });
 
   return {
@@ -180,12 +205,40 @@ export const useAdminOrders = (params = {}) => {
     shipOrder: shipMutation.mutate,
     completeOrder: completeMutation.mutate,
     cancelOrder: cancelMutation.mutate,
+    completeRefund: completeRefundMutation.mutate,
     isActionPending:
       confirmMutation.isPending ||
       processMutation.isPending ||
       shipMutation.isPending ||
       completeMutation.isPending ||
-      cancelMutation.isPending,
+      cancelMutation.isPending ||
+      completeRefundMutation.isPending,
+  };
+};
+
+export const useAdminRefundRequests = (params = {}, options = {}) => {
+  const query = useQuery({
+    queryKey: ['admin-refunds', params],
+    enabled: options.enabled ?? true,
+    staleTime: CACHE_STALE_TIME.adminOrders,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    queryFn: async () => {
+      const res = await getAdminRefundsApi(params);
+      const raw = requireApiObject(res, 'Yêu cầu hoàn tiền quản trị');
+      if (!Array.isArray(raw.items) || !raw.pagination) {
+        throw new Error('Yêu cầu hoàn tiền quản trị không hợp lệ');
+      }
+      return raw;
+    },
+  });
+
+  return {
+    ...query,
+    refundRequests: query.data?.items || [],
+    pagination: query.data?.pagination || {},
+    total: query.data?.pagination?.total || 0,
   };
 };
 

@@ -72,7 +72,7 @@ export default function ChangePasswordCard() {
     <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6 animate-fade-in">
       {/* Header */}
       <div className="border-b border-neutral-100 dark:border-neutral-800 pb-4">
-        <h3 className="font-display font-black text-xl text-black dark:text-white uppercase tracking-tight">
+        <h3 className="font-sans font-[550] text-xl text-black dark:text-white uppercase tracking-tight">
           Bảo mật & Đổi mật khẩu
         </h3>
         <p className="text-xs text-neutral-400 mt-0.5">
@@ -83,7 +83,7 @@ export default function ChangePasswordCard() {
       <form onSubmit={handleSubmit} className="space-y-5 max-w-xl">
         {/* Current Password */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+          <label className="block text-xs font-sans font-[550] text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             Mật khẩu hiện tại *
           </label>
           <div className="relative">
@@ -92,7 +92,7 @@ export default function ChangePasswordCard() {
               placeholder=""
               value={formData.currentPassword}
               onChange={(e) => handleChange('currentPassword', e.target.value)}
-              className={`w-full px-4 py-3 pr-11 rounded-xl border text-xs font-medium bg-neutral-50 dark:bg-neutral-950 text-black dark:text-white focus:outline-none transition-colors ${
+              className={`w-full px-4 py-3 pr-11 rounded-xl border text-xs font-sans font-[550] bg-neutral-50 dark:bg-neutral-950 text-black dark:text-white focus:outline-none transition-colors ${
                 errors.currentPassword
                   ? 'border-rose-500 focus:border-rose-500'
                   : 'border-neutral-200 dark:border-neutral-800 focus:border-black dark:focus:border-white'
@@ -107,7 +107,7 @@ export default function ChangePasswordCard() {
             </button>
           </div>
           {errors.currentPassword && (
-            <p className="text-[11px] font-bold text-rose-500 flex items-center gap-1">
+            <p className="text-[11px] font-sans font-[550] text-rose-500 flex items-center gap-1">
               <Icon icon="solar:danger-triangle-linear" />
               <span>{errors.currentPassword}</span>
             </p>
@@ -116,7 +116,7 @@ export default function ChangePasswordCard() {
 
         {/* New Password */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+          <label className="block text-xs font-sans font-[550] text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             Mật khẩu mới *
           </label>
           <div className="relative">
@@ -125,7 +125,7 @@ export default function ChangePasswordCard() {
               placeholder=""
               value={formData.newPassword}
               onChange={(e) => handleChange('newPassword', e.target.value)}
-              className={`w-full px-4 py-3 pr-11 rounded-xl border text-xs font-medium bg-neutral-50 dark:bg-neutral-950 text-black dark:text-white focus:outline-none transition-colors ${
+              className={`w-full px-4 py-3 pr-11 rounded-xl border text-xs font-sans font-[550] bg-neutral-50 dark:bg-neutral-950 text-black dark:text-white focus:outline-none transition-colors ${
                 errors.newPassword
                   ? 'border-rose-500 focus:border-rose-500'
                   : 'border-neutral-200 dark:border-neutral-800 focus:border-black dark:focus:border-white'
@@ -140,7 +140,7 @@ export default function ChangePasswordCard() {
             </button>
           </div>
           {errors.newPassword && (
-            <p className="text-[11px] font-bold text-rose-500 flex items-center gap-1">
+            <p className="text-[11px] font-sans font-[550] text-rose-500 flex items-center gap-1">
               <Icon icon="solar:danger-triangle-linear" />
               <span>{errors.newPassword}</span>
             </p>
@@ -149,7 +149,7 @@ export default function ChangePasswordCard() {
 
         {/* Confirm New Password */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+          <label className="block text-xs font-sans font-[550] text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             Xác nhận mật khẩu mới *
           </label>
           <div className="relative">
@@ -158,7 +158,7 @@ export default function ChangePasswordCard() {
               placeholder=""
               value={formData.confirmPassword}
               onChange={(e) => handleChange('confirmPassword', e.target.value)}
-              className={`w-full px-4 py-3 pr-11 rounded-xl border text-xs font-medium bg-neutral-50 dark:bg-neutral-950 text-black dark:text-white focus:outline-none transition-colors ${
+              className={`w-full px-4 py-3 pr-11 rounded-xl border text-xs font-sans font-[550] bg-neutral-50 dark:bg-neutral-950 text-black dark:text-white focus:outline-none transition-colors ${
                 errors.confirmPassword
                   ? 'border-rose-500 focus:border-rose-500'
                   : 'border-neutral-200 dark:border-neutral-800 focus:border-black dark:focus:border-white'
@@ -173,7 +173,7 @@ export default function ChangePasswordCard() {
             </button>
           </div>
           {errors.confirmPassword && (
-            <p className="text-[11px] font-bold text-rose-500 flex items-center gap-1">
+            <p className="text-[11px] font-sans font-[550] text-rose-500 flex items-center gap-1">
               <Icon icon="solar:danger-triangle-linear" />
               <span>{errors.confirmPassword}</span>
             </p>

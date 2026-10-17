@@ -4,8 +4,17 @@ import { useSearchParams } from 'next/navigation';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import Breadcrumb from '../../../shared/components/Breadcrumb';
-import { useGuestOrderLookup, useGuestCancelOrder } from '../hooks/useOrders';
-import { getOrderStatusInfo, getPaymentStatusInfo, isOrderCancellable } from '../utils/order.utils';
+import {
+  useGuestOrderLookup,
+  useGuestCancelOrder,
+  useGuestRequestRefund,
+} from '../hooks/useOrders';
+import {
+  getOrderStatusInfo,
+  getPaymentStatusInfo,
+  isOrderCancellable,
+  isRefundRequestable,
+} from '../utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import { requireApiObject } from '../../../shared/services/responseContract';
 
@@ -22,6 +31,7 @@ export default function GuestOrderLookupPage() {
 
   const lookupMutation = useGuestOrderLookup();
   const cancelMutation = useGuestCancelOrder();
+  const refundMutation = useGuestRequestRefund();
 
   useEffect(() => {
     const normalizedOrderCode = orderCodeParam.trim().toUpperCase();
@@ -81,14 +91,44 @@ export default function GuestOrderLookupPage() {
     }
   };
 
+  const handleRequestGuestRefund = () => {
+    if (!searchedOrder) return;
+    if (!window.confirm('Bạn muốn gửi yêu cầu hoàn tiền cho đơn PayOS này?')) return;
+
+    const reason = window.prompt('Lý do hoàn tiền (không bắt buộc):', 'Khách hàng yêu cầu hoàn tiền') || '';
+    refundMutation.mutate({
+      orderCode: searchedOrder.order_code,
+      payload: {
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        reason: reason.trim(),
+      },
+    }, {
+      onSuccess: (res) => {
+        const refundRequest = res?.data?.data?.refund_request;
+        setSearchedOrder((prev) => ({
+          ...prev,
+          refund_request: refundRequest || prev.refund_request,
+        }));
+      },
+    });
+  };
+
   const orderStatus = searchedOrder ? getOrderStatusInfo(searchedOrder.status_order) : null;
+  const paymentMethod = searchedOrder?.payment_method || searchedOrder?.payment?.payment_method || 'cod';
+  const rawPaymentStatus = searchedOrder?.status_payment || searchedOrder?.payment?.status_payment;
   const paymentStatus = searchedOrder
-    ? getPaymentStatusInfo(
-      searchedOrder.payment?.status_payment,
-      searchedOrder.payment?.payment_method
-    )
+    ? getPaymentStatusInfo(rawPaymentStatus, paymentMethod)
     : null;
-  const cancellable = searchedOrder ? isOrderCancellable(searchedOrder.status_order, searchedOrder.payment?.status_payment) : false;
+  const cancellable = searchedOrder ? isOrderCancellable(searchedOrder.status_order, rawPaymentStatus) : false;
+  const refundRequestable = searchedOrder
+    ? isRefundRequestable(
+      searchedOrder.status_order,
+      paymentMethod,
+      rawPaymentStatus,
+      searchedOrder.refund_status || searchedOrder.refund_request?.status_refund_request,
+    )
+    : false;
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white animate-fade-in">
@@ -256,7 +296,7 @@ export default function GuestOrderLookupPage() {
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-neutral-500">
               <span>Phương thức thanh toán:</span>
               <span className="font-[550] text-black dark:text-white uppercase">
-                {searchedOrder.payment?.payment_method || 'COD'} ({paymentStatus.label})
+                {paymentMethod.toUpperCase()} ({paymentStatus.label})
               </span>
             </div>
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between text-sm font-[550] text-black dark:text-white pt-2 border-t border-neutral-200 dark:border-neutral-800">
@@ -282,6 +322,28 @@ export default function GuestOrderLookupPage() {
                 <span>Hủy đơn hàng này</span>
               </button>
             </div>
+          )}
+          {refundRequestable && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleRequestGuestRefund}
+                disabled={refundMutation.isPending}
+                className="w-full py-3 rounded-2xl border border-amber-300 dark:border-amber-900/60 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40 flex items-center justify-center gap-1.5"
+              >
+                {refundMutation.isPending ? (
+                  <Icon icon="solar:spinner-linear" className="animate-spin" />
+                ) : (
+                  <Icon icon="solar:wallet-money-linear" />
+                )}
+                <span>Yêu cầu hoàn tiền</span>
+              </button>
+            </div>
+          )}
+          {['pending', 'processing'].includes(String(searchedOrder.refund_status || searchedOrder.refund_request?.status_refund_request || '').toLowerCase()) && (
+            <p className="pt-2 text-center text-[11px] font-[550] uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              Yêu cầu hoàn tiền đang được xử lý
+            </p>
           )}
         </div>
       )}

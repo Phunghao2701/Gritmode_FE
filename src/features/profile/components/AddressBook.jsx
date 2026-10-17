@@ -52,7 +52,7 @@ export default function AddressBook({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-4">
         <div>
-          <h3 className="font-display font-black text-xl text-black dark:text-white uppercase tracking-tight">
+          <h3 className="font-sans font-[550] text-xl text-black dark:text-white uppercase tracking-tight">
             Sổ địa chỉ nhận hàng
           </h3>
           <p className="text-xs text-neutral-400 mt-0.5">
@@ -76,14 +76,14 @@ export default function AddressBook({
             <Icon icon="solar:map-point-linear" />
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-bold text-black dark:text-white">Bạn chưa lưu địa chỉ nào</p>
+            <p className="text-sm font-sans font-[550] text-black dark:text-white">Bạn chưa lưu địa chỉ nào</p>
             <p className="text-xs text-neutral-400 max-w-sm mx-auto">
               Thêm địa chỉ giao hàng để thuận tiện hơn khi thanh toán các sản phẩm thời trang tại Gritmode.
             </p>
           </div>
           <button
             onClick={handleOpenCreate}
-            className="text-xs font-black uppercase tracking-wider text-black dark:text-white hover:underline cursor-pointer"
+            className="text-xs font-sans font-[550] uppercase tracking-wider text-black dark:text-white hover:underline cursor-pointer"
           >
             + Thêm địa chỉ đầu tiên
           </button>
@@ -115,17 +115,17 @@ export default function AddressBook({
                   {/* Name + Badge */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-sm text-black dark:text-white">
+                      <span className="font-sans font-[550] text-sm text-black dark:text-white">
                         {addr.receiver_name_user_address}
                       </span>
                       {isDefault && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-black dark:bg-white text-white dark:text-black px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-sans font-[550] uppercase tracking-wider bg-black dark:bg-white text-white dark:text-black px-2 py-0.5 rounded-full">
                           <Icon icon="solar:check-circle-bold" className="text-xs" />
                           Mặc định
                         </span>
                       )}
                     </div>
-                    <span className="text-xs font-sans font-semibold text-neutral-500">
+                    <span className="text-xs font-sans font-[550] text-neutral-500">
                       {addr.phone_user_address}
                     </span>
                   </div>
@@ -143,7 +143,7 @@ export default function AddressBook({
                       <button
                         onClick={() => onSetDefaultAddress(id)}
                         disabled={isSettingDefault}
-                        className="font-bold text-neutral-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+                        className="font-sans font-[550] text-neutral-500 hover:text-black dark:hover:text-white transition-colors cursor-pointer disabled:opacity-50"
                       >
                         Đặt làm mặc định
                       </button>
@@ -153,14 +153,14 @@ export default function AddressBook({
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => handleOpenEdit(addr)}
-                      className="font-bold text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
+                      className="font-sans font-[550] text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <Icon icon="solar:pen-linear" />
                       <span>Sửa</span>
                     </button>
                     <button
                       onClick={() => setDeletingId(id)}
-                      className="font-bold text-neutral-400 hover:text-rose-500 transition-colors flex items-center gap-1 cursor-pointer"
+                      className="font-sans font-[550] text-neutral-400 hover:text-rose-500 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <Icon icon="solar:trash-bin-minimalistic-linear" />
                       <span>Xóa</span>
@@ -171,20 +171,20 @@ export default function AddressBook({
                 {/* Inline Delete Confirmation Dialog */}
                 {deletingId === id && (
                   <div className="absolute inset-0 bg-white/95 dark:bg-neutral-900/95 rounded-2xl p-5 flex flex-col justify-center items-center text-center space-y-3 z-10 animate-fade-in border border-rose-200 dark:border-rose-900">
-                    <p className="text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                    <p className="text-xs font-sans font-[550] text-neutral-800 dark:text-neutral-200">
                       Bạn có chắc chắn muốn xóa địa chỉ này?
                     </p>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setDeletingId(null)}
-                        className="px-3.5 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-sans font-[550] text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
                       >
                         Hủy
                       </button>
                       <button
                         onClick={() => handleConfirmDelete(id)}
                         disabled={isDeleting}
-                        className="px-3.5 py-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+                        className="px-3.5 py-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-sans font-[550] transition-colors cursor-pointer disabled:opacity-50"
                       >
                         {isDeleting ? 'Đang xóa...' : 'Xác nhận xóa'}
                       </button>

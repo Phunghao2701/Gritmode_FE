@@ -1,6 +1,11 @@
 import React from 'react';
 import Icon from '../../../shared/components/Icon';
-import { getOrderStatusInfo, getPaymentStatusInfo, isOrderCancellable } from '../utils/order.utils';
+import {
+  getOrderStatusInfo,
+  getPaymentStatusInfo,
+  isOrderCancellable,
+  isRefundRequestable,
+} from '../utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 
 export default function OrderDetailModal({
@@ -9,6 +14,8 @@ export default function OrderDetailModal({
   onClose,
   onCancelOrder,
   isCancelling = false,
+  onRequestRefund,
+  isRequestingRefund = false,
 }) {
   if (!isOpen || !order) return null;
 
@@ -17,6 +24,13 @@ export default function OrderDetailModal({
   const rawPaymentStatus = order.status_payment || order.payment?.status_payment;
   const paymentStatus = getPaymentStatusInfo(rawPaymentStatus, paymentMethod);
   const cancellable = isOrderCancellable(order.status_order, rawPaymentStatus);
+  const refundStatus = order.refund_status || order.refund_request?.status_refund_request;
+  const refundRequestable = isRefundRequestable(
+    order.status_order,
+    paymentMethod,
+    rawPaymentStatus,
+    refundStatus,
+  );
 
   const address = order.address || {};
   const items = Array.isArray(order.items) ? order.items : [];
@@ -138,6 +152,7 @@ export default function OrderDetailModal({
 
         {/* Actions */}
         <div className="pt-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
           {cancellable && (
             <button
               type="button"
@@ -153,6 +168,27 @@ export default function OrderDetailModal({
               <span>Hủy đơn hàng</span>
             </button>
           )}
+          {refundRequestable && onRequestRefund && (
+            <button
+              type="button"
+              onClick={() => onRequestRefund(order.order_id || order.order_code)}
+              disabled={isRequestingRefund}
+              className="px-4 py-2.5 rounded-xl border border-amber-300 dark:border-amber-900/60 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-xs font-black uppercase tracking-wider disabled:opacity-40 cursor-pointer transition-colors flex items-center gap-1.5"
+            >
+              {isRequestingRefund ? (
+                <Icon icon="solar:spinner-linear" className="animate-spin" />
+              ) : (
+                <Icon icon="solar:wallet-money-linear" />
+              )}
+              <span>Hoàn tiền</span>
+            </button>
+          )}
+          {['pending', 'processing'].includes(String(refundStatus || '').toLowerCase()) && (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              Đang chờ xử lý hoàn tiền
+            </span>
+          )}
+          </div>
 
           <button
             type="button"
