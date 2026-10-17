@@ -20,7 +20,8 @@ export const useOrderPayment = (orderId, options = {}) => {
   const detailToken = options.detailToken || '';
 
   const query = useQuery({
-    queryKey: ['order-payment', orderId, guestEmail, guestPhone, detailToken ? 'signed' : 'unsigned'],
+    // Keep signed guest payment data scoped to the exact access token.
+    queryKey: ['order-payment', orderId, guestEmail, guestPhone, detailToken || 'unsigned'],
     queryFn: async () => {
       if (!orderId) return null;
       const res = await getOrderPaymentApi(orderId, {

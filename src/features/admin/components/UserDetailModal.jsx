@@ -24,14 +24,14 @@ export default function UserDetailModal({
         {/* Header */}
         <div className="flex items-start justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center font-black text-sm text-black dark:text-white shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center font-[550] text-sm text-black dark:text-white shrink-0">
               {user.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+              <span className="text-[10px] font-[550] uppercase tracking-widest text-neutral-400">
                 Chi tiết tài khoản
               </span>
-              <h3 className="font-display font-black text-lg text-black dark:text-white line-clamp-1">
+              <h3 className="font-display font-[550] text-lg text-black dark:text-white line-clamp-1">
                 {user.full_name || 'Khách hàng chưa đặt tên'}
               </h3>
               <p className="text-neutral-500 text-xs font-mono">{user.email}</p>
@@ -49,7 +49,7 @@ export default function UserDetailModal({
         <div className="grid grid-cols-2 gap-3 text-xs bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-800">
           <div>
             <span className="text-[10px] font-bold uppercase text-neutral-400">Vai trò</span>
-            <p className="font-black text-black dark:text-white mt-0.5 uppercase tracking-wider">
+            <p className="font-[550] text-black dark:text-white mt-0.5 uppercase tracking-wider">
               {user.role === 'admin' ? 'Quản trị viên' : 'Khách hàng'}
             </p>
           </div>
@@ -57,17 +57,17 @@ export default function UserDetailModal({
             <span className="text-[10px] font-bold uppercase text-neutral-400">Trạng thái</span>
             <div className="mt-0.5">
               {isActive && (
-                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900">
+                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-[550] bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900">
                   Hoạt động
                 </span>
               )}
               {isInactive && (
-                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-black bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-300 dark:border-neutral-700">
+                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-[550] bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border border-neutral-300 dark:border-neutral-700">
                   Không hoạt động
                 </span>
               )}
               {isBlocked && (
-                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900">
+                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-[550] bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900">
                   Đã bị khóa
                 </span>
               )}
@@ -99,7 +99,7 @@ export default function UserDetailModal({
                     type="button"
                     onClick={() => onUnblock(user.user_id)}
                     disabled={isActionPending}
-                    className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
                   >
                     Mở khóa tài khoản
                   </button>
@@ -108,7 +108,7 @@ export default function UserDetailModal({
                     type="button"
                     onClick={() => onBlock(user.user_id)}
                     disabled={isActionPending}
-                    className="px-3.5 py-2 rounded-xl border border-rose-300 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-black uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-3.5 py-2 rounded-xl border border-rose-300 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
                   >
                     Khóa tài khoản
                   </button>
@@ -119,7 +119,7 @@ export default function UserDetailModal({
                     type="button"
                     onClick={() => onSetInactive(user.user_id)}
                     disabled={isActionPending}
-                    className="px-3.5 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-black uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
+                    className="px-3.5 py-2 rounded-xl border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-[550] uppercase tracking-wider transition-colors cursor-pointer disabled:opacity-40"
                   >
                     Vô hiệu hóa
                   </button>
@@ -136,7 +136,7 @@ export default function UserDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black text-xs font-black uppercase tracking-wider hover:opacity-85 cursor-pointer shadow-md ml-auto"
+            className="px-5 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black text-xs font-[550] uppercase tracking-wider hover:opacity-85 cursor-pointer shadow-md ml-auto"
           >
             Đóng
           </button>

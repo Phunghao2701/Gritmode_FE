@@ -9,7 +9,6 @@ import { useBanners } from '../hooks/useBanners';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 import ErrorState from '../../../shared/components/ErrorState';
-import Icon from '../../../shared/components/Icon';
 import { getSizedProductImageUrl } from '../../products/utils/product.utils';
 
 export default function LandingPage() {

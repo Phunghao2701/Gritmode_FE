@@ -25,7 +25,9 @@ export default function OrderSuccessPage() {
 
   // 1. Fetch Order Details (Both Guest & Authenticated)
   const { data: fetchedOrder, isPending: isOrderPending, isError: isOrderError, refetch: refetchOrder } = useQuery({
-    queryKey: ['order-detail', orderId, orderDetailToken ? 'shared' : 'authenticated'],
+    // Bind the cache entry to the exact signed token so one guest link cannot
+    // reuse data fetched through another link for the same numeric order ID.
+    queryKey: ['order-detail', orderId, orderDetailToken || 'authenticated'],
     queryFn: async () => {
       if (!orderId) throw new Error('Thiếu mã đơn hàng');
       const res = orderDetailToken

@@ -22,8 +22,9 @@ export default function AdminCollectionsPage() {
 
   const { data: collections = [], isLoading } = useQuery({
     queryKey: ['admin-collections'],
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always',
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     queryFn: async () => {
       const response = await getAdminCollectionsApi();

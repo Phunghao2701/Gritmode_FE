@@ -210,10 +210,13 @@ const normalizePhone = (phone) => {
       resetCartState();
       toast.success('Đặt hàng thành công!');
 
-      // Directly navigate to the finalized order page; PayOS checkout is hosted externally.
-      router.push(`/orders/${orderData.order_id}/success`, {
-        state: { order: orderData },
-      });
+      // Guest order details are protected by a signed URL token.
+      // Next App Router does not preserve a React Router-style `state` object.
+      const detailToken = orderData.detail_token;
+      const successUrl = detailToken
+        ? `/orders/${orderData.order_id}/success?token=${encodeURIComponent(detailToken)}`
+        : `/orders/${orderData.order_id}/success`;
+      router.push(successUrl);
     } catch (err) {
       const status = err.response?.status;
       const firstErrorMsg = err.response?.data?.errors?.[0]?.message;

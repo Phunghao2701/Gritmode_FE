@@ -2,12 +2,17 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useAdminInventory } from '../hooks/useAdmin';
-import StockAdjustModal from '../components/StockAdjustModal';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
 import AdminPageHeader from '../components/AdminPageHeader';
+
+const StockAdjustModal = dynamic(() => import('../components/StockAdjustModal'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function AdminInventoryPage() {
   const searchParams = useSearchParams();

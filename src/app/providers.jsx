@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, lazy, Suspense, useState } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -92,9 +92,7 @@ function CacheLifecycle() {
   return null;
 }
 
-function CachePersistenceGate({ queryClient, children }) {
-  const [isRestored, setIsRestored] = useState(false);
-
+function CachePersistence({ queryClient }) {
   useEffect(() => {
     let active = true;
     let unsubscribe = () => {};
@@ -103,7 +101,6 @@ function CachePersistenceGate({ queryClient, children }) {
       if (!active) return;
 
       unsubscribe = subscribeToPersistedQueryCache(queryClient);
-      setIsRestored(true);
     });
 
     return () => {
@@ -112,11 +109,7 @@ function CachePersistenceGate({ queryClient, children }) {
     };
   }, [queryClient]);
 
-  if (!isRestored) {
-    return <div className="min-h-screen bg-white dark:bg-black" aria-busy="true" />;
-  }
-
-  return children;
+  return null;
 }
 
 export default function Providers({ children }) {
@@ -132,14 +125,13 @@ export default function Providers({ children }) {
           <AppToast />
           <AuthInit />
           <CacheLifecycle />
-          <CachePersistenceGate queryClient={queryClient}>
-            {children}
-            {ReactQueryDevtools && (
-              <Suspense fallback={null}>
-                <ReactQueryDevtools initialIsOpen={false} />
-              </Suspense>
-            )}
-          </CachePersistenceGate>
+          <CachePersistence queryClient={queryClient} />
+          {children}
+          {ReactQueryDevtools && (
+            <Suspense fallback={null}>
+              <ReactQueryDevtools initialIsOpen={false} />
+            </Suspense>
+          )}
         </SmoothScrollProvider>
       </QueryClientProvider>
     </GoogleOAuthProvider>

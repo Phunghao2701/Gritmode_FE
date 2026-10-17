@@ -15,11 +15,15 @@ export const getActiveBannersApi = async () => {
   };
 };
 
-export const useBanners = () => {
+export const useBanners = (options = {}) => {
+  const { enabled = true, ...queryOptions } = options;
+
   return useQuery({
     queryKey: STOREFRONT_BANNERS_KEY,
     queryFn: getActiveBannersApi,
     staleTime: CACHE_STALE_TIME.banners,
+    enabled,
     refetchOnWindowFocus: true,
+    ...queryOptions,
   });
 };

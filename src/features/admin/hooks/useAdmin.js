@@ -210,8 +210,8 @@ export const useAdminInventory = (params = {}) => {
   const query = useQuery({
     queryKey: ['admin-inventory', params],
     staleTime: 1000 * 60 * 2, // 2 min cache
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always',
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     queryFn: async () => {
       const res = await getAdminInventoryApi(params);
@@ -224,8 +224,8 @@ export const useAdminInventory = (params = {}) => {
   const outOfStockCountQuery = useQuery({
     queryKey: ['admin-inventory-out-of-stock-count', params.search || ''],
     staleTime: 1000 * 30,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always',
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     queryFn: async () => {
       const res = await getAdminInventoryApi({
@@ -279,8 +279,8 @@ export const useAdminProducts = (params = {}) => {
   const query = useQuery({
     queryKey: ['admin-products', params],
     staleTime: 1000 * 60 * 2, // 2 min cache
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always',
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     queryFn: async () => {
       const res = await getAdminProductsApi(params);
@@ -375,8 +375,8 @@ export const useAdminCategories = () => {
   const query = useQuery({
     queryKey: ['admin-categories'],
     staleTime: 1000 * 60 * 5, // 5 min cache
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always',
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     queryFn: async () => {
       const res = await getAdminCategoriesApi();

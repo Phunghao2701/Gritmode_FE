@@ -1,14 +1,19 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useAdminOrders } from '../hooks/useAdmin';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
-import OrderDetailModal from '../components/OrderDetailModal';
 import { getOrderStatusInfo } from '../../orders/utils/order.utils';
 import { formatPriceVND } from '../../products/utils/product.utils';
 import AdminPageHeader from '../components/AdminPageHeader';
+
+const OrderDetailModal = dynamic(() => import('../components/OrderDetailModal'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function AdminOrdersPage() {
   const router = useRouter();

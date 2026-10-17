@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useProfile, useAddresses } from '../hooks/useProfile';
-import ProfileInfoCard from '../components/ProfileInfoCard';
-import AddressBook from '../components/AddressBook';
-import MyOrdersList from '../components/MyOrdersList';
-import ChangePasswordCard from '../components/ChangePasswordCard';
 import Icon from '../../../shared/components/Icon';
 import useAuth from '../../auth/hooks/useAuth';
 import { useAuthStore } from '@/shared/store/authStore';
 
+const ProfileInfoCard = dynamic(() => import('../components/ProfileInfoCard'), { loading: () => null });
+const AddressBook = dynamic(() => import('../components/AddressBook'), { loading: () => null });
+const MyOrdersList = dynamic(() => import('../components/MyOrdersList'), { loading: () => null });
+const ChangePasswordCard = dynamic(() => import('../components/ChangePasswordCard'), { loading: () => null });
+
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
   const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { profile, updateProfile, isUpdating } = useProfile();
   const {
     addresses,
@@ -23,7 +26,7 @@ export default function ProfilePage() {
     isUpdatingAddress,
     isDeletingAddress,
     isSettingDefaultAddress,
-  } = useAddresses();
+  } = useAddresses({ enabled: isAuthenticated && activeTab === 'addresses' });
   const { logout } = useAuth();
 
   const tabs = [

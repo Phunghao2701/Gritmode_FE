@@ -2,18 +2,23 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import Icon from '../../shared/components/Icon';
 import PrimaryButton from '../../shared/components/Button/PrimaryButton';
 import { useAuthStore } from '../store/authStore';
 import useAuth from '../../features/auth/hooks/useAuth';
 import ROUTES from '../routes/routePaths';
 import { useCartStore } from '../store/cartStore';
-import CartDrawer from '../../features/cart/components/CartDrawer';
 import { useCategories } from '../../features/categories/hooks/useCategory';
 import { useCollections } from '../../features/collections/hooks/useCollection';
 import { useProducts } from '../../features/products/hooks/useProducts';
 import { formatPriceVND, getSizedProductImageUrl } from '../../features/products/utils/product.utils';
 import { useBanners } from '../../features/landing/hooks/useBanners';
+
+const CartDrawer = dynamic(() => import('../../features/cart/components/CartDrawer'), {
+  ssr: false,
+  loading: () => null,
+});
 
 const SOCIAL_LINKS = [
   { href: process.env.NEXT_PUBLIC_SOCIAL_FACEBOOK_URL, icon: 'simple-icons:facebook', label: 'Gritmode Facebook Page' },
@@ -27,9 +32,16 @@ export default function MainLayout({ children }) {
   const { user, isAuthenticated } = useAuthStore();
   const { logout } = useAuth();
   const { getTotalItems, openDrawer } = useCartStore();
-  const { categoryTree } = useCategories();
-  const { collections } = useCollections();
-  const { data: heroData } = useBanners();
+
+  const [activeMegaMenu, setActiveMegaMenu] = useState(null); // 'shop' | 'collections' | null
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [shouldRenderCartDrawer, setShouldRenderCartDrawer] = useState(false);
+
+  const isHomePage = pathname === '/';
+  const shouldLoadNavigationData = activeMegaMenu !== null || isMobileMenuOpen;
+  const { categoryTree } = useCategories({ enabled: shouldLoadNavigationData });
+  const { collections } = useCollections({ enabled: shouldLoadNavigationData });
+  const { data: heroData } = useBanners({ enabled: isHomePage });
 
   const marqueeItems = useMemo(() => {
     const raw = heroData?.settings?.marquee_text?.trim();
@@ -56,12 +68,9 @@ export default function MainLayout({ children }) {
     return expanded;
   }, [heroData?.settings?.marquee_text]);
 
-
-  const [activeMegaMenu, setActiveMegaMenu] = useState(null); // 'shop' | 'collections' | null
   const [isHeaderHovered, setIsHeaderHovered] = useState(false);
   const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileMenuLevel, setMobileMenuLevel] = useState('main'); // 'main' | 'shop' | 'collections'
   const [mobileExpandedCategory, setMobileExpandedCategory] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -69,6 +78,11 @@ export default function MainLayout({ children }) {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [isClientMounted, setIsClientMounted] = useState(false);
   const [cartAnimation, setCartAnimation] = useState(null);
+
+  const handleOpenCart = () => {
+    setShouldRenderCartDrawer(true);
+    openDrawer();
+  };
 
   useEffect(() => {
     setIsClientMounted(true);
@@ -169,7 +183,6 @@ export default function MainLayout({ children }) {
   }, [categoryTree]);
 
   const cartItemCount = isClientMounted ? getTotalItems() : 0;
-  const isHomePage = pathname === '/';
 
   // Listen to scroll for:
   // 1. Detecting when scrolled past Hero (for Homepage)
@@ -439,7 +452,7 @@ export default function MainLayout({ children }) {
 
               {/* Shopping Bag with live count badge */}
               <button
-                onClick={openDrawer}
+                onClick={handleOpenCart}
                 className={`relative p-1 transition-[color,opacity,transform] duration-150 ease-out flex items-center gap-1 sm:gap-1.5 cursor-pointer hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white rounded-full ${isWhiteTheme ? 'text-black dark:text-white hover:opacity-60' : isTextSolidWhite ? 'text-white hover:opacity-75' : 'text-white/60 hover:text-white hover:opacity-100'
                   }`}
                 title="Giỏ hàng"
@@ -794,7 +807,7 @@ export default function MainLayout({ children }) {
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    openDrawer();
+                    handleOpenCart();
                   }}
                   className="relative p-1.5 text-neutral-800 hover:text-black cursor-pointer text-lg"
                   aria-label="Giỏ hàng"
@@ -1050,7 +1063,7 @@ export default function MainLayout({ children }) {
       )}
 
       {/* Slide-out Cart Drawer */}
-      {isClientMounted && <CartDrawer />}
+      {shouldRenderCartDrawer && <CartDrawer />}
 
       {/* DirtyCoins Style Streetwear Footer */}
       <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-600 dark:text-neutral-400">
