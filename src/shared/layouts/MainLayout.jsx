@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Icon from '../../shared/components/Icon';
+import StickyChatButton from '../components/StickyChatButton';
 import PrimaryButton from '../../shared/components/Button/PrimaryButton';
 import { useAuthStore } from '../store/authStore';
 import useAuth from '../../features/auth/hooks/useAuth';
@@ -1064,6 +1065,8 @@ export default function MainLayout({ children }) {
 
       {/* Slide-out Cart Drawer */}
       {shouldRenderCartDrawer && <CartDrawer />}
+
+      <StickyChatButton />
 
       {/* DirtyCoins Style Streetwear Footer */}
       <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-600 dark:text-neutral-400">

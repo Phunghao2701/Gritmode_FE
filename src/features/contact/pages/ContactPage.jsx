@@ -244,26 +244,26 @@ export default function ContactPage() {
           </div>
 
           {/* RIGHT: Send Message Form (7 cols) */}
-          <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-6">
+          <div className="lg:col-span-7 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-950 sm:p-8 space-y-7">
             <div>
-              <h2 className="font-sans font-[550] text-xl sm:text-2xl uppercase tracking-widest text-black dark:text-white">
+              <h2 className="font-sans text-xl font-[550] uppercase leading-tight tracking-[0.12em] text-black dark:text-white sm:text-2xl">
                 Gửi tin nhắn cho Gritmode
               </h2>
-              <p className="text-xs sm:text-sm font-[550] text-neutral-500 mt-1 leading-relaxed">
+              <p className="mt-2 max-w-[52ch] text-sm font-[550] leading-6 text-neutral-500 dark:text-neutral-400">
                 Điền thông tin, Gritmode sẽ phản hồi trong vòng 24 giờ làm việc.
               </p>
             </div>
 
             {isSubmitted ? (
-              <div className="py-8 border-y border-neutral-200 dark:border-neutral-800 text-center space-y-4 animate-fade-in">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl mx-auto">
+              <div className="space-y-5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-8 text-center dark:border-emerald-900/60 dark:bg-emerald-950/20 animate-fade-in">
+                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-emerald-100 text-xl text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-300">
                   <Icon icon="solar:check-circle-bold" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-sans font-[550] text-base normal-case tracking-normal">
+                  <h3 className="font-sans text-lg font-[550] normal-case tracking-normal">
                     Tin nhắn đã được gửi
                   </h3>
-                  <p className="text-xs text-neutral-400">
+                  <p className="text-sm leading-6 text-neutral-500 dark:text-neutral-400">
                     Cảm ơn bạn đã liên hệ. Gritmode sẽ phản hồi qua email hoặc
                     số điện thoại.
                   </p>
@@ -276,8 +276,8 @@ export default function ContactPage() {
                 </PrimaryButton>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <InputField
                     label="Họ và tên"
                     name="fullName"
@@ -311,54 +311,62 @@ export default function ContactPage() {
 
                 {/* Topic Selector */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300 mb-1.5">
+                  <label htmlFor="topic" className="mb-1.5 block text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
                     Chủ đề cần hỗ trợ{" "}
                     <span className="text-rose-500 ml-1">*</span>
                   </label>
-                  <select
-                    name="topic"
-                    value={formData.topic}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs sm:text-sm font-sans font-[550] text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all cursor-pointer"
-                  >
-                    <option value="order_support">
-                      Hỗ trợ thông tin & Đổi trả đơn hàng
-                    </option>
-                    <option value="size_advice">
-                      Tư vấn chọn size & Form dáng thiết kế
-                    </option>
-                    <option value="product_feedback">
-                      Đóng góp ý kiến về chất lượng sản phẩm
-                    </option>
-                    <option value="partnership">
-                      Hợp tác kinh doanh, phân phối & Media
-                    </option>
-                    <option value="other">Chủ đề khác</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="topic"
+                      name="topic"
+                      value={formData.topic}
+                      onChange={handleChange}
+                      required
+                      className="w-full appearance-none rounded-xl border border-neutral-200 bg-white px-3.5 py-2.5 pr-10 font-sans text-sm font-[550] text-black shadow-sm outline-none transition focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:border-white dark:focus:ring-white/10 cursor-pointer"
+                    >
+                      <option value="order_support">
+                        Hỗ trợ thông tin & Đổi trả đơn hàng
+                      </option>
+                      <option value="size_advice">
+                        Tư vấn chọn size & Form dáng thiết kế
+                      </option>
+                      <option value="product_feedback">
+                        Đóng góp ý kiến về chất lượng sản phẩm
+                      </option>
+                      <option value="partnership">
+                        Hợp tác kinh doanh, phân phối & Media
+                      </option>
+                      <option value="other">Chủ đề khác</option>
+                    </select>
+                    <Icon
+                      icon="solar:alt-arrow-down-linear"
+                      className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-base text-neutral-400"
+                    />
+                  </div>
                 </div>
 
                 {/* Message Content */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300 mb-1.5">
+                  <label htmlFor="message" className="mb-1.5 block text-xs font-[550] uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
                     Nội dung tin nhắn{" "}
                     <span className="text-rose-500 ml-1">*</span>
                   </label>
                   <textarea
+                    id="message"
                     name="message"
                     rows={4}
                     placeholder="Bạn cần Gritmode hỗ trợ điều gì?"
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-xs sm:text-sm font-sans font-[550] text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white transition-all"
+                    className="min-h-36 w-full resize-y rounded-xl border border-neutral-200 bg-white px-3.5 py-3 font-sans text-sm font-[550] leading-6 text-black shadow-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10 dark:border-neutral-800 dark:bg-neutral-900 dark:text-white dark:focus:border-white dark:focus:ring-white/10"
                   />
                 </div>
 
                 <PrimaryButton
                   type="submit"
                   isLoading={isSubmitting}
-                  className="w-full justify-center py-4 uppercase tracking-widest text-xs font-[550] rounded-xl shadow-xl mt-2"
+                  className="mt-1 w-full justify-center py-3.5 text-xs font-[550] uppercase tracking-[0.12em] shadow-md"
                 >
                   Gửi yêu cầu hỗ trợ
                 </PrimaryButton>
