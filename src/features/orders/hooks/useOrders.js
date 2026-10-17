@@ -6,8 +6,10 @@ import {
   getMyOrdersApi,
   getMyOrderByIdApi,
   cancelMyOrderApi,
+  requestMyRefundApi,
   lookupGuestOrderApi,
   cancelGuestOrderApi,
+  requestGuestRefundApi,
 } from '../apis/order.api';
 import { toast } from '../../../shared/utils/toast';
 import { CACHE_STALE_TIME, invalidateOrderQueries } from '../../../shared/services/cachePolicy';
@@ -44,6 +46,9 @@ export const useMyOrders = (params = {}) => {
     limit: pagination.limit,
     totalPages: pagination.total_pages,
     isLoadingOrders: query.isLoading,
+    isErrorOrders: query.isError,
+    ordersError: query.error,
+    refetchOrders: query.refetch,
   };
 };
 
@@ -78,6 +83,26 @@ export const useCancelOrder = () => {
   });
 };
 
+export const useRequestRefund = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, reason }) => requestMyRefundApi(orderId, reason),
+    onSuccess: (res, { orderId }) => {
+      const alreadyRequested = res?.data?.data?.already_requested;
+      toast.success(
+        alreadyRequested
+          ? 'Yêu cầu hoàn tiền của đơn hàng này đang được xử lý.'
+          : 'Đã gửi yêu cầu hoàn tiền. Bộ phận hỗ trợ sẽ xử lý cho bạn.',
+      );
+      invalidateOrderQueries(queryClient, orderId);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Không thể gửi yêu cầu hoàn tiền cho đơn hàng này.');
+    },
+  });
+};
+
 export const useGuestOrderLookup = () => {
   return useMutation({
     mutationFn: (payload) => lookupGuestOrderApi(payload),
@@ -95,6 +120,23 @@ export const useGuestCancelOrder = () => {
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Không thể hủy đơn hàng này.');
+    },
+  });
+};
+
+export const useGuestRequestRefund = () => {
+  return useMutation({
+    mutationFn: ({ orderCode, payload }) => requestGuestRefundApi(orderCode, payload),
+    onSuccess: (res) => {
+      const alreadyRequested = res?.data?.data?.already_requested;
+      toast.success(
+        alreadyRequested
+          ? 'Yêu cầu hoàn tiền của đơn hàng này đang được xử lý.'
+          : 'Đã gửi yêu cầu hoàn tiền. Bộ phận hỗ trợ sẽ xử lý cho bạn.',
+      );
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Không thể gửi yêu cầu hoàn tiền cho đơn hàng này.');
     },
   });
 };

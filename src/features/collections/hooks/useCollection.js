@@ -8,7 +8,9 @@ import { sortCollectionsByPosition } from '../utils/collection.utils';
 import { CACHE_STALE_TIME } from '../../../shared/services/cachePolicy';
 import { requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 
-export const useCollections = () => {
+export const useCollections = (options = {}) => {
+  const { enabled = true, ...queryOptions } = options;
+
   const query = useQuery({
     queryKey: ['collections-public-list'],
     queryFn: async () => {
@@ -17,11 +19,11 @@ export const useCollections = () => {
       return sortCollectionsByPosition(rawList);
     },
     staleTime: CACHE_STALE_TIME.collections,
-    // Navigation must reflect newly created/activated collections when the
-    // storefront tab regains focus or the layout mounts again.
-    refetchOnWindowFocus: 'always',
-    refetchOnMount: 'always',
+    enabled,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     refetchOnReconnect: true,
+    ...queryOptions,
   });
 
   return {

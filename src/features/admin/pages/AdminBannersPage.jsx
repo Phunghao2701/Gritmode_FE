@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import Icon from '../../../shared/components/Icon';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import {
@@ -16,8 +17,12 @@ import {
 import { uploadBannerImageApi } from '../apis/adminBannerApi';
 import { toast } from '../../../shared/utils/toast';
 import AdminPageHeader from '../components/AdminPageHeader';
-import ImageCropModal from '../../../shared/components/media/ImageCropModal';
 import { getSizedProductImageUrl } from '../../products/utils/product.utils';
+
+const ImageCropModal = dynamic(() => import('../../../shared/components/media/ImageCropModal'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function AdminBannersPage() {
   const { data, isLoading, isError, refetch } = useAdminHero();

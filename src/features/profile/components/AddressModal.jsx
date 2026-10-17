@@ -136,7 +136,7 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
         {/* Header */}
         <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4">
           <div>
-            <h3 className="font-display font-black text-xl text-black dark:text-white uppercase tracking-tight">
+            <h3 className="font-sans font-[550] text-xl text-black dark:text-white uppercase tracking-tight">
               {isEditing ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới'}
             </h3>
             <p className="text-xs text-neutral-400 mt-0.5">
@@ -213,7 +213,7 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
                 onChange={(e) => handleChange('is_default', e.target.checked)}
                 className="w-4 h-4 rounded border-neutral-300 dark:border-neutral-700 text-black dark:text-white focus:ring-black accent-black cursor-pointer"
               />
-              <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+              <span className="text-xs font-sans font-[550] text-neutral-700 dark:text-neutral-300">
                 Đặt làm địa chỉ nhận hàng mặc định
               </span>
             </label>
@@ -224,7 +224,7 @@ export default function AddressModal({ isOpen, onClose, onSubmit, editingAddress
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-bold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors uppercase tracking-wider cursor-pointer"
+              className="px-5 py-2.5 rounded-full border border-neutral-200 dark:border-neutral-700 text-xs font-sans font-[550] text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors uppercase tracking-wider cursor-pointer"
             >
               Hủy
             </button>

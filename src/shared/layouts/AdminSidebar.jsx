@@ -139,11 +139,11 @@ export default function AdminSidebar({ isOpen = false, onClose = () => {} }) {
         {/* Current Admin User Badge */}
         <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-neutral-900/60 border border-neutral-800">
           <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center font-[550] text-xs shrink-0">
-            {user?.fullName?.charAt(0) || 'A'}
+            {(user?.full_name || user?.fullName)?.charAt(0) || 'A'}
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-[550] text-white truncate leading-tight">
-              {user?.fullName || 'Quản trị viên'}
+              {user?.full_name || user?.fullName || 'Quản trị viên'}
             </p>
             <p className="text-[10px] text-neutral-400 truncate">
               {user?.email || 'admin@gritmode.vn'}

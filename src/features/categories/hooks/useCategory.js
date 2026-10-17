@@ -8,7 +8,9 @@ import { buildCategoryTree, flattenCategoryTree } from '../utils/category.utils'
 import { CACHE_STALE_TIME } from '../../../shared/services/cachePolicy';
 import { requireApiArray, requireApiObject } from '../../../shared/services/responseContract';
 
-export const useCategories = () => {
+export const useCategories = (options = {}) => {
+  const { enabled = true, ...queryOptions } = options;
+
   const query = useQuery({
     queryKey: ['categories-public-tree'],
     queryFn: async () => {
@@ -18,9 +20,11 @@ export const useCategories = () => {
       return buildCategoryTree(rawList);
     },
     staleTime: CACHE_STALE_TIME.categories,
-    refetchOnWindowFocus: 'always',
-    refetchOnMount: 'always',
+    enabled,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     refetchOnReconnect: true,
+    ...queryOptions,
   });
 
   const categoryTree = query.data || [];

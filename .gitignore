@@ -90,6 +90,7 @@ tests/*
 !tests/fixtures/
 !tests/fixtures/image-crud.fixture.js
 !tests/fixtures/portrait.svg
+!tests/performance-smoke.mjs
 test-artifacts/
 
 .agents/

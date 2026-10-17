@@ -172,7 +172,7 @@ export default function SizeGuidePage() {
                     {row.map((cell, cIdx) => (
                       <td
                         key={cIdx}
-                        className={`p-4 ${cIdx === 0 ? "sticky left-0 z-10 bg-white dark:bg-neutral-950 font-[550] text-black dark:text-white" : "text-neutral-600 dark:text-neutral-400 font-mono"}`}
+                        className={`p-4 ${cIdx === 0 ? "sticky left-0 z-10 bg-white dark:bg-neutral-950 font-[550] text-black dark:text-white" : "text-neutral-600 dark:text-neutral-400 font-sans"}`}
                       >
                         {cell}
                       </td>

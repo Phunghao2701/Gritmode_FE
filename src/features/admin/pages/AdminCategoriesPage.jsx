@@ -6,6 +6,7 @@ import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import AdminPageHeader from '../components/AdminPageHeader';
+import ErrorState from '../../../shared/components/ErrorState';
 
 const normalizeText = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
@@ -18,6 +19,8 @@ export default function AdminCategoriesPage() {
   const {
     categories,
     isLoading,
+    isError,
+    refetch,
     deleteCategory,
   } = useAdminCategories();
 
@@ -71,6 +74,10 @@ export default function AdminCategoriesPage() {
 
   const totalProducts = categories.reduce((sum, category) => sum + Number(category.product_count || 0), 0);
   const childCount = categories.filter((category) => category.parent_category_id).length;
+
+  if (isError && !isLoading) {
+    return <ErrorState onRetry={refetch} title="Không thể tải danh mục" />;
+  }
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-12 font-sans font-[550] animate-fade-in">

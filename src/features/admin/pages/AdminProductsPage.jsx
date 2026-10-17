@@ -11,6 +11,7 @@ import { publishAdminProductApi } from '../apis/admin.api';
 import { toast } from '../../../shared/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import AdminPageHeader from '../components/AdminPageHeader';
+import ErrorState from '../../../shared/components/ErrorState';
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -32,6 +33,8 @@ export default function AdminProductsPage() {
   const {
     products,
     isLoading,
+    isError,
+    refetch,
     total,
     deleteProduct,
     archiveProduct,
@@ -41,6 +44,10 @@ export default function AdminProductsPage() {
     page,
     limit,
   });
+
+  if (isError && !isLoading) {
+    return <ErrorState onRetry={refetch} title="Không thể tải danh sách sản phẩm" />;
+  }
   const handlePublishDirect = async (productId) => {
     try {
       await publishAdminProductApi(productId);

@@ -12,6 +12,11 @@ import { useCartStore } from '@/shared/store/cartStore';
 import gritmodeLogo from '../../../assets/icons/GM den.jpg';
 import { requireApiObject } from '@/shared/services/responseContract';
 
+const getSafeReturnPath = (value) => {
+  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return '/';
+  return value;
+};
+
 // ----------------------------------------------------------------
 // OTP Input — 6 ô số riêng biệt
 // ----------------------------------------------------------------
@@ -91,7 +96,7 @@ function Countdown({ seconds, onExpire }) {
   if (remaining <= 0) return null;
 
   return (
-    <span className="font-mono font-bold text-neutral-900">
+    <span className="font-sans font-bold text-neutral-900">
       {mm}:{ss}
     </span>
   );
@@ -103,7 +108,7 @@ function Countdown({ seconds, onExpire }) {
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get('from') || '/';
+  const from = getSafeReturnPath(searchParams.get('from'));
 
   // Step: 'email' | 'otp'
   const [step, setStep] = useState('email');
@@ -125,7 +130,7 @@ export default function LoginPage() {
       const data = res.data?.data;
       tokenService.setTokens({ access_token: data.access_token });
       useAuthStore.getState().loginSuccess(data.user);
-      if (currentGuestToken) useCartStore.getState().clearGuestToken();
+      if (currentGuestToken) await useCartStore.getState().syncAfterAuthentication();
       toast.success(data.is_new_user ? 'Chào mừng bạn đến với Gritmode!' : 'Đăng nhập thành công!');
       router.replace(from);
     } catch (err) {
@@ -241,7 +246,7 @@ export default function LoginPage() {
 
       // Clear guest token sau khi BE đã merge cart
       if (currentGuestToken) {
-        useCartStore.getState().clearGuestToken();
+        await useCartStore.getState().syncAfterAuthentication();
       }
 
       if (data.is_new_user) {

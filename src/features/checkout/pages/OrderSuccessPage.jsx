@@ -15,17 +15,19 @@ import { requireApiObject } from '../../../shared/services/responseContract';
 import { CACHE_STALE_TIME } from '../../../shared/services/cachePolicy';
 import PayOSPaymentCard from '../../payments/components/PayOSPaymentCard';
 
-export default function OrderSuccessPage() {
+export default function OrderSuccessPage({ detailOnly = false } = {}) {
   const params = useParams();
   const orderId = params?.orderId || params?.id;
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderDetailToken = searchParams.get('token');
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitialized } = useAuthStore();
 
   // 1. Fetch Order Details (Both Guest & Authenticated)
   const { data: fetchedOrder, isPending: isOrderPending, isError: isOrderError, refetch: refetchOrder } = useQuery({
-    queryKey: ['order-detail', orderId, orderDetailToken ? 'shared' : 'authenticated'],
+    // Bind the cache entry to the exact signed token so one guest link cannot
+    // reuse data fetched through another link for the same numeric order ID.
+    queryKey: ['order-detail', orderId, orderDetailToken || 'authenticated'],
     queryFn: async () => {
       if (!orderId) throw new Error('Thiếu mã đơn hàng');
       const res = orderDetailToken
@@ -33,7 +35,7 @@ export default function OrderSuccessPage() {
         : await getMyOrderByIdApi(orderId);
       return requireApiObject(res, 'Chi tiết đơn hàng');
     },
-    enabled: !!orderId,
+    enabled: !!orderId && isInitialized && Boolean(orderDetailToken || isAuthenticated),
     staleTime: CACHE_STALE_TIME.orderDetail,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -52,7 +54,7 @@ export default function OrderSuccessPage() {
     isPaymentReady,
     refetch: refetchPayment,
   } = useOrderPayment(orderId, {
-    enabled: !!orderId && (isAuthenticated || Boolean(order?.email_order && order?.phone_order)),
+    enabled: !detailOnly && !!orderId && isInitialized && (Boolean(orderDetailToken) || isAuthenticated || Boolean(order?.email_order && order?.phone_order)),
     guestInfo: {
       email: order?.email_order,
       phone: order?.phone_order,
@@ -68,9 +70,10 @@ export default function OrderSuccessPage() {
 
   const paymentMethod = (order?.payment?.payment_method || payment?.payment_method || '').toLowerCase();
   const isPayOS = paymentMethod === 'payos';
-  const effectivePaid = isPayOS ? isPaymentReady && isPaid : false;
+  const showPaymentState = !detailOnly && isPayOS;
+  const effectivePaid = showPaymentState ? isPaymentReady && isPaid : false;
   const isTimeExpired = Boolean(payment?.expired_at && remainingSeconds <= 0);
-  const effectiveExpired = isExpired || (isTimeExpired && !effectivePaid);
+  const effectiveExpired = showPaymentState && (isExpired || (isTimeExpired && !effectivePaid));
 
   const orderAmount = payment?.amount_payment || order?.total_order || 0;
   const items = Array.isArray(order?.items) ? order.items : [];
@@ -79,11 +82,11 @@ export default function OrderSuccessPage() {
     return <ErrorState onRetry={refetchOrder} title="Không thể tải đơn hàng" />;
   }
 
-  if (isPaymentError && isPayOS) {
+  if (isPaymentError && showPaymentState) {
     return <ErrorState onRetry={refetchPayment} title="Không thể tải trạng thái thanh toán" />;
   }
 
-  if (isOrderLoading || (isPayOS && !isPaymentReady)) {
+  if (isOrderLoading || (showPaymentState && !isPaymentReady)) {
     return (
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
         <LoadingSkeleton height="7rem" className="rounded-3xl" />
@@ -106,14 +109,14 @@ export default function OrderSuccessPage() {
         <div className="flex items-center gap-4">
           <Icon
             icon={
-              effectivePaid || !isPayOS
+              detailOnly || effectivePaid || !isPayOS
                 ? 'solar:check-circle-bold'
                 : effectiveExpired || isFailed
                   ? 'solar:danger-triangle-bold'
                   : 'solar:shield-check-bold'
             }
             className={`text-3xl sm:text-4xl shrink-0 ${
-              effectivePaid || !isPayOS
+              detailOnly || effectivePaid || !isPayOS
                 ? 'text-emerald-500'
                 : effectiveExpired || isFailed
                   ? 'text-rose-500'
@@ -126,12 +129,14 @@ export default function OrderSuccessPage() {
               <span className="text-[10px] font-[550] uppercase tracking-widest text-neutral-400">
                 Mã đơn hàng:
               </span>
-              <span className="font-mono font-[550] text-sm uppercase text-black dark:text-white">
+              <span className="font-sans font-[550] text-sm uppercase text-black dark:text-white">
                 {order?.order_code}
               </span>
             </div>
             <h1 className="font-sans font-[550] text-xl sm:text-2xl text-black dark:text-white uppercase tracking-tight">
-              {effectivePaid
+              {detailOnly
+                ? 'Chi tiết đơn hàng'
+                : effectivePaid
                 ? 'Thanh toán thành công'
                 : isPayOS
                   ? 'Đơn hàng đã chốt — Quét mã để hoàn tất'
@@ -155,7 +160,7 @@ export default function OrderSuccessPage() {
         {/* ========================================================================= */}
         {/* LEFT COLUMN: Finalized Order Details (7 cols / ~58%)                       */}
         {/* ========================================================================= */}
-        <div id="order-details" className="lg:col-span-7 space-y-6 scroll-mt-28">
+        <div id="order-details" className={`${detailOnly ? 'lg:col-span-12' : 'lg:col-span-7'} space-y-6 scroll-mt-28`}>
           
           {/* Recipient & Shipping Information */}
           <div className="p-6 sm:p-7 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4">
@@ -179,7 +184,7 @@ export default function OrderSuccessPage() {
                     {order?.address?.receiver_name_order_address ||
                       order?.receiver_name_order_address}
                   </p>
-                  <p className="text-neutral-500 font-mono font-normal">
+                  <p className="text-neutral-500 font-sans font-normal">
                     {order?.address?.phone_order_address ||
                       order?.phone_order_address ||
                       order?.phone_order}
@@ -334,10 +339,12 @@ export default function OrderSuccessPage() {
 
         </div>
 
-        {/* ========================================================================= */}
-        {/* RIGHT COLUMN: Hosted PayOS checkout (5 cols / ~42%)        */}
-        {/* ========================================================================= */}
-        <div className="lg:col-span-5 sticky top-24">
+        {!detailOnly && (
+          <>
+            {/* ========================================================================= */}
+            {/* RIGHT COLUMN: Hosted PayOS checkout (5 cols / ~42%)        */}
+            {/* ========================================================================= */}
+            <div className="lg:col-span-5 sticky top-24">
           {isPayOS ? (
             effectivePaid ? (
               /* Case A: PayOS Paid Successfully */
@@ -384,6 +391,7 @@ export default function OrderSuccessPage() {
                       email: order?.email_order,
                       phone: order?.phone_order,
                     },
+                  detailToken: orderDetailToken,
                   })}
                   isLoading={createPayOSMutation.isPending}
                   className="w-full justify-center py-3.5 uppercase tracking-widest text-xs font-black rounded-2xl shadow-lg"
@@ -447,7 +455,9 @@ export default function OrderSuccessPage() {
               </div>
             </div>
           )}
-        </div>
+            </div>
+          </>
+        )}
 
       </div>
 

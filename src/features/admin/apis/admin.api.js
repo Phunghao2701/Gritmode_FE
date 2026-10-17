@@ -42,6 +42,14 @@ export const cancelAdminOrderApi = (orderId, reason) => {
   return api.patch(`/admin/orders/${orderId}/cancel`, reason ? { reason } : {});
 };
 
+export const getAdminRefundsApi = (params = {}) => {
+  return api.get('/admin/refunds', { params });
+};
+
+export const completeAdminRefundApi = (refundRequestId, data = {}) => {
+  return api.patch(`/admin/refunds/${refundRequestId}/complete`, data);
+};
+
 // 2.5 Admin Notifications
 // Keep the compact popover and the expanded view on the same first-page dataset.
 // The short memo window also prevents a second network wait when the user expands

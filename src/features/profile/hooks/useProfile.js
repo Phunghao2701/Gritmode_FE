@@ -73,9 +73,10 @@ export const useProfile = () => {
 /**
  * Hook quản lý sổ địa chỉ nhận hàng
  */
-export const useAddresses = () => {
+export const useAddresses = (options = {}) => {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
+  const { enabled = true, ...queryOptions } = options;
 
   const addressesQuery = useQuery({
     queryKey: ['user-addresses'],
@@ -84,7 +85,8 @@ export const useAddresses = () => {
       const res = await getAddressesApi();
       return requireApiArray(res, 'Danh sách địa chỉ');
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && enabled,
+    ...queryOptions,
   });
 
   const createMutation = useMutation({

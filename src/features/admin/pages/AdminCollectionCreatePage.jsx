@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from '../../../shared/components/Icon';
 import PrimaryButton from '../../../shared/components/Button/PrimaryButton';
@@ -10,7 +11,11 @@ import { createCollectionApi, getAdminCollectionsApi, updateCollectionApi } from
 import { uploadAdminProductImagesApi } from '../apis/admin.api';
 import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 import { requireApiArray } from '../../../shared/services/responseContract';
-import ImageCropModal from '../../../shared/components/media/ImageCropModal';
+
+const ImageCropModal = dynamic(() => import('../../../shared/components/media/ImageCropModal'), {
+  ssr: false,
+  loading: () => null,
+});
 
 export default function AdminCollectionCreatePage() {
   const router = useRouter();

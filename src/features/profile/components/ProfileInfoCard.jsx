@@ -100,15 +100,15 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-100 dark:border-neutral-800 pb-5">
         <div className="flex items-center gap-4">
           {/* Avatar Monogram */}
-          <div className="w-16 h-16 rounded-2xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-display font-black text-xl shadow-md shrink-0">
+          <div className="w-16 h-16 rounded-2xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-sans font-[550] text-xl shadow-md shrink-0">
             {initials}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-display font-black text-lg sm:text-xl text-black dark:text-white uppercase tracking-tight">
+              <h3 className="font-sans font-[550] text-lg sm:text-xl text-black dark:text-white uppercase tracking-tight">
                 {formData.full_name || 'Khách hàng Gritmode'}
               </h3>
-              <span className="text-[10px] font-black uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-sans font-[550] uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black px-2 py-0.5 rounded-full">
                 Thành viên
               </span>
             </div>
@@ -145,7 +145,7 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
 
         {/* Email Readonly */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+          <label className="block text-xs font-sans font-[550] text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             Địa chỉ Email (Đã xác thực OTP)
           </label>
           <div className="relative flex items-center">
@@ -153,9 +153,9 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
               type="email"
               value={formData.email}
               disabled
-              className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800/60 text-xs font-medium text-neutral-500 cursor-not-allowed"
+              className="w-full px-4 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800/60 text-xs font-sans font-[550] text-neutral-500 cursor-not-allowed"
             />
-            <span className="absolute right-3 flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-900">
+            <span className="absolute right-3 flex items-center gap-1 text-[11px] font-sans font-[550] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-900">
               <Icon icon="solar:verified-check-bold" />
               <span>Đã xác thực</span>
             </span>
@@ -178,7 +178,7 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
           />
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+            <label className="block text-xs font-sans font-[550] text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
               Giới tính
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -191,7 +191,7 @@ export default function ProfileInfoCard({ profile, onUpdateProfile, isUpdating }
                   key={item.val}
                   type="button"
                   onClick={() => handleChange('gender', item.val)}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-sans font-[550] transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     formData.gender === item.val
                       ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black shadow-sm'
                       : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/40 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300'

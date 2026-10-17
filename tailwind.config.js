@@ -44,7 +44,6 @@ export default {
       fontFamily: {
         display: ['var(--font-sans)', 'Plus Jakarta Sans', 'sans-serif'],
         sans: ['var(--font-sans)', 'Plus Jakarta Sans', 'sans-serif'],
-        mono: ['var(--font-mono)', 'JetBrains Mono', 'monospace'],
       },
       letterSpacing: {
         tighter: '-0.04em',

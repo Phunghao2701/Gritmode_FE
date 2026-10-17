@@ -33,8 +33,8 @@ export default function QuickCollectionFormModal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-neutral-100 pb-4 dark:border-neutral-800">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Tạo ngay trên trang sản phẩm</p>
-            <h2 id="quick-collection-title" className="mt-1 font-display text-lg font-black uppercase tracking-tight text-black dark:text-white">
+            <p className="text-[10px] font-[550] uppercase tracking-widest text-neutral-400">Tạo ngay trên trang sản phẩm</p>
+            <h2 id="quick-collection-title" className="mt-1 font-display text-lg font-[550] uppercase tracking-tight text-black dark:text-white">
               Thêm bộ sưu tập
             </h2>
           </div>

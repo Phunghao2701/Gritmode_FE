@@ -109,7 +109,7 @@ export default function AdminNotificationBell() {
       >
         <Icon icon="solar:bell-bing-linear" className="text-xl" />
         {displayedUnreadCount > 0 && (
-          <span className="absolute -right-1.5 -top-1.5 grid min-w-5 h-5 place-items-center rounded-full bg-red-600 px-1 text-[10px] font-black tabular-nums text-white ring-2 ring-white dark:ring-black">
+          <span className="absolute -right-1.5 -top-1.5 grid min-w-5 h-5 place-items-center rounded-full bg-red-600 px-1 text-[10px] font-[550] tabular-nums text-white ring-2 ring-white dark:ring-black">
             {displayedUnreadCount > 99 ? '99+' : displayedUnreadCount}
           </span>
         )}
@@ -122,7 +122,7 @@ export default function AdminNotificationBell() {
         >
           <div className="shrink-0 border-b border-neutral-200 bg-white px-4 pt-4 dark:border-neutral-800 dark:bg-neutral-950">
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-[15px] font-black tracking-tight text-neutral-950 dark:text-white">Thông báo</h2>
+              <h2 className="text-[15px] font-[550] tracking-tight text-neutral-950 dark:text-white">Thông báo</h2>
               <button
                 type="button"
                 onClick={handleMarkAllRead}

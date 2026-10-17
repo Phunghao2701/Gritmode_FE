@@ -12,6 +12,7 @@ export const getOrderPaymentApi = (orderId, guestInfo = {}, detailToken) => {
   const headers = {};
   if (guestInfo.email) headers['X-Guest-Email'] = guestInfo.email;
   if (guestInfo.phone) headers['X-Guest-Phone'] = guestInfo.phone;
+  if (guestInfo.detailToken) headers['X-Order-Detail-Token'] = guestInfo.detailToken;
   if (detailToken) headers['X-Order-Detail-Token'] = detailToken;
 
   return api.get(`/orders/${orderId}/payment`, {
@@ -28,6 +29,7 @@ export const createPayOSPaymentApi = (data, guestInfo = {}) => {
   const headers = {};
   if (guestInfo.email) headers['X-Guest-Email'] = guestInfo.email;
   if (guestInfo.phone) headers['X-Guest-Phone'] = guestInfo.phone;
+  if (guestInfo.detailToken) headers['X-Order-Detail-Token'] = guestInfo.detailToken;
   return api.post(
     '/payments/payos',
     { order_id: Number(orderId) },
@@ -39,6 +41,7 @@ export const createPayOSPaymentApi = (data, guestInfo = {}) => {
  * Hủy link thanh toán payOS đang chờ xử lý
  * @param {number|string} orderId
  */
-export const cancelPayOSPaymentApi = (orderId) => {
-  return api.post(`/orders/${orderId}/payment/cancel`);
+export const cancelPayOSPaymentApi = (orderId, detailToken) => {
+  const headers = detailToken ? { 'X-Order-Detail-Token': detailToken } : undefined;
+  return api.post(`/orders/${orderId}/payment/cancel`, undefined, { headers });
 };

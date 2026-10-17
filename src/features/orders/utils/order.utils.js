@@ -118,6 +118,28 @@ export const isOrderCancellable = (orderStatus, paymentStatus) => {
 };
 
 /**
+ * Checks if a customer can request a manual refund for a paid PayOS order.
+ */
+export const isRefundRequestable = (
+  orderStatus,
+  paymentMethod,
+  paymentStatus,
+  refundStatus,
+) => {
+  const status = String(orderStatus || '').toLowerCase();
+  const method = String(paymentMethod || '').toLowerCase();
+  const payment = String(paymentStatus || '').toLowerCase();
+  const refund = String(refundStatus || '').toLowerCase();
+
+  return (
+    ['pending', 'confirmed', 'processing', 'shipping', 'completed', 'cancelled'].includes(status)
+    && method === 'payos'
+    && payment === 'paid'
+    && !['pending', 'processing', 'completed'].includes(refund)
+  );
+};
+
+/**
  * Determines allowed Admin transition actions based on status
  * @param {string} orderStatus
  * @param {string} paymentMethod

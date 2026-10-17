@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useProfile, useAddresses } from '../hooks/useProfile';
-import ProfileInfoCard from '../components/ProfileInfoCard';
-import AddressBook from '../components/AddressBook';
-import MyOrdersList from '../components/MyOrdersList';
-import ChangePasswordCard from '../components/ChangePasswordCard';
 import Icon from '../../../shared/components/Icon';
 import useAuth from '../../auth/hooks/useAuth';
 import { useAuthStore } from '@/shared/store/authStore';
 
+const ProfileInfoCard = dynamic(() => import('../components/ProfileInfoCard'), { loading: () => null });
+const AddressBook = dynamic(() => import('../components/AddressBook'), { loading: () => null });
+const MyOrdersList = dynamic(() => import('../components/MyOrdersList'), { loading: () => null });
+const ChangePasswordCard = dynamic(() => import('../components/ChangePasswordCard'), { loading: () => null });
+
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
   const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { profile, updateProfile, isUpdating } = useProfile();
   const {
     addresses,
@@ -23,12 +26,17 @@ export default function ProfilePage() {
     isUpdatingAddress,
     isDeletingAddress,
     isSettingDefaultAddress,
-  } = useAddresses();
+  } = useAddresses({ enabled: isAuthenticated && activeTab === 'addresses' });
   const { logout } = useAuth();
 
   const tabs = [
     { id: 'profile', label: 'Thông tin tài khoản', icon: 'solar:user-linear' },
-    { id: 'addresses', label: 'Sổ địa chỉ nhận hàng', icon: 'solar:map-point-linear', count: addresses.length },
+    {
+      id: 'addresses',
+      label: 'Sổ địa chỉ nhận hàng',
+      icon: 'solar:map-point-linear',
+      count: activeTab === 'addresses' && !isLoadingAddresses ? addresses.length : null,
+    },
     { id: 'orders', label: 'Đơn mua của tôi', icon: 'solar:bag-3-linear' },
     { id: 'security', label: 'Bảo mật & Mật khẩu', icon: 'solar:shield-keyhole-linear' },
   ];
@@ -49,19 +57,19 @@ export default function ProfilePage() {
       {/* 1. Account Summary Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-neutral-900 text-white border border-neutral-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="flex items-center gap-5 z-10">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white text-black flex items-center justify-center font-display font-black text-2xl sm:text-3xl shadow-lg shrink-0">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white text-black flex items-center justify-center font-sans font-[550] text-2xl sm:text-3xl shadow-lg shrink-0">
             {initials}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight">
+              <h1 className="font-sans font-[550] text-xl sm:text-2xl uppercase tracking-tight">
                 {currentUser.full_name || currentUser.fullName || 'Khách hàng Gritmode'}
               </h1>
-              <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+              <span className="text-[10px] font-sans font-[550] uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
                 {currentUser.role === 'admin' ? 'Quản trị viên' : 'Thành viên VIP'}
               </span>
             </div>
-            <p className="text-xs text-neutral-400 font-mono">
+            <p className="text-xs text-neutral-400 font-sans">
               {currentUser.email}
             </p>
             {currentUser.created_at && (
@@ -76,7 +84,7 @@ export default function ProfilePage() {
           <button
             type="button"
             onClick={logout}
-            className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-rose-400 hover:text-white px-5 py-2.5 rounded-full border border-rose-500/30 hover:bg-rose-600 transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-2 text-xs font-sans font-[550] uppercase tracking-wider text-rose-400 hover:text-white px-5 py-2.5 rounded-full border border-rose-500/30 hover:bg-rose-600 transition-all cursor-pointer shadow-sm"
           >
             <Icon icon="solar:logout-2-linear" className="text-base" />
             <span>Đăng xuất</span>
@@ -84,7 +92,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Decorative background watermark */}
-        <div className="absolute right-0 bottom-0 translate-x-8 translate-y-8 font-display font-black text-8xl text-white/[0.03] select-none pointer-events-none uppercase">
+        <div className="absolute right-0 bottom-0 translate-x-8 translate-y-8 font-sans font-[550] text-8xl text-white/[0.03] select-none pointer-events-none uppercase">
           GRITMODE
         </div>
       </div>
@@ -98,15 +106,15 @@ export default function ProfilePage() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+              className={`px-4 py-2.5 rounded-full text-xs font-sans font-[550] uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
                 isActive
-                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-md font-black'
+                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-md font-[550]'
                   : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
               }`}
             >
               <Icon icon={tab.icon} className="text-base" />
               <span>{tab.label}</span>
-              {tab.count !== undefined && (
+              {tab.count !== undefined && tab.count !== null && (
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-neutral-200 dark:bg-neutral-700'}`}>
                   {tab.count}
                 </span>
@@ -128,9 +136,9 @@ export default function ProfilePage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center justify-between p-4 rounded-2xl text-xs font-sans font-[550] uppercase tracking-wider transition-all text-left cursor-pointer ${
                   isActive
-                    ? 'bg-black text-white dark:bg-white dark:text-black shadow-md font-black'
+                    ? 'bg-black text-white dark:bg-white dark:text-black shadow-md font-[550]'
                     : 'bg-neutral-50 dark:bg-neutral-900/60 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-neutral-200/60 dark:border-neutral-800/60'
                 }`}
               >
@@ -138,8 +146,8 @@ export default function ProfilePage() {
                   <Icon icon={tab.icon} className="text-xl shrink-0" />
                   <span>{tab.label}</span>
                 </div>
-                {tab.count !== undefined && (
-                  <span className={`text-[11px] font-black px-2 py-0.5 rounded-full ${
+                {tab.count !== undefined && tab.count !== null && (
+                  <span className={`text-[11px] font-sans font-[550] px-2 py-0.5 rounded-full ${
                     isActive
                       ? 'bg-white/20 text-white dark:bg-black/20 dark:text-black'
                       : 'bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
