@@ -12,12 +12,59 @@ export default function OrderDetailModal({
   order,
   isOpen,
   onClose,
+  isLoadingDetail = false,
+  detailError = false,
+  onRetryDetail,
   onCancelOrder,
   isCancelling = false,
   onRequestRefund,
   isRequestingRefund = false,
 }) {
   if (!isOpen || !order) return null;
+
+  if (isLoadingDetail || detailError) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl">
+          <div className="flex items-start justify-between pb-4 border-b border-neutral-200 dark:border-neutral-800">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">Chi tiết đơn hàng</span>
+              <h3 className="font-sans font-black text-lg sm:text-xl uppercase text-black dark:text-white mt-0.5">
+                {order.order_code || `#ORD-${order.order_id}`}
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-neutral-400 hover:text-black dark:hover:text-white p-1 rounded-full cursor-pointer text-2xl"
+              aria-label="Đóng"
+            >
+              <Icon icon="solar:close-circle-linear" />
+            </button>
+          </div>
+          <div className="py-12 text-center">
+            {isLoadingDetail ? (
+              <>
+                <Icon icon="solar:spinner-linear" className="mx-auto text-3xl text-neutral-500 animate-spin" />
+                <p className="mt-4 text-sm text-neutral-500">Đang tải chi tiết đơn hàng...</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-rose-600">Không thể tải chi tiết đơn hàng.</p>
+                <button
+                  type="button"
+                  onClick={onRetryDetail}
+                  className="mt-4 rounded-xl bg-black px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:opacity-85 cursor-pointer"
+                >
+                  Thử lại
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const orderStatus = getOrderStatusInfo(order.status_order);
   const paymentMethod = order.payment_method || order.payment?.payment_method || 'cod';

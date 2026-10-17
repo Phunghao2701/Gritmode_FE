@@ -4,7 +4,12 @@ import { useRouter } from 'next/navigation';
 import EmptyState from '../../../shared/components/EmptyState';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import Pagination from '../../../shared/components/Pagination';
-import { useMyOrders, useCancelOrder, useRequestRefund } from '../../orders/hooks/useOrders';
+import {
+  useMyOrders,
+  useOrderDetail,
+  useCancelOrder,
+  useRequestRefund,
+} from '../../orders/hooks/useOrders';
 import {
   getOrderStatusInfo,
   getPaymentStatusInfo,
@@ -32,6 +37,13 @@ export default function MyOrdersList() {
     limit: 10,
     status_order: statusFilter || undefined,
   });
+
+  const {
+    data: selectedOrderDetail,
+    isFetching: isFetchingOrderDetail,
+    isError: isOrderDetailError,
+    refetch: refetchOrderDetail,
+  } = useOrderDetail(selectedOrder?.order_id);
 
   const cancelMutation = useCancelOrder();
   const refundMutation = useRequestRefund();
@@ -314,9 +326,12 @@ export default function MyOrdersList() {
 
       {/* Order Detail Modal */}
       <OrderDetailModal
-        order={selectedOrder}
+        order={selectedOrderDetail || selectedOrder}
         isOpen={Boolean(selectedOrder)}
         onClose={() => setSelectedOrder(null)}
+        isLoadingDetail={isFetchingOrderDetail && !selectedOrderDetail}
+        detailError={isOrderDetailError && !selectedOrderDetail}
+        onRetryDetail={refetchOrderDetail}
         onCancelOrder={handleCancelOrder}
         isCancelling={cancelMutation.isPending}
         onRequestRefund={handleRequestRefund}
