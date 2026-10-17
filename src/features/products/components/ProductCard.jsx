@@ -102,18 +102,19 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* Product Meta Details */}
-      <div className="space-y-1 px-1">
-        {primaryCategory && (
-          <span className="text-[10px] font-normal uppercase tracking-wider text-neutral-400 block line-clamp-1">
-            {primaryCategory}
-          </span>
-        )}
+      <div className="min-h-[5rem] space-y-1 px-1">
+        <span
+          aria-hidden={!primaryCategory}
+          className="block min-h-[0.875rem] line-clamp-1 text-[10px] font-normal uppercase tracking-wider text-neutral-400"
+        >
+          {primaryCategory || '\u00a0'}
+        </span>
 
         <h3 className="font-sans font-normal text-xs sm:text-sm text-neutral-900 dark:text-neutral-100 uppercase tracking-wider line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors">
           {name}
         </h3>
 
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-sans text-xs sm:text-sm tracking-normal pt-0.5">
+        <div className="flex min-h-[2rem] flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-0.5 font-sans text-xs tracking-normal sm:text-sm">
           {hasSale && (
             <span className="text-neutral-400 line-through font-normal">
               {formattedOriginalPrice}

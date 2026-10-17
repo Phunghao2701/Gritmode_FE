@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, lazy, Suspense } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClientProvider } from '@tanstack/react-query';
 import {
   getQueryClient,
@@ -18,8 +17,6 @@ import {
   restorePersistedQueryCache,
   subscribeToPersistedQueryCache,
 } from '@/shared/services/queryPersistence';
-
-const googleClientId = process.env.VITE_GOOGLE_CLIENT_ID || '';
 
 const ReactQueryDevtools =
   process.env.NODE_ENV === 'development'
@@ -116,24 +113,22 @@ export default function Providers({ children }) {
   const queryClient = getQueryClient();
 
   return (
-    <GoogleOAuthProvider clientId={googleClientId}>
-      <QueryClientProvider client={queryClient}>
-        <SmoothScrollProvider>
+    <QueryClientProvider client={queryClient}>
+      <SmoothScrollProvider>
+        <Suspense fallback={null}>
+          <ScrollToTop />
+        </Suspense>
+        <AppToast />
+        <AuthInit />
+        <CacheLifecycle />
+        <CachePersistence queryClient={queryClient} />
+        {children}
+        {ReactQueryDevtools && (
           <Suspense fallback={null}>
-            <ScrollToTop />
+            <ReactQueryDevtools initialIsOpen={false} />
           </Suspense>
-          <AppToast />
-          <AuthInit />
-          <CacheLifecycle />
-          <CachePersistence queryClient={queryClient} />
-          {children}
-          {ReactQueryDevtools && (
-            <Suspense fallback={null}>
-              <ReactQueryDevtools initialIsOpen={false} />
-            </Suspense>
-          )}
-        </SmoothScrollProvider>
-      </QueryClientProvider>
-    </GoogleOAuthProvider>
+        )}
+      </SmoothScrollProvider>
+    </QueryClientProvider>
   );
 }
