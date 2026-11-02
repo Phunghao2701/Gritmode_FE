@@ -9,6 +9,7 @@ export default function ProductVariantSelector({
   options = [],
   selectedOptionValues = {},
   availableOptionValues = {},
+  isAvailabilityReady = true,
   onSelectOptionValue,
 }) {
   if (!Array.isArray(options) || options.length === 0) {
@@ -46,7 +47,8 @@ export default function ProductVariantSelector({
               {values.map((val) => {
                 const valId = val.product_option_value_id;
                 const isSelected = selectedValueId === valId;
-                const isAvailable = availableOptionValues[optionValueAvailabilityKey(optionId, valId)] === true;
+                const isAvailable = !isAvailabilityReady
+                  || availableOptionValues[optionValueAvailabilityKey(optionId, valId)] === true;
                 const unavailableLabel = `${val.value_option} - Hết hàng`;
 
                 // For Size options, render as square box; for other options, render as pill
@@ -68,7 +70,7 @@ export default function ProductVariantSelector({
                       title={isAvailable ? val.value_option : unavailableLabel}
                     >
                       <span className={!isAvailable ? 'line-through decoration-neutral-400' : ''}>{val.value_option}</span>
-                      {!isAvailable && <span className="text-[10px] font-semibold normal-case tracking-normal leading-none text-rose-600 dark:text-rose-400">Hết hàng</span>}
+                      {isAvailabilityReady && !isAvailable && <span className="text-[10px] font-semibold normal-case tracking-normal leading-none text-rose-600 dark:text-rose-400">Hết hàng</span>}
                     </button>
                   );
                 }
@@ -90,7 +92,7 @@ export default function ProductVariantSelector({
                     title={isAvailable ? val.value_option : unavailableLabel}
                   >
                     <span className={!isAvailable ? 'line-through decoration-neutral-400' : ''}>{val.value_option}</span>
-                    {!isAvailable && <span className="ml-1 text-[10px] font-semibold normal-case tracking-normal text-rose-600 dark:text-rose-400">Hết hàng</span>}
+                    {isAvailabilityReady && !isAvailable && <span className="ml-1 text-[10px] font-semibold normal-case tracking-normal text-rose-600 dark:text-rose-400">Hết hàng</span>}
                   </button>
                 );
               })}

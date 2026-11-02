@@ -3,6 +3,7 @@ import EmptyState from '../../../shared/components/EmptyState';
 import ErrorState from '../../../shared/components/ErrorState';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import PaginationControls from '../../../shared/components/PaginationControls';
+import { useProductAvailabilityBatch } from '../hooks/useProductAvailabilityBatch';
 
 export default function ProductGrid({
   products = [],
@@ -15,6 +16,8 @@ export default function ProductGrid({
   totalPages = 1,
   onPageChange,
 }) {
+  const { availabilityByProductId } = useProductAvailabilityBatch(products);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
@@ -55,6 +58,7 @@ export default function ProductGrid({
           <ProductCard
             key={product.product_id || product.id || product._id}
             product={product}
+            availability={availabilityByProductId[product.product_id || product.id || product._id]}
           />
         ))}
       </div>

@@ -98,3 +98,4 @@ test-artifacts/
 .mcp.json
 
 .env copy
+benchmark-100.json

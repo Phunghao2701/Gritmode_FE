@@ -5,7 +5,7 @@
  */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getProductDetailApi } from '../apis/product.api';
+import { getProductAvailabilityApi, getProductDetailApi } from '../apis/product.api';
 import {
   findVariantByOptionValues,
   isVariantAvailable,
@@ -28,28 +28,67 @@ export const useProductDetail = (productId) => {
       return requireApiObject(res, 'Chi tiết sản phẩm');
     },
     enabled: !!productId,
-    // Inventory is volatile; never let a product page keep a stale stock state for minutes.
-    staleTime: 1000 * 30,
-    refetchOnMount: 'always',
+    // The route payload is prefetched on user intent. Reuse it on navigation;
+    // live inventory is fetched separately below.
+    staleTime: 1000 * 60 * 3,
     refetchOnWindowFocus: 'always',
   });
 
-  const product = query.data;
+  const detailProduct = query.data;
+  const availabilityQuery = useQuery({
+    queryKey: ['product-availability', productId],
+    queryFn: async () => {
+      if (!productId) return null;
+      const res = await getProductAvailabilityApi(productId);
+      return requireApiObject(res, 'Tồn kho sản phẩm');
+    },
+    enabled: !!productId,
+    staleTime: 1500,
+    refetchOnWindowFocus: 'always',
+  });
+
+  const isAvailabilityReady = availabilityQuery.isSuccess;
+  const product = useMemo(() => {
+    if (!detailProduct || !isAvailabilityReady) return detailProduct;
+
+    const stockByVariantId = new Map(
+      (availabilityQuery.data?.variants || []).map((item) => [
+        Number(item.product_variant_id),
+        Math.max(0, Number(item.quantity_available) || 0),
+      ]),
+    );
+
+    return {
+      ...detailProduct,
+      variants: (detailProduct.variants || []).map((variant) => {
+        const quantityAvailable = stockByVariantId.get(Number(variant.product_variant_id)) || 0;
+        return {
+          ...variant,
+          quantity_available: quantityAvailable,
+          inventory: {
+            ...(variant.inventory || {}),
+            quantity_available: quantityAvailable,
+            is_available: quantityAvailable > 0,
+          },
+        };
+      }),
+    };
+  }, [availabilityQuery.data, detailProduct, isAvailabilityReady]);
 
   // Initialize default option selections when product data loads
   useEffect(() => {
-    if (product && Array.isArray(product.options) && product.options.length > 0) {
+    if (detailProduct && Array.isArray(detailProduct.options) && detailProduct.options.length > 0) {
       const initialSelection = {};
-      const hiddenValueIds = new Set(product.options.flatMap((option) => (option.values || [])
+      const hiddenValueIds = new Set(detailProduct.options.flatMap((option) => (option.values || [])
         .filter((value) => value.is_hidden)
         .map((value) => Number(value.product_option_value_id))));
-      const firstAvailableVariant = (product.variants || []).find((variant) => {
+      const firstAvailableVariant = (detailProduct.variants || []).find((variant) => {
         if (!isVariantAvailable(variant)) return false;
         return !(variant.option_values || []).some((value) => (
           value.is_hidden || hiddenValueIds.has(Number(value.product_option_value_id))
         ));
       });
-      product.options.forEach((opt) => {
+      detailProduct.options.forEach((opt) => {
         if (Array.isArray(opt.values) && opt.values.length > 0) {
           const visibleValues = opt.values.filter((value) => !value.is_hidden);
           const variantValueId = firstAvailableVariant?.option_values?.find((variantValue) =>
@@ -70,7 +109,7 @@ export const useProductDetail = (productId) => {
       setSelectedOptionValues({});
       setSelectedQuantity(1);
     }
-  }, [product]);
+  }, [detailProduct]);
 
   const availableOptionValues = useMemo(() => getOptionValueAvailability(
     product?.options || [],
@@ -98,12 +137,12 @@ export const useProductDetail = (productId) => {
 
   // Check availability
   const isAvailable = useMemo(() => {
-    return isVariantAvailable(selectedVariant);
-  }, [selectedVariant]);
+    return isAvailabilityReady && isVariantAvailable(selectedVariant);
+  }, [isAvailabilityReady, selectedVariant]);
 
   // Available stock count
   const availableStock = useMemo(() => {
-    if (!selectedVariant) return 0;
+    if (!isAvailabilityReady || !selectedVariant) return 0;
     if (typeof selectedVariant.quantity_available === 'number') {
       return selectedVariant.quantity_available;
     }
@@ -111,7 +150,7 @@ export const useProductDetail = (productId) => {
       return selectedVariant.inventory.quantity_available;
     }
     return 0;
-  }, [selectedVariant]);
+  }, [isAvailabilityReady, selectedVariant]);
 
   // Effective price
   const displayPrice = useMemo(() => {
@@ -156,7 +195,7 @@ export const useProductDetail = (productId) => {
     const option = product?.options?.find((item) => String(item.product_option_id) === String(optionId));
     const value = option?.values?.find((item) => Number(item.product_option_value_id) === Number(optionValueId));
     const availabilityKey = optionValueAvailabilityKey(optionId, optionValueId);
-    if (!value || value.is_hidden || availableOptionValues[availabilityKey] === false) return;
+    if (!value || value.is_hidden || (isAvailabilityReady && availableOptionValues[availabilityKey] === false)) return;
 
     setSelectedOptionValues((prev) => ({
       ...prev,
@@ -164,7 +203,7 @@ export const useProductDetail = (productId) => {
     }));
     // Reset image index when switching color
     setSelectedImageIndex(0);
-  }, [availableOptionValues, product]);
+  }, [availableOptionValues, isAvailabilityReady, product]);
 
   // Action: Change quantity (bounded between 1 and availableStock)
   const setQuantity = useCallback((qty) => {
@@ -191,6 +230,9 @@ export const useProductDetail = (productId) => {
     ...query,
     product,
     isLoadingProduct: query.isLoading,
+    isAvailabilityReady,
+    isAvailabilityError: availabilityQuery.isError,
+    refetchAvailability: availabilityQuery.refetch,
     selectedOptionValues,
     availableOptionValues,
     hasAvailableVariant,

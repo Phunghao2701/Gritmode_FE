@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useProductDetail } from '../hooks/useProductDetail';
 import { useProducts } from '../hooks/useProducts';
+import { useProductAvailabilityBatch } from '../hooks/useProductAvailabilityBatch';
 import ProductCard from '../components/ProductCard';
 import ProductVariantSelector from '../components/ProductVariantSelector';
 import OutOfStockOverlay from '../components/OutOfStockOverlay';
@@ -33,6 +34,9 @@ export default function ProductDetailPage() {
     selectedVariant,
     isAllOptionsSelected,
     isAvailable,
+    isAvailabilityReady,
+    isAvailabilityError,
+    refetchAvailability,
     availableStock,
     displayPrice,
     originalPrice,
@@ -54,6 +58,13 @@ export default function ProductDetailPage() {
       staleTime: 1000 * 60 * 10,
     }
   );
+  const relatedProducts = useMemo(() => {
+    const currentProductId = product?.product_id || product?.id;
+    return (allProducts || [])
+      .filter((item) => String(item.product_id || item.id) !== String(currentProductId))
+      .slice(0, 4);
+  }, [allProducts, product?.id, product?.product_id]);
+  const { availabilityByProductId: relatedAvailabilityByProductId } = useProductAvailabilityBatch(relatedProducts);
 
   const relatedSliderRef = useRef(null);
   const handleScrollLeft = () => {
@@ -272,12 +283,13 @@ export default function ProductDetailPage() {
   }
 
   const primaryCategory = product.categories?.find((c) => c.is_primary) || product.categories?.[0];
-  const currentProductId = product?.product_id || product?.id;
-  const relatedProducts = (allProducts || [])
-    .filter((p) => String(p.product_id || p.id) !== String(currentProductId))
-    .slice(0, 4);
 
   const handleAddToCart = async (shouldRedirect = false, triggerEvent) => {
+    if (!isAvailabilityReady) {
+      toast.error('Đang kiểm tra tồn kho. Vui lòng thử lại sau giây lát.');
+      return;
+    }
+
     if (!isAllOptionsSelected) {
       toast.error('Vui lòng chọn đầy đủ các phân loại sản phẩm.');
       return;
@@ -405,7 +417,7 @@ export default function ProductDetailPage() {
               </>
             )}
 
-            {!isAvailable && (
+            {isAvailabilityReady && !isAvailable && (
               <OutOfStockOverlay />
             )}
           </div>
@@ -476,8 +488,26 @@ export default function ProductDetailPage() {
               options={product.options}
               selectedOptionValues={selectedOptionValues}
               availableOptionValues={availableOptionValues}
+              isAvailabilityReady={isAvailabilityReady}
               onSelectOptionValue={selectOptionValue}
             />
+
+            {!isAvailabilityReady && (
+              <div className="text-xs text-neutral-500" role={isAvailabilityError ? 'alert' : 'status'}>
+                {isAvailabilityError ? (
+                  <span>
+                    Không kiểm tra được tồn kho.{' '}
+                    <button
+                      type="button"
+                      onClick={() => void refetchAvailability()}
+                      className="font-semibold underline underline-offset-2"
+                    >
+                      Thử lại
+                    </button>
+                  </span>
+                ) : 'Đang kiểm tra tồn kho...'}
+              </div>
+            )}
 
             {/* Size Guide Trigger */}
             <div>
@@ -522,7 +552,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={(event) => handleAddToCart(false, event)}
-                disabled={!isAvailable}
+                disabled={!isAvailabilityReady || !isAvailable}
                 className="flex-1 py-4 px-6 rounded-2xl bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 text-xs font-[550] uppercase tracking-widest flex items-center justify-center gap-2 border border-neutral-300 dark:border-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
               >
                 <Icon icon="solar:bag-plus-bold" className="text-base" />
@@ -536,7 +566,7 @@ export default function ProductDetailPage() {
               onClick={() => handleAddToCart(true)}
               onMouseEnter={() => router.prefetch('/checkout')}
               onFocus={() => router.prefetch('/checkout')}
-              disabled={!isAvailable}
+              disabled={!isAvailabilityReady || !isAvailable}
               className="w-full py-4 px-6 rounded-2xl bg-black text-white dark:bg-white dark:text-black hover:opacity-85 text-xs font-[550] uppercase tracking-widest shadow-xl disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
             >
               MUA NGAY
@@ -610,7 +640,10 @@ export default function ProductDetailPage() {
                 key={relProduct.product_id || relProduct.id}
                 className="w-[calc(50%-8px)] sm:w-[calc(33.333%-16px)] md:w-[calc(25%-18px)] lg:w-[calc(20%-19.2px)] shrink-0 snap-start"
               >
-                <ProductCard product={relProduct} />
+                <ProductCard
+                  product={relProduct}
+                  availability={relatedAvailabilityByProductId[relProduct.product_id || relProduct.id]}
+                />
               </div>
             ))}
           </div>

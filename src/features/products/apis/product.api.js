@@ -47,3 +47,21 @@ export const getProductDetailApi = (productId) => {
   return publicApi.get(`/products/${productId}`, { params: withPublicCacheBuster() });
 };
 
+/**
+ * Fetch volatile stock independently from the cacheable product detail.
+ * @param {number|string} productId
+ */
+export const getProductAvailabilityApi = (productId) => {
+  return publicApi.get(`/products/${productId}/availability`, { params: withPublicCacheBuster() });
+};
+
+/**
+ * Fetch fresh aggregate availability for a bounded group of product cards.
+ * @param {number[]} productIds
+ */
+export const getProductsAvailabilityApi = (productIds = []) => {
+  return publicApi.get('/products/availability', {
+    params: withPublicCacheBuster({ ids: productIds.join(',') }),
+  });
+};
+

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProductCard from '../../products/components/ProductCard';
 import { useProducts, useCategories } from '../../products/hooks/useProducts';
+import { useProductAvailabilityBatch } from '../../products/hooks/useProductAvailabilityBatch';
 import { useBanners } from '../hooks/useBanners';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
@@ -31,6 +32,7 @@ export default function LandingPage() {
     sort: 'newest',
     limit: 15,
   });
+  const { availabilityByProductId } = useProductAvailabilityBatch(products);
 
   const heroSlides = useMemo(() => {
     const uploadedSlides = (heroData?.slides || []).filter((b) => b.is_active !== false);
@@ -231,7 +233,11 @@ export default function LandingPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 animate-fade-in">
             {products.map((product) => (
-              <ProductCard key={product.id || product.product_id} product={product} />
+              <ProductCard
+                key={product.id || product.product_id}
+                product={product}
+                availability={availabilityByProductId[product.product_id || product.id]}
+              />
             ))}
           </div>
         )}

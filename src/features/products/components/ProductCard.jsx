@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Icon from '../../../shared/components/Icon';
 import { queryClient } from '../../../shared/services/queryClient';
-import { getProductDetailApi } from '../apis/product.api';
+import { getProductAvailabilityApi } from '../apis/product.api';
 import OutOfStockOverlay from './OutOfStockOverlay';
 import { requireApiObject } from '../../../shared/services/responseContract';
 import {
@@ -13,25 +13,33 @@ import {
   getSizedProductImageUrl,
 } from '../utils/product.utils';
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, availability }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [hasPrefetchIntent, setHasPrefetchIntent] = useState(false);
 
   const name = product?.name_product || product?.title || product?.name || 'Sản phẩm Gritmode';
   const productSlug = product?.slug_product || product?.product_id || product?.id || '';
 
+  const prefetchProduct = useCallback(() => {
+    if (!productSlug) return;
+
+    // Enabling full Link prefetch warms this dynamic route, including its
+    // server-fetched detail payload, only after the user shows intent.
+    setHasPrefetchIntent(true);
+    void queryClient.prefetchQuery({
+      queryKey: ['product-availability', productSlug],
+      queryFn: async () => {
+        const res = await getProductAvailabilityApi(productSlug);
+        return requireApiObject(res, 'Tồn kho sản phẩm');
+      },
+      staleTime: 1500,
+    });
+  }, [productSlug]);
+
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
-    if (productSlug) {
-      queryClient.prefetchQuery({
-        queryKey: ['product-detail', productSlug],
-        queryFn: async () => {
-          const res = await getProductDetailApi(productSlug);
-          return requireApiObject(res, 'Chi tiết sản phẩm');
-        },
-        staleTime: 1000 * 60 * 3,
-      });
-    }
-  }, [productSlug]);
+    prefetchProduct();
+  }, [prefetchProduct]);
 
   if (!product) return null;
 
@@ -49,7 +57,9 @@ export default function ProductCard({ product }) {
   // Availability is a server-owned state. Never infer "in stock" when the
   // catalog response is missing the field; stale/legacy data must not make a
   // sold-out product look purchasable.
-  const isAvailable = product.is_available === true;
+  const isAvailable = typeof availability === 'boolean'
+    ? availability
+    : product.is_available === true;
   const hasSale = originalMinPrice > minPrice;
   const discountPercent = hasSale && originalMinPrice > 0
     ? Math.round((1 - minPrice / originalMinPrice) * 100)
@@ -63,8 +73,10 @@ export default function ProductCard({ product }) {
   return (
     <Link
       href={`/products/${productSlug}`}
-      prefetch={false}
+      prefetch={hasPrefetchIntent ? true : false}
       onMouseEnter={handleMouseEnter}
+      onFocus={prefetchProduct}
+      onTouchStart={prefetchProduct}
       onMouseLeave={() => setIsHovered(false)}
       className="group cursor-pointer select-none flex flex-col space-y-3 relative transition-all duration-300"
     >
