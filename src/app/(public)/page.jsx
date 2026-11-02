@@ -7,6 +7,10 @@ import { STOREFRONT_BANNERS_KEY, getActiveBannersApi } from '@/features/landing/
 import LandingPage from '@/features/landing/pages/LandingPage';
 import { requireApiArray, requireApiObject } from '@/shared/services/responseContract';
 
+// Product data changes independently of frontend deploys; render Home per request
+// and let the backend Redis cache handle catalog reuse.
+export const dynamic = 'force-dynamic';
+
 export const metadata = {  description:
     'Gritmode® — Thương hiệu thời trang thể thao & phong cách đường phố cao cấp lấy cảm hứng từ DirtyCoins và văn hóa Hip-Hop đương đại.',
   openGraph: {    description: 'Thương hiệu thời trang thể thao & phong cách đường phố cao cấp.',
