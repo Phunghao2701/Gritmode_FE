@@ -1,8 +1,10 @@
+import { Suspense } from 'react';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { getQueryClient } from '@/shared/services/queryClient';
 import { getCategoriesApi } from '@/features/categories/apis/category.api';
 import { buildCategoryTree } from '@/features/categories/utils/category.utils';
 import { STOREFRONT_BANNERS_KEY, getActiveBannersApi } from '@/features/landing/hooks/useBanners';
+import LandingPageSkeleton from '@/features/landing/components/LandingPageSkeleton';
 import LandingPage from '@/features/landing/pages/LandingPage';
 import { requireApiArray } from '@/shared/services/responseContract';
 
@@ -17,7 +19,7 @@ export const metadata = {  description:
   },
 };
 
-export default async function HomePage() {
+async function HomePageContent() {
   const queryClient = getQueryClient();
 
   // Prefetch Banners & Hero settings for instant zero-delay presentation
@@ -41,5 +43,13 @@ export default async function HomePage() {
     <HydrationBoundary state={dehydrate(queryClient)}>
       <LandingPage />
     </HydrationBoundary>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<LandingPageSkeleton />}>
+      <HomePageContent />
+    </Suspense>
   );
 }
