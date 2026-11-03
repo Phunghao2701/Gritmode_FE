@@ -8,7 +8,7 @@ export const CACHE_STALE_TIME = Object.freeze({
   products: 3 * 60_000,
   categories: 30 * 60_000,
   collections: 30 * 60_000,
-  banners: 5_000,
+  banners: 5 * 60_000,
 });
 
 let publicCacheBusterSequence = 0;

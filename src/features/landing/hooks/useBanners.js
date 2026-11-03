@@ -23,7 +23,7 @@ export const useBanners = (options = {}) => {
     queryFn: getActiveBannersApi,
     staleTime: CACHE_STALE_TIME.banners,
     enabled,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     ...queryOptions,
   });
 };
