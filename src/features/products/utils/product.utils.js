@@ -24,7 +24,10 @@ export const getSizedProductImageUrl = (source, width, { quality = 'good' } = {}
   if (typeof source !== 'string' || !source || !width) return source;
   const normalizedQuality = quality === 'eco' ? 'eco' : 'good';
   if (source.includes('/image/upload/')) {
-    return source.replace('/image/upload/', `/image/upload/f_auto,q_auto:${normalizedQuality},w_${width},c_limit/`);
+    // Keep the stored format (product assets are uploaded as WebP) so Cloudinary
+    // can mark the versioned delivery URL as publicly cacheable; f_auto requires
+    // a private cache policy because the response format varies by browser.
+    return source.replace('/image/upload/', `/image/upload/q_auto:${normalizedQuality},w_${width},c_limit/`);
   }
   if (source.includes('images.unsplash.com')) {
     const url = new URL(source);
@@ -43,7 +46,7 @@ export const getProductImageSrcSet = (source, widths = [320, 640, 960]) => (
 export const getProductImagePlaceholderUrl = (source) => {
   if (!source) return null;
   if (source.includes('/image/upload/')) {
-    return source.replace('/image/upload/', '/image/upload/f_auto,q_auto:low,w_32,e_blur:1000,c_limit/');
+    return source.replace('/image/upload/', '/image/upload/q_auto:low,w_32,e_blur:1000,c_limit/');
   }
   if (source.includes('images.unsplash.com')) {
     const url = new URL(source);
