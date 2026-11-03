@@ -28,7 +28,8 @@ export default function ProductCard({ product }) {
           const res = await getProductDetailApi(productSlug);
           return requireApiObject(res, 'Chi tiết sản phẩm');
         },
-        staleTime: 1000 * 60 * 3,
+        // Keep the prefetch fresh only as long as the detail page's inventory snapshot.
+        staleTime: 1000 * 30,
       });
     }
   }, [productSlug]);
