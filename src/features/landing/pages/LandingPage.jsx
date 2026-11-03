@@ -30,6 +30,7 @@ export default function LandingPage() {
     category_id: activeCategoryId || undefined,
     sort: 'newest',
     limit: 15,
+    include_total: false,
   });
 
   const heroSlides = useMemo(() => {
