@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -91,12 +91,38 @@ export default function ProductDetailPage() {
     [displayImages, product?.images],
   );
   const currentImage = galleryImages[selectedImageIndex] || galleryImages[0] || null;
+  const currentImageSource = typeof currentImage?.url_product_image === 'string'
+    ? currentImage.url_product_image.trim()
+    : '';
   const [loadedImageKey, setLoadedImageKey] = useState(null);
-  const currentImageKey = currentImage?.product_image_id || currentImage?.url_product_image || null;
+  const [originalImageKey, setOriginalImageKey] = useState(null);
+  const [failedImageKey, setFailedImageKey] = useState(null);
+  const currentImageKey = currentImage
+    ? `${currentImage.product_image_id || ''}:${currentImageSource}`
+    : null;
+  const mainImageRef = useRef(null);
+  const resizedImageSource = getSizedProductImageUrl(currentImageSource, 960);
+  const isUsingOriginalImage = originalImageKey === currentImageKey;
+  const hasImageFailed = failedImageKey === currentImageKey;
+  const isCurrentImageLoaded = loadedImageKey === currentImageKey;
 
-  useEffect(() => {
-    setLoadedImageKey(null);
-  }, [currentImageKey]);
+  useLayoutEffect(() => {
+    const imageElement = mainImageRef.current;
+    if (!imageElement?.complete) return;
+
+    if (imageElement.naturalWidth > 0) {
+      setLoadedImageKey(currentImageKey);
+      return;
+    }
+
+    // The server-rendered image request may finish before React hydration has
+    // attached onError. Inspect the completed element and retry the raw asset.
+    if (!isUsingOriginalImage && resizedImageSource !== currentImageSource) {
+      setOriginalImageKey(currentImageKey);
+    } else {
+      setFailedImageKey(currentImageKey);
+    }
+  }, [currentImageKey, currentImageSource, isUsingOriginalImage, resizedImageSource]);
 
   const handlePrevImage = useCallback(() => {
     if (isZoomed || galleryImages.length <= 1) return;
@@ -352,25 +378,42 @@ export default function ProductDetailPage() {
             onClick={openLightbox}
             className="group relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800/80 shadow-sm flex items-center justify-center select-none cursor-pointer"
           >
-            {currentImage?.url_product_image ? (
+            {currentImageSource ? (
               <div className="relative w-full h-full">
-                {loadedImageKey !== currentImageKey && (
+                {!isCurrentImageLoaded && !hasImageFailed && (
                   <div
                     aria-hidden="true"
                     className="absolute inset-0 animate-pulse bg-neutral-200 dark:bg-neutral-800"
                   />
                 )}
-                <img
-                  src={getSizedProductImageUrl(currentImage.url_product_image, 960)}
-                  srcSet={getProductImageSrcSet(currentImage.url_product_image, [640, 960, 1280, 1600])}
-                  sizes="(min-width: 1024px) 58vw, 100vw"
-                  alt={product.name_product}
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  onLoad={() => setLoadedImageKey(currentImageKey)}
-                  className={`relative w-full h-full object-cover object-top transition-opacity duration-300 pointer-events-none ${loadedImageKey === currentImageKey ? 'opacity-100' : 'opacity-0'}`}
-                />
+                {hasImageFailed ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-neutral-400">
+                    <Icon icon="solar:t-shirt-bold-duotone" className="text-7xl opacity-40" />
+                    <span className="text-xs uppercase tracking-widest font-black">Gritmode Signature</span>
+                  </div>
+                ) : (
+                  <img
+                    ref={mainImageRef}
+                    src={isUsingOriginalImage ? currentImageSource : resizedImageSource}
+                    srcSet={isUsingOriginalImage
+                      ? undefined
+                      : getProductImageSrcSet(currentImageSource, [640, 960, 1280, 1600])}
+                    sizes={isUsingOriginalImage ? undefined : '(min-width: 1024px) 58vw, 100vw'}
+                    alt={product.name_product}
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
+                    onLoad={() => setLoadedImageKey(currentImageKey)}
+                    onError={() => {
+                      if (!isUsingOriginalImage && resizedImageSource !== currentImageSource) {
+                        setOriginalImageKey(currentImageKey);
+                      } else {
+                        setFailedImageKey(currentImageKey);
+                      }
+                    }}
+                    className={`relative w-full h-full object-cover object-top transition-opacity duration-300 pointer-events-none ${isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  />
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-neutral-400 gap-2">

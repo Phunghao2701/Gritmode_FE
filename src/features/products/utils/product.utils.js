@@ -21,22 +21,24 @@ export const slugifyProductName = (name = '') => String(name)
   .replace(/^-+|-+$/g, '');
 
 export const getSizedProductImageUrl = (source, width, { quality = 'good' } = {}) => {
-  if (typeof source !== 'string' || !source || !width) return source;
+  if (typeof source !== 'string') return source;
+  const normalizedSource = source.trim();
+  if (!normalizedSource || !width) return normalizedSource;
   const normalizedQuality = quality === 'eco' ? 'eco' : 'good';
-  if (source.includes('/image/upload/')) {
+  if (normalizedSource.includes('/image/upload/')) {
     // Keep the stored format (product assets are uploaded as WebP) so Cloudinary
     // can mark the versioned delivery URL as publicly cacheable; f_auto requires
     // a private cache policy because the response format varies by browser.
-    return source.replace('/image/upload/', `/image/upload/q_auto:${normalizedQuality},w_${width},c_limit/`);
+    return normalizedSource.replace('/image/upload/', `/image/upload/q_auto:${normalizedQuality},w_${width},c_limit/`);
   }
-  if (source.includes('images.unsplash.com')) {
-    const url = new URL(source);
+  if (normalizedSource.includes('images.unsplash.com')) {
+    const url = new URL(normalizedSource);
     url.searchParams.set('auto', 'format');
     url.searchParams.set('w', String(width));
     if (normalizedQuality === 'eco') url.searchParams.set('q', '70');
     return url.toString();
   }
-  return source;
+  return normalizedSource;
 };
 
 export const getProductImageSrcSet = (source, widths = [320, 640, 960]) => (
@@ -44,12 +46,13 @@ export const getProductImageSrcSet = (source, widths = [320, 640, 960]) => (
 );
 
 export const getProductImagePlaceholderUrl = (source) => {
-  if (!source) return null;
-  if (source.includes('/image/upload/')) {
-    return source.replace('/image/upload/', '/image/upload/q_auto:low,w_32,e_blur:1000,c_limit/');
+  if (typeof source !== 'string' || !source.trim()) return null;
+  const normalizedSource = source.trim();
+  if (normalizedSource.includes('/image/upload/')) {
+    return normalizedSource.replace('/image/upload/', '/image/upload/q_auto:low,w_32,e_blur:1000,c_limit/');
   }
-  if (source.includes('images.unsplash.com')) {
-    const url = new URL(source);
+  if (normalizedSource.includes('images.unsplash.com')) {
+    const url = new URL(normalizedSource);
     url.searchParams.set('auto', 'format');
     url.searchParams.set('w', '32');
     url.searchParams.set('blur', '20');
