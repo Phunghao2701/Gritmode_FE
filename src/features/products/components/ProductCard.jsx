@@ -1,13 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Icon from '../../../shared/components/Icon';
-import { queryClient } from '../../../shared/services/queryClient';
-import { getProductDetailApi } from '../apis/product.api';
 import OutOfStockOverlay from './OutOfStockOverlay';
-import { requireApiObject } from '../../../shared/services/responseContract';
 import {
   formatProductPriceRange,
   getSizedProductImageUrl,
@@ -18,21 +15,6 @@ export default function ProductCard({ product }) {
 
   const name = product?.name_product || product?.title || product?.name || 'Sản phẩm Gritmode';
   const productSlug = product?.slug_product || product?.product_id || product?.id || '';
-
-  const handleMouseEnter = useCallback(() => {
-    setIsHovered(true);
-    if (productSlug) {
-      queryClient.prefetchQuery({
-        queryKey: ['product-detail', productSlug],
-        queryFn: async () => {
-          const res = await getProductDetailApi(productSlug);
-          return requireApiObject(res, 'Chi tiết sản phẩm');
-        },
-        // Keep the prefetch fresh only as long as the detail page's inventory snapshot.
-        staleTime: 1000 * 30,
-      });
-    }
-  }, [productSlug]);
 
   if (!product) return null;
 
@@ -65,7 +47,7 @@ export default function ProductCard({ product }) {
     <Link
       href={`/products/${productSlug}`}
       prefetch={false}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="group cursor-pointer select-none flex flex-col space-y-3 relative transition-all duration-300"
     >

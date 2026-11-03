@@ -1,14 +1,13 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { getQueryClient } from '@/shared/services/queryClient';
 import { getCategoriesApi } from '@/features/categories/apis/category.api';
-import { getProductsApi } from '@/features/products/apis/product.api';
 import { buildCategoryTree } from '@/features/categories/utils/category.utils';
 import { STOREFRONT_BANNERS_KEY, getActiveBannersApi } from '@/features/landing/hooks/useBanners';
 import LandingPage from '@/features/landing/pages/LandingPage';
-import { requireApiArray, requireApiObject } from '@/shared/services/responseContract';
+import { requireApiArray } from '@/shared/services/responseContract';
 
-// Product data changes independently of frontend deploys; render Home per request
-// and let the backend Redis cache handle catalog reuse.
+// Keep banner and category data request-rendered; the product list loads through
+// one browser query, while backend Redis handles catalog reuse.
 export const dynamic = 'force-dynamic';
 
 export const metadata = {  description:
@@ -36,18 +35,7 @@ export default async function HomePage() {
     },
   });
 
-  // Prefetch Products for Landing Hero / Newest products list
-  const productsPrefetch = queryClient.prefetchQuery({
-    queryKey: ['products', { category_id: undefined, sort: 'newest', limit: 15, include_total: false }],
-    queryFn: async () => {
-      const res = await getProductsApi({ category_id: undefined, sort: 'newest', limit: 15, include_total: false });
-      const raw = requireApiObject(res, 'Sản phẩm trang chủ');
-      if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Sản phẩm trang chủ không hợp lệ');
-      return raw;
-    },
-  });
-
-  await Promise.all([bannersPrefetch, categoriesPrefetch, productsPrefetch]);
+  await Promise.all([bannersPrefetch, categoriesPrefetch]);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
