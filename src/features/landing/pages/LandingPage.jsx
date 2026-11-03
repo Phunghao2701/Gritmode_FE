@@ -29,8 +29,9 @@ export default function LandingPage() {
   const { products, isLoadingProducts: isLoading, isError: isProductsError, refetch: refetchProducts } = useProducts({
     category_id: activeCategoryId || undefined,
     sort: 'newest',
-    limit: 15,
+    limit: 10,
     include_total: false,
+    include_details: true,
   });
 
   const heroSlides = useMemo(() => {
@@ -206,7 +207,7 @@ export default function LandingPage() {
         {/* 5-Column Product Grid or Empty State */}
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-            {Array.from({ length: 15 }, (_, index) => index + 1).map((n) => (
+            {Array.from({ length: 10 }, (_, index) => index + 1).map((n) => (
               <div key={n} className="space-y-3">
                 <div className="aspect-[3/4] w-full rounded-2xl bg-neutral-100 dark:bg-neutral-900 animate-pulse" />
                 <div className="min-h-[5rem] space-y-1 px-1">
