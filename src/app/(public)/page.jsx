@@ -38,9 +38,9 @@ export default async function HomePage() {
 
   // Prefetch Products for Landing Hero / Newest products list
   const productsPrefetch = queryClient.prefetchQuery({
-    queryKey: ['products', { category_id: undefined, sort: 'newest', limit: 15 }],
+    queryKey: ['products', { category_id: undefined, sort: 'newest', limit: 15, include_total: false }],
     queryFn: async () => {
-      const res = await getProductsApi({ category_id: undefined, sort: 'newest', limit: 15 });
+      const res = await getProductsApi({ category_id: undefined, sort: 'newest', limit: 15, include_total: false });
       const raw = requireApiObject(res, 'Sản phẩm trang chủ');
       if (!Array.isArray(raw.items) || !raw.pagination) throw new Error('Sản phẩm trang chủ không hợp lệ');
       return raw;

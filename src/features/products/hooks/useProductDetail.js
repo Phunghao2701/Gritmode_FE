@@ -30,8 +30,9 @@ export const useProductDetail = (productId) => {
     enabled: !!productId,
     // Inventory is volatile; never let a product page keep a stale stock state for minutes.
     staleTime: 1000 * 30,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always',
+    // Reuse a recent hover prefetch; refresh once the 30-second stock snapshot is stale.
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const product = query.data;
