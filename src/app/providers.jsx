@@ -7,7 +7,7 @@ import {
   subscribeToQueryInvalidation,
 } from '@/shared/services/queryClient';
 import SmoothScrollProvider from '@/shared/components/SmoothScrollProvider';
-import ScrollToTop from '@/shared/components/ScrollToTop';
+import ScrollRestoration from '@/shared/components/ScrollRestoration';
 import AppToast from '@/shared/components/AppToast';
 import { tokenService } from '@/features/auth/services/token.service';
 import { refreshTokenApi } from '@/features/auth/apis/auth.api';
@@ -116,7 +116,7 @@ export default function Providers({ children }) {
     <QueryClientProvider client={queryClient}>
       <SmoothScrollProvider>
         <Suspense fallback={null}>
-          <ScrollToTop />
+          <ScrollRestoration />
         </Suspense>
         <AppToast />
         <AuthInit />
