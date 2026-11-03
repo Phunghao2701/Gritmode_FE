@@ -48,7 +48,9 @@ export default function ProductDetailPage() {
 
   const primaryCategoryId = product?.categories?.find((c) => c.is_primary)?.category_id || product?.categories?.[0]?.category_id;
   const { products: allProducts = [] } = useProducts(
-    primaryCategoryId ? { category_id: primaryCategoryId, limit: 8, sort: 'newest' } : { limit: 8, sort: 'newest' },
+    primaryCategoryId
+      ? { category_id: primaryCategoryId, limit: 8, sort: 'newest', include_total: false, include_details: true }
+      : { limit: 8, sort: 'newest', include_total: false, include_details: true },
     {
       enabled: !!product && !isLoadingProduct,
       staleTime: 1000 * 60 * 10,

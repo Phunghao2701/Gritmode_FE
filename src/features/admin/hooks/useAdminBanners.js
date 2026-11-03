@@ -11,9 +11,15 @@ import {
   deleteHeroImageApi,
 } from '../apis/adminBannerApi';
 import { toast } from '../../../shared/utils/toast';
+import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 
 export const ADMIN_HERO_QUERY_KEY = ['admin-hero-banner'];
 export const STOREFRONT_HERO_QUERY_KEY = ['banners', 'active'];
+
+const invalidateStorefrontHero = (queryClient, options = {}) => {
+  queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY, ...options });
+  broadcastQueryInvalidation([STOREFRONT_HERO_QUERY_KEY]);
+};
 
 export const useAdminHero = () => {
   return useQuery({
@@ -30,7 +36,7 @@ export const useUpdateHeroContent = () => {
     mutationFn: updateHeroContentApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+      invalidateStorefrontHero(queryClient);
       toast.success('Cập nhật nội dung Hero thành công');
     },
     onError: (err) => {
@@ -46,7 +52,7 @@ export const useAddHeroImage = () => {
     mutationFn: addHeroImageApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+      invalidateStorefrontHero(queryClient);
       toast.success('Đã tải ảnh lên bộ sưu tập Hero');
     },
     onError: (err) => {
@@ -85,7 +91,7 @@ export const useToggleImageStatus = () => {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+      invalidateStorefrontHero(queryClient);
     },
     onSuccess: () => {
       toast.success('Đã cập nhật trạng thái ảnh');
@@ -99,7 +105,7 @@ export const useUpdateHeroImage = () => {
     mutationFn: updateHeroImageApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+      invalidateStorefrontHero(queryClient);
       toast.success('Đã cập nhật crop ảnh banner');
     },
     onError: (err) => toast.error(err.response?.data?.message || err.message || 'Lỗi cập nhật ảnh banner'),
@@ -121,7 +127,7 @@ export const useCropHeroImage = () => {
         };
       });
       queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY, refetchType: 'none' });
-      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY, refetchType: 'none' });
+      invalidateStorefrontHero(queryClient, { refetchType: 'none' });
       toast.success('Đã lưu ảnh crop banner');
     },
     onError: (err) => toast.error(err.response?.data?.message || err.message || 'Lỗi cập nhật ảnh banner'),
@@ -134,7 +140,7 @@ export const useUpdateHeroImageOrder = () => {
     mutationFn: updateHeroImageOrderApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+      invalidateStorefrontHero(queryClient);
     },
     onError: (err) => toast.error(err.response?.data?.message || err.message || 'Lỗi cập nhật thứ tự banner'),
   });
@@ -146,7 +152,7 @@ export const useReorderHeroImages = () => {
     mutationFn: reorderHeroImagesApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+      invalidateStorefrontHero(queryClient);
     },
     onError: (err) => toast.error(err.response?.data?.message || err.message || 'Lỗi cập nhật thứ tự banner'),
   });
@@ -158,7 +164,7 @@ export const useDeleteHeroImage = () => {
     mutationFn: deleteHeroImageApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_HERO_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: STOREFRONT_HERO_QUERY_KEY });
+      invalidateStorefrontHero(queryClient);
       toast.success('Đã xóa ảnh slide');
     },
     onError: (err) => {
