@@ -411,7 +411,7 @@ export default function ProductDetailPage() {
                         setFailedImageKey(currentImageKey);
                       }
                     }}
-                    className={`relative w-full h-full object-cover object-top transition-opacity duration-300 pointer-events-none ${isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className="relative w-full h-full object-cover object-top pointer-events-none"
                   />
                 )}
               </div>
