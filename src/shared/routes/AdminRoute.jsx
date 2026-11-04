@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../store/authStore';
+import AdminLoadingSkeleton from '@/features/admin/components/AdminLoadingSkeleton';
 
 /**
  * AdminRoute — Chỉ cho phép user có role = 'admin' truy cập trong Next.js App Router.
@@ -26,14 +27,7 @@ export default function AdminRoute({ children }) {
   }, [isInitialized, isAuthenticated, isAdmin, router]);
 
   if (!isInitialized || !isAuthenticated || !isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
-        <div className="flex flex-col items-center gap-3">
-          <span className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
-          <p className="text-xs text-neutral-400 font-medium">Đang kiểm tra quyền truy cập...</p>
-        </div>
-      </div>
-    );
+    return <AdminLoadingSkeleton fullScreen />;
   }
 
   return children;
