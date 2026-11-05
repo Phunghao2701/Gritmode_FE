@@ -12,6 +12,7 @@ import {
   getProductImageSrcSet,
   getSizedProductImageUrl,
 } from '../../products/utils/product.utils';
+import { preloadProductGalleryImage } from '../../products/utils/product-image-preloader';
 
 const HERO_IMAGE_WIDTHS = [640, 750, 828, 1080, 1280, 1440, 1920];
 
@@ -33,6 +34,20 @@ export default function LandingPage() {
     include_total: false,
     include_details: true,
   });
+
+  useEffect(() => {
+    if (!Array.isArray(products) || products.length === 0) return;
+
+    // Home already fetches full product details. Warm every gallery asset at
+    // low priority so opening a product can reuse the browser's image cache.
+    products.forEach((product) => {
+      product.images?.forEach((image) => {
+        if (image?.url_product_image) {
+          void preloadProductGalleryImage(image, 'low');
+        }
+      });
+    });
+  }, [products]);
 
   const heroSlides = useMemo(() => {
     const uploadedSlides = (heroData?.slides || []).filter((b) => b.is_active !== false);
