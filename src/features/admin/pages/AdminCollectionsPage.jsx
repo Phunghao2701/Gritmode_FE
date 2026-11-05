@@ -14,6 +14,7 @@ import {
 import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 import { requireApiArray } from '../../../shared/services/responseContract';
 import ErrorState from '../../../shared/components/ErrorState';
+import { getProductImagePresetUrl } from '../../products/utils/product.utils';
 
 export default function AdminCollectionsPage() {
   const router = useRouter();
@@ -182,7 +183,7 @@ export default function AdminCollectionsPage() {
                         <div className="h-32 bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
                           {child.image_collection ? (
                             <img
-                              src={child.image_collection}
+                              src={getProductImagePresetUrl(child.image_collection, 'card')}
                               alt={child.name_collection}
                               className="w-full h-full object-cover"
                             />

@@ -13,7 +13,7 @@ import { useCartStore } from '../store/cartStore';
 import { useCategories } from '../../features/categories/hooks/useCategory';
 import { useCollections } from '../../features/collections/hooks/useCollection';
 import { useProducts } from '../../features/products/hooks/useProducts';
-import { formatPriceVND, getSizedProductImageUrl } from '../../features/products/utils/product.utils';
+import { formatPriceVND, getProductImagePresetUrl } from '../../features/products/utils/product.utils';
 import { useBanners } from '../../features/landing/hooks/useBanners';
 
 const CartDrawer = dynamic(() => import('../../features/cart/components/CartDrawer'), {
@@ -682,7 +682,7 @@ export default function MainLayout({ children }) {
                           <div className="w-16 h-20 rounded-xl overflow-hidden bg-neutral-900 border border-white/10 shrink-0 relative flex items-center justify-center">
                             {imageUrl ? (
                               <img
-                                src={getSizedProductImageUrl(imageUrl, 160, { quality: 'eco' })}
+                                src={getProductImagePresetUrl(imageUrl, 'thumbnail')}
                                 alt={productName}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               />
@@ -1055,7 +1055,7 @@ export default function MainLayout({ children }) {
         >
           <div className="cart-item-fly size-11 overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-[0_6px_18px_rgba(0,0,0,0.16)]">
             {cartAnimation.image ? (
-              <img src={cartAnimation.image} alt="" className="size-full rounded-lg object-cover" />
+              <img src={getProductImagePresetUrl(cartAnimation.image, 'thumbnail')} alt="" className="size-full rounded-lg object-cover" />
             ) : (
               <Icon icon="solar:bag-3-bold" className="grid size-full place-items-center text-xl text-black" />
             )}

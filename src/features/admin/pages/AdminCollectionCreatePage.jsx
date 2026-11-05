@@ -11,6 +11,7 @@ import { createCollectionApi, getAdminCollectionsApi, updateCollectionApi } from
 import { uploadAdminProductImagesApi } from '../apis/admin.api';
 import { broadcastQueryInvalidation } from '../../../shared/services/queryClient';
 import { requireApiArray } from '../../../shared/services/responseContract';
+import { getProductImagePresetUrl } from '../../products/utils/product.utils';
 
 const ImageCropModal = dynamic(() => import('../../../shared/components/media/ImageCropModal'), {
   ssr: false,
@@ -259,7 +260,7 @@ export default function AdminCollectionCreatePage() {
             </div>
             <label className="relative aspect-[4/3] rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-950 overflow-hidden flex items-center justify-center cursor-pointer hover:border-black dark:hover:border-white transition-colors">
               {image ? <>
-                <img src={image} alt="Xem trước ảnh bộ sưu tập" className="w-full h-full object-cover" />
+                <img src={getProductImagePresetUrl(image, 'card')} alt="Xem trước ảnh bộ sưu tập" className="w-full h-full object-cover" />
                 <button
                   type="button"
                   className="absolute bottom-3 right-3 z-10 grid size-9 place-items-center rounded-full bg-black text-white shadow-lg hover:scale-105 transition-transform"
