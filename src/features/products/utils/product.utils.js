@@ -20,17 +20,73 @@ export const slugifyProductName = (name = '') => String(name)
   .replace(/[^a-z0-9]+/g, '-')
   .replace(/^-+|-+$/g, '');
 
+export const PRODUCT_IMAGE_PRESETS = Object.freeze({
+  thumbnail: Object.freeze({ width: 160, quality: 'eco' }),
+  card: Object.freeze({ width: 480, quality: 'good' }),
+  gallery: Object.freeze({
+    width: 960,
+    widths: Object.freeze([640, 960, 1280, 1600]),
+    quality: 'good',
+    sizes: '(min-width: 1024px) 58vw, 100vw',
+  }),
+  zoom: Object.freeze({ width: 1600, quality: 'good' }),
+});
+
+const CLOUDINARY_UPLOAD_PATH = '/image/upload/';
+
+const isCloudinaryTransformation = (segment = '') => (
+  segment.includes(',') || /^(?:a|b|c|d|e|f|fl|g|h|l|o|q|r|s|t|u|w|x|y|z|dpr)_/i.test(segment)
+);
+
+const getCloudinaryOriginalUrl = (source) => {
+  const normalizedSource = source.trim();
+  const uploadIndex = normalizedSource.indexOf(CLOUDINARY_UPLOAD_PATH);
+  if (uploadIndex < 0) return null;
+
+  const pathStart = uploadIndex + CLOUDINARY_UPLOAD_PATH.length;
+  const segments = normalizedSource.slice(pathStart).split('/');
+  const versionIndex = segments.findIndex((segment) => /^v\d+$/.test(segment));
+  const firstAssetIndex = segments.findIndex((segment) => !isCloudinaryTransformation(segment));
+  const assetSegments = versionIndex >= 0
+    ? segments.slice(versionIndex)
+    : firstAssetIndex >= 0
+      ? segments.slice(firstAssetIndex)
+      : [];
+
+  if (assetSegments.length === 0 || !assetSegments[0]) return null;
+
+  return `${normalizedSource.slice(0, pathStart)}${assetSegments.join('/')}`;
+};
+
+const buildCloudinaryImageUrl = (source, transformation) => {
+  if (typeof source !== 'string') return source;
+  const normalizedSource = source.trim();
+  if (!normalizedSource) return normalizedSource;
+
+  const originalUrl = getCloudinaryOriginalUrl(normalizedSource);
+  if (!originalUrl) return null;
+
+  return originalUrl.replace(CLOUDINARY_UPLOAD_PATH, `${CLOUDINARY_UPLOAD_PATH}${transformation}/`);
+};
+
+/**
+ * Creates the canonical Cloudinary delivery URL for a requested rendition.
+ * Stored, versioned asset URLs are normalized first so existing transform
+ * strings (including f_auto) cannot accumulate into a different cache key.
+ */
 export const getSizedProductImageUrl = (source, width, { quality = 'good' } = {}) => {
   if (typeof source !== 'string') return source;
   const normalizedSource = source.trim();
   if (!normalizedSource || !width) return normalizedSource;
   const normalizedQuality = quality === 'eco' ? 'eco' : 'good';
-  if (normalizedSource.includes('/image/upload/')) {
-    // Keep the stored format (product assets are uploaded as WebP) so Cloudinary
-    // can mark the versioned delivery URL as publicly cacheable; f_auto requires
-    // a private cache policy because the response format varies by browser.
-    return normalizedSource.replace('/image/upload/', `/image/upload/q_auto:${normalizedQuality},w_${width},c_limit/`);
+
+  if (normalizedSource.includes(CLOUDINARY_UPLOAD_PATH)) {
+    return buildCloudinaryImageUrl(
+      normalizedSource,
+      `q_auto:${normalizedQuality},w_${width},c_limit`,
+    ) || normalizedSource;
   }
+
   if (normalizedSource.includes('images.unsplash.com')) {
     const url = new URL(normalizedSource);
     url.searchParams.set('auto', 'format');
@@ -38,18 +94,31 @@ export const getSizedProductImageUrl = (source, width, { quality = 'good' } = {}
     if (normalizedQuality === 'eco') url.searchParams.set('q', '70');
     return url.toString();
   }
+
   return normalizedSource;
 };
 
-export const getProductImageSrcSet = (source, widths = [320, 640, 960]) => (
-  widths.map((width) => `${getSizedProductImageUrl(source, width)} ${width}w`).join(', ')
+export const getProductImagePresetUrl = (source, presetName) => {
+  const preset = PRODUCT_IMAGE_PRESETS[presetName];
+  if (!preset) return typeof source === 'string' ? source.trim() : source;
+  return getSizedProductImageUrl(source, preset.width, { quality: preset.quality });
+};
+
+export const getProductImageSrcSet = (source, widths = [320, 640, 960], options = {}) => (
+  widths.map((width) => `${getSizedProductImageUrl(source, width, options)} ${width}w`).join(', ')
 );
+
+export const getProductImagePresetSrcSet = (source, presetName = 'gallery') => {
+  const preset = PRODUCT_IMAGE_PRESETS[presetName];
+  if (!preset?.widths) return '';
+  return getProductImageSrcSet(source, preset.widths, { quality: preset.quality });
+};
 
 export const getProductImagePlaceholderUrl = (source) => {
   if (typeof source !== 'string' || !source.trim()) return null;
   const normalizedSource = source.trim();
   if (normalizedSource.includes('/image/upload/')) {
-    return normalizedSource.replace('/image/upload/', '/image/upload/q_auto:low,w_32,e_blur:1000,c_limit/');
+    return buildCloudinaryImageUrl(normalizedSource, 'q_auto:low,w_32,e_blur:1000,c_limit');
   }
   if (normalizedSource.includes('images.unsplash.com')) {
     const url = new URL(normalizedSource);

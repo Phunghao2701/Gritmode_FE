@@ -15,7 +15,16 @@ import { toast } from '../../../shared/utils/toast';
 import LoadingSkeleton from '../../../shared/components/LoadingSkeleton';
 import EmptyState from '../../../shared/components/EmptyState';
 import ErrorState from '../../../shared/components/ErrorState';
-import { formatPriceVND, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
+import {
+  formatPriceVND,
+  getProductImagePresetSrcSet,
+  getProductImagePresetUrl,
+  getSizedProductImageUrl,
+  PRODUCT_IMAGE_PRESETS,
+} from '../utils/product.utils';
+import { preloadProductGalleryImage } from '../utils/product-image-preloader';
+
+const MAIN_PRODUCT_IMAGE_PRESET = PRODUCT_IMAGE_PRESETS.gallery;
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -101,7 +110,7 @@ export default function ProductDetailPage() {
     ? `${currentImage.product_image_id || ''}:${currentImageSource}`
     : null;
   const mainImageRef = useRef(null);
-  const resizedImageSource = getSizedProductImageUrl(currentImageSource, 960);
+  const resizedImageSource = getProductImagePresetUrl(currentImageSource, 'gallery');
   const isUsingOriginalImage = originalImageKey === currentImageKey;
   const hasImageFailed = failedImageKey === currentImageKey;
   const isCurrentImageLoaded = loadedImageKey === currentImageKey;
@@ -124,15 +133,37 @@ export default function ProductDetailPage() {
     }
   }, [currentImageKey, currentImageSource, isUsingOriginalImage, resizedImageSource]);
 
+  const selectGalleryImage = useCallback((index) => {
+    if (isZoomed || !galleryImages[index]) return;
+    if (index === selectedImageIndex) return;
+
+    // Switch immediately. Raise any Home/detail preload to high priority in
+    // the background; waiting for decode here caused a spinner on every click.
+    void preloadProductGalleryImage(galleryImages[index], 'high');
+    setSelectedImageIndex(index);
+  }, [galleryImages, isZoomed, selectedImageIndex, setSelectedImageIndex]);
+
+  useEffect(() => {
+    if (!isCurrentImageLoaded || galleryImages.length <= 1) return;
+
+    galleryImages.forEach((image, index) => {
+      if (index !== selectedImageIndex) {
+        void preloadProductGalleryImage(image, 'low');
+      }
+    });
+  }, [galleryImages, isCurrentImageLoaded, selectedImageIndex]);
+
   const handlePrevImage = useCallback(() => {
     if (isZoomed || galleryImages.length <= 1) return;
-    setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1));
-  }, [galleryImages.length, isZoomed, setSelectedImageIndex]);
+    const nextIndex = selectedImageIndex > 0 ? selectedImageIndex - 1 : galleryImages.length - 1;
+    selectGalleryImage(nextIndex);
+  }, [galleryImages.length, isZoomed, selectGalleryImage, selectedImageIndex]);
 
   const handleNextImage = useCallback(() => {
     if (isZoomed || galleryImages.length <= 1) return;
-    setSelectedImageIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
-  }, [galleryImages.length, isZoomed, setSelectedImageIndex]);
+    const nextIndex = selectedImageIndex < galleryImages.length - 1 ? selectedImageIndex + 1 : 0;
+    selectGalleryImage(nextIndex);
+  }, [galleryImages.length, isZoomed, selectGalleryImage, selectedImageIndex]);
 
   const activeLightboxImageIndex = lightboxImageIndex ?? selectedImageIndex;
   const lightboxImage = galleryImages[activeLightboxImageIndex] || currentImage;
@@ -397,8 +428,8 @@ export default function ProductDetailPage() {
                     src={isUsingOriginalImage ? currentImageSource : resizedImageSource}
                     srcSet={isUsingOriginalImage
                       ? undefined
-                      : getProductImageSrcSet(currentImageSource, [640, 960, 1280, 1600])}
-                    sizes={isUsingOriginalImage ? undefined : '(min-width: 1024px) 58vw, 100vw'}
+                    : getProductImagePresetSrcSet(currentImageSource, 'gallery')}
+                    sizes={isUsingOriginalImage ? undefined : MAIN_PRODUCT_IMAGE_PRESET.sizes}
                     alt={product.name_product}
                     loading="eager"
                     decoding="async"
@@ -411,7 +442,7 @@ export default function ProductDetailPage() {
                         setFailedImageKey(currentImageKey);
                       }
                     }}
-                    className={`relative w-full h-full object-cover object-top transition-opacity duration-300 pointer-events-none ${isCurrentImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className="relative w-full h-full object-cover object-top pointer-events-none"
                   />
                 )}
               </div>
@@ -462,22 +493,17 @@ export default function ProductDetailPage() {
                 <button
                   key={img.product_image_id || idx}
                   type="button"
-                  onClick={() => setSelectedImageIndex(idx)}
+                  onClick={() => selectGalleryImage(idx)}
+                  onPointerEnter={() => { void preloadProductGalleryImage(img); }}
+                  onFocus={() => { void preloadProductGalleryImage(img); }}
+                  onTouchStart={() => { void preloadProductGalleryImage(img); }}
                   className={`relative w-20 h-24 rounded-2xl overflow-hidden transition-all shrink-0 bg-neutral-100 dark:bg-neutral-900 cursor-pointer ${selectedImageIndex === idx
-                      ? 'opacity-100 scale-105 shadow-sm'
-                      : 'opacity-40 hover:opacity-80'
-                    }`}
+                    ? 'opacity-100 scale-105 shadow-sm'
+                    : 'opacity-40 hover:opacity-80'
+                  }`}
                 >
                   <img
-                    src={getSizedProductImageUrl(
-                      img.url_product_image,
-                      selectedImageIndex === idx ? 960 : 160,
-                      selectedImageIndex === idx ? undefined : { quality: 'eco' },
-                    )}
-                    srcSet={selectedImageIndex === idx
-                      ? getProductImageSrcSet(img.url_product_image, [640, 960, 1280, 1600])
-                      : undefined}
-                    sizes={selectedImageIndex === idx ? "(min-width: 1024px) 58vw, 100vw" : undefined}
+                    src={getProductImagePresetUrl(img.url_product_image, 'thumbnail')}
                     alt={`${product.name_product} - ${idx}`}
                     className="w-full h-full object-cover"
                     loading={selectedImageIndex === idx ? "eager" : "lazy"}
@@ -801,14 +827,14 @@ export default function ProductDetailPage() {
               className={`relative h-[calc(100vh-140px)] max-w-[95vw] transition-all duration-300 flex items-center justify-center select-none overflow-hidden ${isZoomed ? 'cursor-grab active:cursor-grabbing touch-none' : 'cursor-zoom-in'}`}
             >
               <img
-                src={getSizedProductImageUrl(lightboxImage.url_product_image, 160, { quality: 'eco' })}
+                src={getProductImagePresetUrl(lightboxImage.url_product_image, 'thumbnail')}
                 alt=""
                 aria-hidden="true"
                 className={`absolute inset-0 w-full h-full object-contain blur-[2px] scale-[1.01] transition-opacity duration-200 ${loadedLightboxImageIndex === activeLightboxImageIndex ? 'opacity-0' : 'opacity-100'}`}
               />
               <img
                 key={activeLightboxImageIndex}
-                src={getSizedProductImageUrl(lightboxImage.url_product_image, 1600)}
+                src={getProductImagePresetUrl(lightboxImage.url_product_image, 'zoom')}
                 alt={product.name_product}
                 draggable="false"
                 loading="eager"
@@ -852,7 +878,7 @@ export default function ProductDetailPage() {
                       }`}
                   >
                     <img
-                      src={getSizedProductImageUrl(img.url_product_image, 160, { quality: 'eco' })}
+                      src={getProductImagePresetUrl(img.url_product_image, 'thumbnail')}
                       alt=""
                       className="w-full h-full object-cover"
                       loading={activeLightboxImageIndex === idx ? "eager" : "lazy"}
