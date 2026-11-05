@@ -17,6 +17,9 @@ import EmptyState from '../../../shared/components/EmptyState';
 import ErrorState from '../../../shared/components/ErrorState';
 import { formatPriceVND, getProductImageSrcSet, getSizedProductImageUrl } from '../utils/product.utils';
 
+const MAIN_PRODUCT_IMAGE_WIDTHS = [640, 960, 1280, 1600];
+const MAIN_PRODUCT_IMAGE_SIZES = '(min-width: 1024px) 58vw, 100vw';
+
 export default function ProductDetailPage() {
   const params = useParams();
   const slug = params?.slug || params?.id;
@@ -45,6 +48,8 @@ export default function ProductDetailPage() {
     incrementQuantity,
     decrementQuantity,
   } = useProductDetail(slug);
+
+  const [pendingImageIndex, setPendingImageIndex] = useState(null);
 
   const primaryCategoryId = product?.categories?.find((c) => c.is_primary)?.category_id || product?.categories?.[0]?.category_id;
   const { products: allProducts = [] } = useProducts(
@@ -80,6 +85,8 @@ export default function ProductDetailPage() {
   const imagePanStartRef = useRef(null);
   const imagePanMovedRef = useRef(false);
   const preloadedLightboxUrlsRef = useRef(new Set());
+  const preloadedMainImageRequestsRef = useRef(new Map());
+  const gallerySelectionRequestRef = useRef(0);
 
   // Touch swipe gesture support for mobile / touch devices
   const [touchStartX, setTouchStartX] = useState(null);
@@ -124,15 +131,92 @@ export default function ProductDetailPage() {
     }
   }, [currentImageKey, currentImageSource, isUsingOriginalImage, resizedImageSource]);
 
+  const preloadMainGalleryImage = useCallback((image, priority = 'low') => {
+    if (typeof window === 'undefined' || !image?.url_product_image) {
+      return Promise.resolve(false);
+    }
+
+    const source = image.url_product_image.trim();
+    if (!source) return Promise.resolve(false);
+
+    const requestKey = `${source}|${MAIN_PRODUCT_IMAGE_SIZES}`;
+    const existingRequest = preloadedMainImageRequestsRef.current.get(requestKey);
+    if (existingRequest) {
+      if (priority === 'high') existingRequest.image.fetchPriority = 'high';
+      return existingRequest.promise;
+    }
+
+    const preload = new window.Image();
+    preload.decoding = 'async';
+    preload.fetchPriority = priority;
+    preload.sizes = MAIN_PRODUCT_IMAGE_SIZES;
+
+    const promise = new Promise((resolve) => {
+      let settled = false;
+      const finish = async (loaded) => {
+        if (settled) return;
+        settled = true;
+        if (loaded && typeof preload.decode === 'function') {
+          try {
+            await preload.decode();
+          } catch {
+            // The image can still render if decode() is unsupported.
+          }
+        }
+        resolve(loaded && preload.naturalWidth > 0);
+      };
+
+      preload.onload = () => finish(true);
+      preload.onerror = () => finish(false);
+      preload.srcset = getProductImageSrcSet(source, MAIN_PRODUCT_IMAGE_WIDTHS);
+      preload.src = getSizedProductImageUrl(source, 960);
+
+      if (preload.complete) finish(preload.naturalWidth > 0);
+    });
+
+    preloadedMainImageRequestsRef.current.set(requestKey, { image: preload, promise });
+    promise.then((loaded) => {
+      if (!loaded && preloadedMainImageRequestsRef.current.get(requestKey)?.promise === promise) {
+        preloadedMainImageRequestsRef.current.delete(requestKey);
+      }
+    });
+
+    return promise;
+  }, []);
+
+  const selectGalleryImage = useCallback(async (index) => {
+    if (isZoomed || !galleryImages[index]) return;
+    if (index === selectedImageIndex) {
+      gallerySelectionRequestRef.current += 1;
+      setPendingImageIndex(null);
+      return;
+    }
+
+    const requestId = ++gallerySelectionRequestRef.current;
+    setPendingImageIndex(index);
+    await preloadMainGalleryImage(galleryImages[index], 'high');
+
+    if (requestId !== gallerySelectionRequestRef.current) return;
+    setPendingImageIndex(null);
+    setSelectedImageIndex(index);
+  }, [galleryImages, isZoomed, preloadMainGalleryImage, selectedImageIndex, setSelectedImageIndex]);
+
+  useEffect(() => {
+    gallerySelectionRequestRef.current += 1;
+    setPendingImageIndex(null);
+  }, [galleryImages]);
+
   const handlePrevImage = useCallback(() => {
     if (isZoomed || galleryImages.length <= 1) return;
-    setSelectedImageIndex((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1));
-  }, [galleryImages.length, isZoomed, setSelectedImageIndex]);
+    const nextIndex = selectedImageIndex > 0 ? selectedImageIndex - 1 : galleryImages.length - 1;
+    selectGalleryImage(nextIndex);
+  }, [galleryImages.length, isZoomed, selectGalleryImage, selectedImageIndex]);
 
   const handleNextImage = useCallback(() => {
     if (isZoomed || galleryImages.length <= 1) return;
-    setSelectedImageIndex((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0));
-  }, [galleryImages.length, isZoomed, setSelectedImageIndex]);
+    const nextIndex = selectedImageIndex < galleryImages.length - 1 ? selectedImageIndex + 1 : 0;
+    selectGalleryImage(nextIndex);
+  }, [galleryImages.length, isZoomed, selectGalleryImage, selectedImageIndex]);
 
   const activeLightboxImageIndex = lightboxImageIndex ?? selectedImageIndex;
   const lightboxImage = galleryImages[activeLightboxImageIndex] || currentImage;
@@ -397,8 +481,8 @@ export default function ProductDetailPage() {
                     src={isUsingOriginalImage ? currentImageSource : resizedImageSource}
                     srcSet={isUsingOriginalImage
                       ? undefined
-                      : getProductImageSrcSet(currentImageSource, [640, 960, 1280, 1600])}
-                    sizes={isUsingOriginalImage ? undefined : '(min-width: 1024px) 58vw, 100vw'}
+                    : getProductImageSrcSet(currentImageSource, MAIN_PRODUCT_IMAGE_WIDTHS)}
+                    sizes={isUsingOriginalImage ? undefined : MAIN_PRODUCT_IMAGE_SIZES}
                     alt={product.name_product}
                     loading="eager"
                     decoding="async"
@@ -462,27 +546,30 @@ export default function ProductDetailPage() {
                 <button
                   key={img.product_image_id || idx}
                   type="button"
-                  onClick={() => setSelectedImageIndex(idx)}
+                  aria-busy={pendingImageIndex === idx}
+                  onClick={() => selectGalleryImage(idx)}
+                  onPointerEnter={() => { void preloadMainGalleryImage(img); }}
+                  onFocus={() => { void preloadMainGalleryImage(img); }}
+                  onTouchStart={() => { void preloadMainGalleryImage(img); }}
                   className={`relative w-20 h-24 rounded-2xl overflow-hidden transition-all shrink-0 bg-neutral-100 dark:bg-neutral-900 cursor-pointer ${selectedImageIndex === idx
                       ? 'opacity-100 scale-105 shadow-sm'
+                      : pendingImageIndex === idx
+                        ? 'opacity-100 scale-105 shadow-sm ring-2 ring-neutral-400'
                       : 'opacity-40 hover:opacity-80'
                     }`}
                 >
                   <img
-                    src={getSizedProductImageUrl(
-                      img.url_product_image,
-                      selectedImageIndex === idx ? 960 : 160,
-                      selectedImageIndex === idx ? undefined : { quality: 'eco' },
-                    )}
-                    srcSet={selectedImageIndex === idx
-                      ? getProductImageSrcSet(img.url_product_image, [640, 960, 1280, 1600])
-                      : undefined}
-                    sizes={selectedImageIndex === idx ? "(min-width: 1024px) 58vw, 100vw" : undefined}
+                    src={getSizedProductImageUrl(img.url_product_image, 160, { quality: 'eco' })}
                     alt={`${product.name_product} - ${idx}`}
                     className="w-full h-full object-cover"
                     loading={selectedImageIndex === idx ? "eager" : "lazy"}
                     decoding="async"
                   />
+                  {pendingImageIndex === idx && (
+                    <span aria-hidden="true" className="absolute inset-0 grid place-items-center bg-black/20">
+                      <span className="size-4 animate-spin rounded-full border-2 border-white/50 border-t-white" />
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
