@@ -40,9 +40,6 @@ export default function ProductCard({ product }) {
   const formattedPrice = formatProductPriceRange(minPrice, maxPrice);
   const formattedOriginalPrice = formatProductPriceRange(originalMinPrice, originalMaxPrice);
 
-  // Category name or tag
-  const primaryCategory = product.categories?.find((c) => c.is_primary)?.name_category || product.category_name || '';
-
   return (
     <Link
       href={`/products/${productSlug}`}
@@ -86,13 +83,6 @@ export default function ProductCard({ product }) {
 
       {/* Product Meta Details */}
       <div className="min-h-[5rem] space-y-1 px-1">
-        <span
-          aria-hidden={!primaryCategory}
-          className="block min-h-[0.875rem] line-clamp-1 text-[10px] font-normal uppercase tracking-wider text-neutral-400"
-        >
-          {primaryCategory || '\u00a0'}
-        </span>
-
         <h3 className="font-sans font-normal text-xs sm:text-sm text-neutral-900 dark:text-neutral-100 uppercase tracking-wider line-clamp-1 group-hover:text-black dark:group-hover:text-white transition-colors">
           {name}
         </h3>
